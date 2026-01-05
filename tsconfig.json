@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ory/elements-react": ["./src/lib/ory/elements-react/src/index.ts"],
+      "@ory/elements-react/locales": ["./src/lib/ory/elements-react/src/locales/index.ts"],
+      "@ory/elements-react/theme": ["./src/lib/ory/elements-react/src/theme/default/index.ts"],
+      "@ory/elements-react/client": ["./src/lib/ory/elements-react/src/client/index.ts"],
+      "@ory/nextjs": ["./src/lib/ory/nextjs/src/index.ts"],
+      "@ory/nextjs/app": ["./src/lib/ory/nextjs/src/app/index.ts"],
+      "@ory/nextjs/middleware": ["./src/lib/ory/nextjs/src/middleware/index.ts"],
+      "@ory/nextjs/pages": ["./src/lib/ory/nextjs/src/pages/index.ts"],
+      "@ory/nextjs/utils": ["./src/lib/ory/nextjs/src/utils/index.ts"],
+      "@ory/sdk/server": ["./src/lib/ory/sdk/server/index.ts"],
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
