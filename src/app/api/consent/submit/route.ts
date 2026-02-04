@@ -58,16 +58,14 @@ export async function POST(req: Request) {
     await checkCsrfToken(body);
 
     if (body.action === 'accept') {
-        const consentRequest = {...body, challenge: body.consent_challenge}
-        const remember = false
-        const {redirectTo} = await acceptConsentRequest(
-            consentRequest,
-            remember
-        );
-        return NextResponse.redirect(redirectTo);
+        const consentRequest = {...body, challenge: body.consent_challenge};
+        const {redirectTo} = await acceptConsentRequest(consentRequest);
+        // TODO do works, we have a browser OPTION request that fails
+        return NextResponse.redirect(redirectTo, 302);
     }
     if (body.action === 'reject') {
         const {redirectTo} = await rejectConsentRequest(body.consent_challenge);
+        // TODO do works, we have a browser OPTION request that fails
         return NextResponse.redirect(redirectTo);
     }
     return NextResponse.redirect('/');

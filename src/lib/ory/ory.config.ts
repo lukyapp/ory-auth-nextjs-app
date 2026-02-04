@@ -1,5 +1,3 @@
-import {env} from "@/env";
-
 import type { OryClientConfiguration } from "@ory/elements-react"
 
 export const oryConfig: OryClientConfiguration = {
@@ -19,6 +17,6 @@ export const oryConfig: OryClientConfiguration = {
         verification_ui_url: "/auth/verification",
     },
     sdk: {
-        url: env.NEXT_PUBLIC_ORY_SDK_URL,
+        url: process.env.NEXT_PUBLIC_ORY_SDK_URL,
     }
 }

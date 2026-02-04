@@ -2,7 +2,6 @@ import Link from "next/link";
 import {notFound} from "next/navigation"
 
 import {getFirstSearchParam} from "@/app-utils/get-first-search-param";
-import {env} from "@/env";
 
 type KratosErrorResponse = {
     id: string
@@ -13,7 +12,7 @@ type KratosErrorResponse = {
 }
 
 async function getKratosError(errorId: string) {
-    const res = await fetch(`${env.NEXT_PUBLIC_ORY_SDK_URL}/self-service/errors?id=${errorId}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_ORY_SDK_URL}/self-service/errors?id=${errorId}`, {
             cache: "no-store",
             credentials: "include",
         }

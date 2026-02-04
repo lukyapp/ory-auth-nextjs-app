@@ -14,5 +14,4 @@ if (!parsed.success) {
     console.error(z.treeifyError(parsed.error));
     throw new Error("Invalid environment variables");
 }
-
-export const env = parsed.data;
+console.log("✅ Valid environment variables")
