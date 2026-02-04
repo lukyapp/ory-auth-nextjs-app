@@ -3,6 +3,7 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { UiNode, UiNodeInputAttributes, UiText } from '@ory/client-fetch';
 import { useIntl } from 'react-intl';
 import { uiTextToFormattedMessage } from './i18n';

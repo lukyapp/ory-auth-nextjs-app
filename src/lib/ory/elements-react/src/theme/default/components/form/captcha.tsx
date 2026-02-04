@@ -3,12 +3,15 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
-import { isUiNodeInputAttributes } from '@ory/client-fetch';
-import { OryNodeCaptchaProps } from '@ory/elements-react';
-import { useEffect, useRef } from 'react';
+import { isUiNodeInputAttributes, UiText } from '@ory/client-fetch';
+import { OryNodeCaptchaProps, useComponents, useOryFlow } from '@ory/elements-react';
+import { useEffect, useRef, useState } from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { useFormContext } from 'react-hook-form';
+import { useIntl } from 'react-intl';
+import { cn } from '../../utils/cn';
 
 type Config = {
   sitekey: string;
@@ -18,18 +21,23 @@ type Config = {
 };
 
 export const DefaultCaptcha = ({ node }: OryNodeCaptchaProps) => {
-  const { setValue, formState } = useFormContext();
+  const { Message } = useComponents();
+  const intl = useIntl();
+  const { setValue } = useFormContext();
+  const { dispatchFormState, formState } = useOryFlow();
   const ref = useRef<TurnstileInstance>();
+  const [isInteractive, setInteractive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<UiText | undefined>();
   // In this node, we only care about the `captcha-turnstile-options` node as that contains
   // all required information to render the captcha.
 
-  const prevSubmitCount = useRef(formState.submitCount);
-
-  // Reset widget whenever submitCount changes (this covers both successful submissions and validation errors)
+  // Reset widget whenever form is done submitting
   useEffect(() => {
-    if (formState.submitCount > prevSubmitCount.current) {
-      prevSubmitCount.current = formState.submitCount;
-
+    if (!formState.isSubmitting) {
+      dispatchFormState({
+        type: 'form_input_loading',
+        group: 'captcha',
+      });
       // Adding a small timeout to ensure the form submission process has completed
       setTimeout(() => {
         if (ref.current) {
@@ -37,7 +45,14 @@ export const DefaultCaptcha = ({ node }: OryNodeCaptchaProps) => {
         }
       }, 100);
     }
-  }, [formState.submitCount]);
+  }, [formState.isSubmitting, dispatchFormState]);
+
+  useEffect(() => {
+    dispatchFormState({
+      type: 'form_input_loading',
+      group: 'captcha',
+    });
+  }, [dispatchFormState]);
 
   if (!isUiNodeInputAttributes(node.attributes)) {
     return null;
@@ -49,22 +64,59 @@ export const DefaultCaptcha = ({ node }: OryNodeCaptchaProps) => {
   } else if (node.attributes.name === 'captcha_turnstile_options') {
     // This is the actual widget
     const options: Config = JSON.parse(node.attributes.value as string);
+
     return (
-      <Turnstile
-        ref={ref}
-        siteKey={options.sitekey}
-        options={{
-          action: options.action,
-          size: 'flexible',
-          theme: options.theme,
-          responseField: true,
-          responseFieldName: options.response_field_name,
-        }}
-        onExpire={() => ref.current?.reset()}
-        onSuccess={(token) => {
-          setValue(options.response_field_name, token);
-        }}
-      />
+      <>
+        <Turnstile
+          ref={ref}
+          siteKey={options.sitekey}
+          options={{
+            action: options.action,
+            size: 'flexible',
+            theme: options.theme,
+            responseField: true,
+            responseFieldName: options.response_field_name,
+            appearance: 'interaction-only',
+          }}
+          className={cn('!block !h-[65px] !w-full !min-w-[300px]', {
+            '!hidden': !isInteractive,
+          })}
+          onBeforeInteractive={() => {
+            setInteractive(true);
+            dispatchFormState({
+              type: 'form_input_ready',
+              input: 'captcha',
+            });
+          }}
+          onExpire={() => {
+            ref.current?.reset();
+            dispatchFormState({
+              type: 'form_input_loading',
+              group: 'captcha',
+            });
+          }}
+          onSuccess={(token) => {
+            setValue(options.response_field_name, token);
+            dispatchFormState({
+              type: 'form_input_ready',
+              input: 'captcha',
+            });
+          }}
+          onError={(error) => {
+            console.error('Cloudflare Turnstile Error:', error);
+            setErrorMessage({
+              id: 5000002,
+              text: intl.formatMessage({
+                id: 'captcha.error',
+                defaultMessage:
+                  'Security verification failed. Please try again later. If the problem persists, contact support.',
+              }),
+              type: 'error',
+            });
+          }}
+        />
+        {errorMessage && <Message.Content key={errorMessage.id} message={errorMessage} />}
+      </>
     );
   }
 

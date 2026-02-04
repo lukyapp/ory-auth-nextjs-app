@@ -9,6 +9,7 @@
  * @module default-theme
  */
 
-// import "./global.css"
+// import './global.css';
+
 export * from './components';
 export * from './flows';

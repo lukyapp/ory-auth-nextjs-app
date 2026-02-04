@@ -74,12 +74,18 @@ export async function proxyRequest(request: NextRequest, options: OryMiddlewareO
   upstreamRequestHeaders.set('Ory-No-Custom-Domain-Redirect', 'true');
 
   // Fetch the upstream response
-  const upstreamResponse = await fetch(upstreamUrl.toString(), {
+  let upstreamResponse = await fetch(upstreamUrl.toString(), {
     method: request.method,
     headers: upstreamRequestHeaders,
     body:
       request.method !== 'GET' && request.method !== 'HEAD' ? await request.arrayBuffer() : null,
     redirect: 'manual',
+  });
+  upstreamResponse = new Response(upstreamResponse.body, {
+    status: upstreamResponse.status,
+    statusText: upstreamResponse.statusText,
+    // response may have immutable headers
+    headers: new Headers(upstreamResponse.headers),
   });
 
   // Delete headers that should not be forwarded

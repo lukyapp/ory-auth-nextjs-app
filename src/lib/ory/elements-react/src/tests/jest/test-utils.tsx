@@ -7,6 +7,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import { PropsWithChildren, ReactElement } from 'react';
 import dummyFlow from '../../../.stub-responses/login/1fa/none/initial-form.json';
 import { OryFlowComponentOverrides } from '../../components';
+import { OryFormProvider } from '../../components/form/form-provider';
 import { OryConfigurationProvider } from '../../context';
 import { OryComponentProvider } from '../../context/component';
 import { OryFlowProvider } from '../../context/flow-context';
@@ -26,8 +27,6 @@ export const defaultConfiguration: OryClientConfiguration = {
     default_redirect_url: 'http://localhost:4455',
     error_ui_url: 'http://localhost:4455/error',
     settings_ui_url: 'http://localhost:4455/settings',
-    default_locale: 'en',
-    locale_behavior: 'respect_accept_language',
   },
   sdk: {
     url: 'http://localhost:4455',
@@ -47,7 +46,9 @@ const OryProvider = ({ children, components, flow }: OryProviderProps) => (
     })}
   >
     <OryComponentProvider components={getOryComponents(components)}>
-      <OryConfigurationProvider {...defaultConfiguration}>{children}</OryConfigurationProvider>
+      <OryConfigurationProvider {...defaultConfiguration}>
+        <OryFormProvider>{children}</OryFormProvider>
+      </OryConfigurationProvider>
     </OryComponentProvider>
   </OryFlowProvider>
 );

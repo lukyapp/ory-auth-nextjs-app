@@ -1,4 +1,7 @@
 /* eslint-disable */
+// Copyright © 2026 Ory Corp
+// SPDX-License-Identifier: Apache-2.0
+
 type AnyObject = Record<string, unknown>;
 
 /**

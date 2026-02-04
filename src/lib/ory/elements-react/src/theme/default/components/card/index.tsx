@@ -5,7 +5,7 @@
 import { OryCardProps } from '@ory/elements-react';
 import { ComponentPropsWithoutRef } from 'react';
 import { cn } from '../../utils/cn';
-import { Badge } from './badge';
+// import { Badge } from './badge';
 import { DefaultCardContent } from './content';
 import { DefaultCurrentIdentifierButton } from './current-identifier-button';
 import { DefaultCardFooter } from './footer';
@@ -33,6 +33,7 @@ export function DefaultCard({
           data-testid="ory/card"
         >
           {children}
+          {/*<Badge />*/}
         </div>
       </div>
     </div>

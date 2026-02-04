@@ -292,5 +292,9 @@
   "error.instructions": "Prosimo, poskusite znova čez nekaj minut ali kontaktirajte upravljavca spletne strani.",
   "error.footer.text": "Pri poročanju te napake prosimo, vključite naslednje informacije:",
   "error.footer.copy": "Kopiraj",
-  "error.action.go-back": "Pojdi nazaj"
+  "error.action.go-back": "Pojdi nazaj",
+  "identities.messages.4000039": "Novo geslo se mora razlikovati od starega gesla.",
+  "identities.messages.4000040": "Vnesite veljaven e-poštni naslov",
+  "identities.messages.4000041": "Vnesite veljavno telefonsko številko",
+  "captcha.error": "Varnostno preverjanje ni uspelo. Poskusite znova pozneje. Če težava ne izgine, se obrnite na podporo."
 }

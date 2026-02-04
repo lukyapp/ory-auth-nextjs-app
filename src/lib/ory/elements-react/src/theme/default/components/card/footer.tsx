@@ -3,6 +3,7 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { FlowType, LoginFlow } from '@ory/client-fetch';
 import { ConsentFlow, FormState, Node, useOryConfiguration, useOryFlow } from '@ory/elements-react';
 import { useIntl } from 'react-intl';

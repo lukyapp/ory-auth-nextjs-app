@@ -11,12 +11,7 @@ import {
   UiNodeGroupEnum,
 } from '@ory/client-fetch';
 import * as oryFlow from '@ory/elements-react';
-import {
-  FlowContextValue,
-  FormState,
-  FormStateMethodActive,
-  FormStateProvideIdentifier,
-} from '@ory/elements-react';
+import { FlowContextValue, FormState, FormStateProvideIdentifier } from '@ory/elements-react';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { IntlProvider } from 'react-intl';
@@ -176,6 +171,8 @@ describe('DefaultCardFooter', () => {
         authMethods: ['totp', 'code'],
         formState: {
           current: 'select_method',
+          isReady: true,
+          isSubmitting: false,
         },
       });
       renderWithIntl(<DefaultCardFooter />);
@@ -184,7 +181,7 @@ describe('DefaultCardFooter', () => {
 
     it('renders method selection link when multiple auth methods exist', () => {
       setupMocks({
-        formState: { current: 'method_active' } as FormStateMethodActive,
+        formState: { current: 'method_active' } as FormState,
         authMethods: ['password', 'totp'],
       });
       renderWithIntl(<DefaultCardFooter />);
@@ -196,7 +193,7 @@ describe('DefaultCardFooter', () => {
         formState: {
           current: 'method_active',
           method: 'code',
-        } as FormStateMethodActive,
+        } as FormState,
         authMethods: ['code'],
       });
       renderWithIntl(<DefaultCardFooter />);

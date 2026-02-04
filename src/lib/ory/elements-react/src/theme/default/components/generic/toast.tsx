@@ -3,6 +3,7 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { messageTestId, OryToastProps, uiTextToFormattedMessage } from '@ory/elements-react';
 import { useIntl } from 'react-intl';
 import { toast as sonnerToast } from 'sonner';

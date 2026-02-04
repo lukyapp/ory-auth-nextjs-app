@@ -3,14 +3,11 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-import {
-  AccountExperienceConfiguration,
-  ConfigurationParameters,
-  FrontendApi,
-} from '@ory/client-fetch';
+
+import { ConfigurationParameters, FrontendApi } from '@ory/client-fetch';
 import { createContext, PropsWithChildren, useContext, useRef } from 'react';
 import { isProduction } from '../client/config';
-import { OryClientConfiguration } from '../util';
+import { OryClientConfiguration, ProjectConfiguration } from '../util';
 import { frontendClient } from '../util/client';
 
 /**
@@ -28,10 +25,10 @@ export type OryElementsConfiguration = {
    * The project configuration.
    * This includes the project name, URLs, and other settings for the Ory Elements project.
    */
-  project: AccountExperienceConfiguration;
+  project: ProjectConfiguration;
 };
 
-const defaultProject: AccountExperienceConfiguration = {
+const defaultProject: ProjectConfiguration = {
   name: 'Ory',
   registration_enabled: true,
   verification_enabled: true,
@@ -43,8 +40,6 @@ const defaultProject: AccountExperienceConfiguration = {
   settings_ui_url: '/ui/settings',
   default_redirect_url: '/ui/welcome',
   error_ui_url: '/ui/error',
-  default_locale: 'en',
-  locale_behavior: 'force_default',
 };
 
 /**
@@ -87,7 +82,7 @@ type SDKConfig = {
 
 type OryElementsConfigContextType = {
   sdk: SDKConfig;
-  project: AccountExperienceConfiguration;
+  project: ProjectConfiguration;
 };
 
 const OryConfigurationContext = createContext<OryElementsConfigContextType>({
@@ -113,7 +108,7 @@ export interface OryConfigurationProviderProps extends PropsWithChildren {
   /**
    * This configuration is used to customize the behavior and appearance of Ory Elements.
    */
-  project?: Partial<AccountExperienceConfiguration>;
+  project?: Partial<ProjectConfiguration>;
 }
 
 /**

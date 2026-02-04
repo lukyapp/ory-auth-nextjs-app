@@ -3,6 +3,7 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { useController } from 'react-hook-form';
 import { useComponents } from '../../../../context';
 import { OryNodeCheckboxInputProps } from '../../../../types';

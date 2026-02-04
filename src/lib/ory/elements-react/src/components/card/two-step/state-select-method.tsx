@@ -3,6 +3,7 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { isUiNodeScriptAttributes, UiNode, UiNodeGroupEnum, UiText } from '@ory/client-fetch';
 import { useIntl } from 'react-intl';
 import { useComponents, useNodeSorter, useOryFlow } from '../../../context';

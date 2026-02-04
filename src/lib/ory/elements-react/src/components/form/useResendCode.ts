@@ -1,6 +1,12 @@
 /* eslint-disable */
+'use client';
+
+// Copyright © 2026 Ory Corp
+// SPDX-License-Identifier: Apache-2.0
+
 import { UiNode } from '@ory/client-fetch';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { useOryFlow } from '../../context';
 import { FormValues } from '../../types';
 import { computeDefaultValues } from './form-helpers';
@@ -39,15 +45,38 @@ function findResendNode(nodes: UiNode[]) {
  */
 export function useResendCode() {
   const flowContainer = useOryFlow();
+  const { watch } = useFormContext();
   const resendCodeNode = findResendNode(flowContainer.flow.ui.nodes);
   const formSubmit = useOryFormSubmit();
+  const [turnstileResponse, setTurnstileResponse] = useState<string | undefined>();
+
+  // This workaround ensures that CAPTCHA response token is also included when resending the code.
+  const captchaVerificationValue = watch('transient_payload')?.captcha_turnstile_response as
+    | string
+    | undefined;
+  useEffect(() => {
+    if (captchaVerificationValue) {
+      setTurnstileResponse(captchaVerificationValue);
+    }
+  }, [captchaVerificationValue]);
 
   const handleResend = useCallback(() => {
-    const hiddenFields = flowContainer.flow.ui.nodes.filter(
-      (n) =>
-        n.attributes.node_type === 'input' &&
-        (n.attributes.type === 'hidden' || n.group === 'default'),
-    );
+    const hiddenFields = flowContainer.flow.ui.nodes
+      .filter(
+        (n) =>
+          n.attributes.node_type === 'input' &&
+          (n.attributes.type === 'hidden' || n.group === 'default'),
+      )
+      .map((n) => {
+        if (
+          n.attributes.node_type === 'input' &&
+          n.attributes.name === 'transient_payload.captcha_turnstile_response' &&
+          turnstileResponse
+        ) {
+          n.attributes.value = turnstileResponse;
+        }
+        return n;
+      });
 
     const hiddenData = computeDefaultValues({
       active: flowContainer.flow.active,
@@ -62,7 +91,13 @@ export function useResendCode() {
       };
       formSubmit({ ...hiddenData, ...data });
     }
-  }, [flowContainer.flow.active, flowContainer.flow.ui.nodes, formSubmit, resendCodeNode]);
+  }, [
+    flowContainer.flow.active,
+    flowContainer.flow.ui.nodes,
+    formSubmit,
+    resendCodeNode?.attributes,
+    turnstileResponse,
+  ]);
 
   return {
     resendCode: handleResend,

@@ -3,8 +3,9 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
+
 import { UiNodeGroupEnum } from '@ory/client-fetch';
-import { useComponents } from '@ory/elements-react';
+import { useComponents, useOryFlow } from '@ory/elements-react';
 import { useFormContext } from 'react-hook-form';
 import { isGroupImmediateSubmit } from '../../../theme/default/utils/form';
 
@@ -22,6 +23,7 @@ export type AuthMethodOptions = Partial<Record<UiNodeGroupEnum, AuthMethodOption
 export function AuthMethodList({ options, setSelectedGroup }: AuthMethodListProps) {
   const { Card } = useComponents();
   const { setValue, getValues, formState } = useFormContext();
+  const { formState: oryFormState } = useOryFlow();
 
   if (Object.entries(options).length === 0) {
     return null;
@@ -49,7 +51,7 @@ export function AuthMethodList({ options, setSelectedGroup }: AuthMethodListProp
           group={group}
           title={options.title}
           onClick={() => handleClick(group as UiNodeGroupEnum, options)}
-          disabled={!formState.isReady || formState.isSubmitting}
+          disabled={!formState.isReady || !oryFormState.isReady || formState.isSubmitting}
         />
       ))}
     </Card.AuthMethodListContainer>

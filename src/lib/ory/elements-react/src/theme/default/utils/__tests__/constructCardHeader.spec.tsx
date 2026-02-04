@@ -298,7 +298,11 @@ describe('constructCardHeaderText', () => {
               {
                 flowType: FlowType.Login,
                 flow: { refresh: false, requested_aal: 'aal2' },
-                formState: { current: 'select_method' },
+                formState: {
+                  current: 'select_method',
+                  isReady: true,
+                  isSubmitting: false,
+                },
               },
             ),
           { wrapper: wrapper(lang) },
@@ -323,6 +327,8 @@ describe('constructCardHeaderText', () => {
                   formState: {
                     current: 'method_active',
                     method: method as UiNodeGroupEnum,
+                    isReady: true,
+                    isSubmitting: false,
                   },
                 },
               ),

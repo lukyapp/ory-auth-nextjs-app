@@ -1,4 +1,7 @@
 /* eslint-disable */
+// Copyright © 2026 Ory Corp
+// SPDX-License-Identifier: Apache-2.0
+
 import { UiNodeGroupEnum } from '@ory/client-fetch';
 import { UiNodeInput } from '../../../util/utilFixSDKTypesHelper';
 import { NodeRenderer } from './renderer';

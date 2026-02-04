@@ -29,7 +29,9 @@ import { useClientLogout } from '../utils/logout';
  * @hidden
  * @inline
  */
-export type OryError = FlowError | OAuth2Error | { error: GenericError };
+export type OryError = {
+  correlationId?: string;
+} & (FlowError | OAuth2Error | { error: GenericError });
 
 /**
  * An OAuth2 error response.
@@ -190,17 +192,25 @@ export function Error({ error, components: Components, config, session }: ErrorF
               <p className="text-interface-foreground-default-secondary text-sm">
                 Time: <code>{parsed.timestamp?.toUTCString()}</code>
               </p>
-              <p className="text-interface-foreground-default-secondary text-sm">
-                Message: <code data-testid={'ory/screen/error/message'}>{parsed.reason}</code>
-              </p>
+              {error.correlationId && (
+                <p className="text-interface-foreground-default-secondary text-sm">
+                  Correlation ID: <code>{error.correlationId}</code>
+                </p>
+              )}
+              {parsed.reason && (
+                <p className="text-interface-foreground-default-secondary text-sm">
+                  Message: <code data-testid={'ory/screen/error/message'}>{parsed.reason}</code>
+                </p>
+              )}
 
               <div>
                 <button
-                  className="text-interface-foreground-default-primary underline"
+                  className="text-interface-foreground-default-primary cursor-pointer underline"
                   onClick={() => {
                     const text = `${parsed.id ? `ID: ${parsed.id}` : ''}
 Time: ${parsed.timestamp?.toUTCString()}
 ${parsed.reason ? `Message: ${parsed.reason}` : ''}
+${error.correlationId ? `Correlation ID: ${error.correlationId}` : ''}
 `;
                     void navigator.clipboard.writeText(text);
                   }}
