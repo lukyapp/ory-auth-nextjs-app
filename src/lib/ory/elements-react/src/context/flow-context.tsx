@@ -1,18 +1,11 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import {
-  Dispatch,
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useState,
-} from "react"
-import { OryFlowContainer } from "../util/flowContainer"
-import { FormState, FormStateAction, useFormStateReducer } from "./form-state"
+import { createContext, Dispatch, PropsWithChildren, useContext, useState } from 'react';
+import { OryFlowContainer } from '../util/flowContainer';
+import { FormState, FormStateAction, useFormStateReducer } from './form-state';
 
 /**
  * Returns an object that contains the current flow and the flow type, as well as the configuration.
@@ -21,19 +14,19 @@ import { FormState, FormStateAction, useFormStateReducer } from "./form-state"
  * @group Hooks
  */
 export function useOryFlow() {
-  const ctx = useContext(OryFlowContext)
+  const ctx = useContext(OryFlowContext);
   if (!ctx) {
-    throw new Error("useOryFlow must be used within a OryFlowProvider")
+    throw new Error('useOryFlow must be used within a OryFlowProvider');
   }
 
-  return ctx
+  return ctx;
 }
 
 /**
  * Function to set the flow container.
  * @interface
  */
-export type FlowContainerSetter = Dispatch<OryFlowContainer>
+export type FlowContainerSetter = Dispatch<OryFlowContainer>;
 
 /**
  * The return value of the OryFlowContext.
@@ -42,22 +35,22 @@ export type FlowContextValue = OryFlowContainer & {
   /**
    * Function to set the flow container.
    */
-  setFlowContainer: FlowContainerSetter
+  setFlowContainer: FlowContainerSetter;
 
   /**
    * The current form state.
    * @see FormState
    */
-  formState: FormState
+  formState: FormState;
 
   /**
    * Dispatch function to update the form state.
    */
-  dispatchFormState: Dispatch<FormStateAction>
-}
+  dispatchFormState: Dispatch<FormStateAction>;
+};
 
 // This is fine, because we don't export the context itself and guard from it being null in useOryFlow
-const OryFlowContext = createContext<FlowContextValue>(null!)
+const OryFlowContext = createContext<FlowContextValue>(null!);
 
 /**
  * Props type for the OryFlowProvider component.
@@ -65,19 +58,16 @@ const OryFlowContext = createContext<FlowContextValue>(null!)
  * @hidden
  * @inline
  */
-export type OryFlowProviderProps = PropsWithChildren<OryFlowContainer>
+export type OryFlowProviderProps = PropsWithChildren<OryFlowContainer>;
 
 /**
  *
  * @param props - The properties for the OryFlowProvider component.
  * @returns
  */
-export function OryFlowProvider({
-  children,
-  ...container
-}: OryFlowProviderProps) {
-  const [flowContainer, setFlowContainer] = useState(container)
-  const [formState, dispatchFormState] = useFormStateReducer(container)
+export function OryFlowProvider({ children, ...container }: OryFlowProviderProps) {
+  const [flowContainer, setFlowContainer] = useState(container);
+  const [formState, dispatchFormState] = useFormStateReducer(container);
 
   return (
     <OryFlowContext.Provider
@@ -85,11 +75,11 @@ export function OryFlowProvider({
         {
           ...flowContainer,
           setFlowContainer: (flowContainer) => {
-            setFlowContainer(flowContainer)
+            setFlowContainer(flowContainer);
             dispatchFormState({
-              type: "action_flow_update",
+              type: 'action_flow_update',
               flow: flowContainer,
-            })
+            });
           },
           formState,
           dispatchFormState,
@@ -98,5 +88,5 @@ export function OryFlowProvider({
     >
       {children}
     </OryFlowContext.Provider>
-  )
+  );
 }

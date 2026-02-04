@@ -5,60 +5,60 @@
 import {
   ContinueWith,
   ContinueWithRecoveryUi,
+  ContinueWithRedirectBrowserTo,
   ContinueWithSetOrySessionToken,
   ContinueWithSettingsUi,
   ContinueWithVerificationUi,
-  ContinueWithRedirectBrowserTo,
-} from "@ory/client-fetch"
+} from '@ory/client-fetch';
 
-export type OnRedirectHandler = (url: string, external: boolean) => void
+export type OnRedirectHandler = (url: string, external: boolean) => void;
 
 // The order in which the actions are defined here is the order in which they are expected to be executed.
 const continueWithPriority = [
-  "show_settings_ui",
-  "show_recovery_ui",
-  "show_verification_ui",
-  "redirect_browser_to",
-  "set_ory_session_token",
-]
+  'show_settings_ui',
+  'show_recovery_ui',
+  'show_verification_ui',
+  'redirect_browser_to',
+  'set_ory_session_token',
+];
 
 export function handleContinueWith(
   continueWith: ContinueWith[] | undefined,
   { onRedirect }: { onRedirect: OnRedirectHandler },
 ): boolean {
   if (!continueWith || continueWith.length === 0) {
-    return false
+    return false;
   }
 
-  const action = pickBestContinueWith(continueWith)
+  const action = pickBestContinueWith(continueWith);
   if (!action) {
-    return false
+    return false;
   }
 
   const redirectFlow = (id: string, flow: string, url?: string) => {
     if (url) {
-      onRedirect(url, true)
-      return true
+      onRedirect(url, true);
+      return true;
     }
 
-    onRedirect("/" + flow + "?flow=" + id, false)
-    return true
-  }
+    onRedirect('/' + flow + '?flow=' + id, false);
+    return true;
+  };
 
   if (isSetOrySessionToken(action)) {
-    throw new Error("Ory Elements does not support API flows yet.")
+    throw new Error('Ory Elements does not support API flows yet.');
   } else if (isRedirectBrowserTo(action) && action.redirect_browser_to) {
-    onRedirect(action.redirect_browser_to, true)
-    return true
+    onRedirect(action.redirect_browser_to, true);
+    return true;
   } else if (isShowVerificationUi(action)) {
-    return redirectFlow(action.flow.id, "verification", action.flow.url)
+    return redirectFlow(action.flow.id, 'verification', action.flow.url);
   } else if (isShowRecoveryUi(action)) {
-    return redirectFlow(action.flow.id, "recovery", action.flow.url)
+    return redirectFlow(action.flow.id, 'recovery', action.flow.url);
   } else if (isShowSettingsUi(action)) {
     // TODO: re-add url
-    return redirectFlow(action.flow.id, "settings", action.flow.url)
+    return redirectFlow(action.flow.id, 'settings', action.flow.url);
   } else {
-    throw new Error("Unknown action: " + JSON.stringify(action))
+    throw new Error('Unknown action: ' + JSON.stringify(action));
   }
 }
 
@@ -69,15 +69,13 @@ export function handleContinueWith(
  */
 export function pickBestContinueWith(continueWith: ContinueWith[]) {
   if (!continueWith || continueWith.length === 0) {
-    return
+    return;
   }
 
   const sorted = continueWith.sort(
-    (a, b) =>
-      continueWithPriority.indexOf(a.action) -
-      continueWithPriority.indexOf(b.action),
-  )
-  return sorted[0]
+    (a, b) => continueWithPriority.indexOf(a.action) - continueWithPriority.indexOf(b.action),
+  );
+  return sorted[0];
 }
 
 /**
@@ -88,9 +86,9 @@ export function pickBestContinueWith(continueWith: ContinueWith[]) {
 export function isSetOrySessionToken(
   continueWith: ContinueWith,
 ): continueWith is ContinueWithSetOrySessionToken & {
-  action: "set_ory_session_token"
+  action: 'set_ory_session_token';
 } {
-  return continueWith.action === "set_ory_session_token"
+  return continueWith.action === 'set_ory_session_token';
 }
 
 /**
@@ -101,9 +99,9 @@ export function isSetOrySessionToken(
 export function isRedirectBrowserTo(
   continueWith: ContinueWith,
 ): continueWith is ContinueWithRedirectBrowserTo & {
-  action: "redirect_browser_to"
+  action: 'redirect_browser_to';
 } {
-  return continueWith.action === "redirect_browser_to"
+  return continueWith.action === 'redirect_browser_to';
 }
 
 /**
@@ -114,9 +112,9 @@ export function isRedirectBrowserTo(
 export function isShowRecoveryUi(
   continueWith: ContinueWith,
 ): continueWith is ContinueWithRecoveryUi & {
-  action: "show_recovery_ui"
+  action: 'show_recovery_ui';
 } {
-  return continueWith.action === "show_recovery_ui"
+  return continueWith.action === 'show_recovery_ui';
 }
 
 /**
@@ -127,9 +125,9 @@ export function isShowRecoveryUi(
 export function isShowSettingsUi(
   continueWith: ContinueWith,
 ): continueWith is ContinueWithSettingsUi & {
-  action: "show_settings_ui"
+  action: 'show_settings_ui';
 } {
-  return continueWith.action === "show_settings_ui"
+  return continueWith.action === 'show_settings_ui';
 }
 
 /**
@@ -140,7 +138,7 @@ export function isShowSettingsUi(
 export function isShowVerificationUi(
   continueWith: ContinueWith,
 ): continueWith is ContinueWithVerificationUi & {
-  action: "show_verification_ui"
+  action: 'show_verification_ui';
 } {
-  return continueWith.action === "show_verification_ui"
+  return continueWith.action === 'show_verification_ui';
 }

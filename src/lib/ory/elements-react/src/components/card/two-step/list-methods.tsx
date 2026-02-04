@@ -1,55 +1,45 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { useComponents } from "@ory/elements-react"
-import { useFormContext } from "react-hook-form"
-import { UiNodeGroupEnum } from "@ory/client-fetch"
-import { isGroupImmediateSubmit } from "../../../theme/default/utils/form"
+import { UiNodeGroupEnum } from '@ory/client-fetch';
+import { useComponents } from '@ory/elements-react';
+import { useFormContext } from 'react-hook-form';
+import { isGroupImmediateSubmit } from '../../../theme/default/utils/form';
 
 type AuthMethodListProps = {
-  options: AuthMethodOptions
-  setSelectedGroup: (group: UiNodeGroupEnum) => void
-}
+  options: AuthMethodOptions;
+  setSelectedGroup: (group: UiNodeGroupEnum) => void;
+};
 
 export type AuthMethodOption = {
-  title?: { id: string; values?: Record<string, string> }
-}
+  title?: { id: string; values?: Record<string, string> };
+};
 
-export type AuthMethodOptions = Partial<
-  Record<UiNodeGroupEnum, AuthMethodOption>
->
+export type AuthMethodOptions = Partial<Record<UiNodeGroupEnum, AuthMethodOption>>;
 
-export function AuthMethodList({
-  options,
-  setSelectedGroup,
-}: AuthMethodListProps) {
-  const { Card } = useComponents()
-  const { setValue, getValues, formState } = useFormContext()
+export function AuthMethodList({ options, setSelectedGroup }: AuthMethodListProps) {
+  const { Card } = useComponents();
+  const { setValue, getValues, formState } = useFormContext();
 
   if (Object.entries(options).length === 0) {
-    return null
+    return null;
   }
 
   const handleClick = (group: UiNodeGroupEnum, options?: AuthMethodOption) => {
     if (isGroupImmediateSubmit(group)) {
       // Required because identifier node is not always defined with code method in aal2
-      if (
-        group === "code" &&
-        !getValues("identifier") &&
-        options?.title?.values?.address
-      ) {
-        setValue("identifier", options?.title?.values?.address)
+      if (group === 'code' && !getValues('identifier') && options?.title?.values?.address) {
+        setValue('identifier', options?.title?.values?.address);
       }
       // If the method is "immediate submit" (e.g. the method's submit button should be triggered immediately)
       // then the method needs to be added to the form data.
-      setValue("method", group)
+      setValue('method', group);
     } else {
-      setSelectedGroup(group)
+      setSelectedGroup(group);
     }
-  }
+  };
 
   return (
     <Card.AuthMethodListContainer>
@@ -63,5 +53,5 @@ export function AuthMethodList({
         />
       ))}
     </Card.AuthMethodListContainer>
-  )
+  );
 }

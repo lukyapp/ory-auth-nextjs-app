@@ -2,15 +2,11 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  Node,
-  OrySettingsWebauthnProps,
-  useComponents,
-} from "@ory/elements-react"
-import { omitInputAttributes } from "../../../../util/omitAttributes"
-import Key from "../../assets/icons/key.svg"
-import Trash from "../../assets/icons/trash.svg"
-import { Spinner } from "../form/spinner"
+import { Node, OrySettingsWebauthnProps, useComponents } from '@ory/elements-react';
+import { omitInputAttributes } from '../../../../util/omitAttributes';
+import Key from '../../assets/icons/key.svg';
+import Trash from '../../assets/icons/trash.svg';
+import { Spinner } from '../form/spinner';
 
 export function DefaultSettingsWebauthn({
   nameInput,
@@ -18,8 +14,8 @@ export function DefaultSettingsWebauthn({
   removeButtons,
   isSubmitting,
 }: OrySettingsWebauthnProps) {
-  const { Card } = useComponents()
-  const hasRemoveButtons = removeButtons.length > 0
+  const { Card } = useComponents();
+  const hasRemoveButtons = removeButtons.length > 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -34,15 +30,11 @@ export function DefaultSettingsWebauthn({
           <Card.Divider />
           <div className="flex flex-col gap-4">
             {removeButtons.map((node, i) => {
-              const context = node.meta.label?.context ?? {}
-              const addedAt =
-                "added_at" in context ? (context.added_at as string) : null
+              const context = node.meta.label?.context ?? {};
+              const addedAt = 'added_at' in context ? (context.added_at as string) : null;
               const displayName =
-                "display_name" in context
-                  ? (context.display_name as string)
-                  : null
-              const keyId =
-                "value" in node.attributes ? node.attributes.value : null
+                'display_name' in context ? (context.display_name as string) : null;
+              const keyId = 'value' in node.attributes ? node.attributes.value : null;
 
               return (
                 <div
@@ -50,23 +42,20 @@ export function DefaultSettingsWebauthn({
                   key={`webauthn-remove-button-${i}`}
                 >
                   <div className="flex flex-1 items-center gap-2 truncate">
-                    <Key
-                      size={32}
-                      className="text-interface-foreground-default-primary"
-                    />
+                    <Key size={32} className="text-interface-foreground-default-primary" />
                     <div className="flex flex-1 flex-col gap-4 truncate md:flex-row md:items-center md:justify-between">
                       <div className="flex-1 flex-col truncate">
-                        <p className="truncate text-sm font-medium text-interface-foreground-default-secondary">
+                        <p className="text-interface-foreground-default-secondary truncate text-sm font-medium">
                           {displayName}
                         </p>
-                        <span className="hidden truncate text-sm text-interface-foreground-default-tertiary sm:block">
+                        <span className="text-interface-foreground-default-tertiary hidden truncate text-sm sm:block">
                           {keyId}
                         </span>
                       </div>
                       {addedAt && (
-                        <p className="text-sm text-interface-foreground-default-tertiary">
+                        <p className="text-interface-foreground-default-tertiary text-sm">
                           {new Intl.DateTimeFormat(undefined, {
-                            dateStyle: "long",
+                            dateStyle: 'long',
                           }).format(new Date(addedAt))}
                         </p>
                       )}
@@ -89,11 +78,11 @@ export function DefaultSettingsWebauthn({
                     )}
                   </button>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
       ) : null}
     </div>
-  )
+  );
 }

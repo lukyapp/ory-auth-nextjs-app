@@ -3,21 +3,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const defaultForwardedHeaders = [
-  "accept",
-  "accept-charset",
-  "accept-encoding",
-  "accept-language",
-  "authorization",
-  "cache-control",
-  "content-type",
-  "cookie",
-  "host",
-  "user-agent",
-  "referer",
-]
+  'accept',
+  'accept-charset',
+  'accept-encoding',
+  'accept-language',
+  'authorization',
+  'cache-control',
+  'content-type',
+  'cookie',
+  'host',
+  'user-agent',
+  'referer',
+];
 
-export const defaultOmitHeaders = [
-  "transfer-encoding",
-  "content-encoding",
-  "content-length",
-]
+export const defaultOmitHeaders = ['transfer-encoding', 'content-encoding', 'content-length'];

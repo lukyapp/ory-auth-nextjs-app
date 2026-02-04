@@ -1,28 +1,23 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import {
-  isUiNodeInputAttributes,
-  UiNode,
-  UiNodeGroupEnum,
-} from "@ory/client-fetch"
-import { PropsWithChildren, createContext, useContext } from "react"
-import { OryFlowComponents } from "../components"
+import { isUiNodeInputAttributes, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
+import { createContext, PropsWithChildren, useContext } from 'react';
+import { OryFlowComponents } from '../components';
 
 type ComponentContextValue = {
-  components: OryFlowComponents
-  nodeSorter: (a: UiNode, b: UiNode, ctx: { flowType: string }) => number
-  groupSorter: (a: UiNodeGroupEnum, b: UiNodeGroupEnum) => number
-}
+  components: OryFlowComponents;
+  nodeSorter: (a: UiNode, b: UiNode, ctx: { flowType: string }) => number;
+  groupSorter: (a: UiNodeGroupEnum, b: UiNodeGroupEnum) => number;
+};
 
 const ComponentContext = createContext<ComponentContextValue>({
   components: null!, // fine because we throw an error if it's not provided
   nodeSorter: () => 0,
   groupSorter: () => 0,
-})
+});
 
 /**
  * The `useComponents` hook provides access to the Ory Flow components provided in the `OryComponentProvider`.
@@ -33,11 +28,11 @@ const ComponentContext = createContext<ComponentContextValue>({
  * @group Hooks
  */
 export function useComponents() {
-  const ctx = useContext(ComponentContext)
+  const ctx = useContext(ComponentContext);
   if (!ctx) {
-    throw new Error("useComponents must be used within a ComponentProvider")
+    throw new Error('useComponents must be used within a ComponentProvider');
   }
-  return ctx.components
+  return ctx.components;
 }
 
 /**
@@ -51,35 +46,35 @@ export function useComponents() {
  * @group Hooks
  */
 export function useNodeSorter() {
-  const ctx = useContext(ComponentContext)
+  const ctx = useContext(ComponentContext);
   if (!ctx) {
-    throw new Error("useNodeSorter must be used within a ComponentProvider")
+    throw new Error('useNodeSorter must be used within a ComponentProvider');
   }
-  return ctx.nodeSorter
+  return ctx.nodeSorter;
 }
 
 export function useGroupSorter() {
-  const ctx = useContext(ComponentContext)
+  const ctx = useContext(ComponentContext);
   if (!ctx) {
-    throw new Error("useGroupSorter must be used within a ComponentProvider")
+    throw new Error('useGroupSorter must be used within a ComponentProvider');
   }
-  return ctx.groupSorter
+  return ctx.groupSorter;
 }
 
 const defaultNodeOrder = [
-  "oidc",
-  "saml",
-  "identifier_first",
-  "default",
-  "profile",
-  "password",
+  'oidc',
+  'saml',
+  'identifier_first',
+  'default',
+  'profile',
+  'password',
   // CAPTCHA is below password because otherwise the password input field
   // would be above the captcha. Somehow, we sort the password sign up button somewhere else to be always at the bottom.
-  "captcha",
-  "passkey",
-  "code",
-  "webauthn",
-]
+  'captcha',
+  'passkey',
+  'code',
+  'webauthn',
+];
 
 export function defaultNodeSorter(
   a: UiNode,
@@ -87,26 +82,24 @@ export function defaultNodeSorter(
   // ctx: { flowType: string },
 ): number {
   // First handle the special case: captcha vs submit button
-  const aIsCaptcha = a.group === "captcha"
-  const bIsCaptcha = b.group === "captcha"
-  const aIsSubmit =
-    isUiNodeInputAttributes(a.attributes) && a.attributes.type === "submit"
-  const bIsSubmit =
-    isUiNodeInputAttributes(b.attributes) && b.attributes.type === "submit"
+  const aIsCaptcha = a.group === 'captcha';
+  const bIsCaptcha = b.group === 'captcha';
+  const aIsSubmit = isUiNodeInputAttributes(a.attributes) && a.attributes.type === 'submit';
+  const bIsSubmit = isUiNodeInputAttributes(b.attributes) && b.attributes.type === 'submit';
 
   // If comparing captcha and submit, always put captcha first
   if (aIsCaptcha && bIsSubmit) {
-    return -1 // a (captcha) comes before b (submit)
+    return -1; // a (captcha) comes before b (submit)
   }
   if (bIsCaptcha && aIsSubmit) {
-    return 1 // b (captcha) comes before a (submit)
+    return 1; // b (captcha) comes before a (submit)
   }
 
   // For all other cases, use the standard group ordering
-  const aGroupWeight = defaultNodeOrder.indexOf(a.group) ?? 999
-  const bGroupWeight = defaultNodeOrder.indexOf(b.group) ?? 999
+  const aGroupWeight = defaultNodeOrder.indexOf(a.group) ?? 999;
+  const bGroupWeight = defaultNodeOrder.indexOf(b.group) ?? 999;
 
-  return aGroupWeight - bGroupWeight
+  return aGroupWeight - bGroupWeight;
 }
 
 const defaultGroupOrder: UiNodeGroupEnum[] = [
@@ -119,20 +112,20 @@ const defaultGroupOrder: UiNodeGroupEnum[] = [
   UiNodeGroupEnum.Passkey,
   UiNodeGroupEnum.Webauthn,
   UiNodeGroupEnum.Totp,
-]
+];
 
 function defaultGroupSorter(a: UiNodeGroupEnum, b: UiNodeGroupEnum): number {
-  const aGroupWeight = defaultGroupOrder.indexOf(a) ?? 999
-  const bGroupWeight = defaultGroupOrder.indexOf(b) ?? 999
+  const aGroupWeight = defaultGroupOrder.indexOf(a) ?? 999;
+  const bGroupWeight = defaultGroupOrder.indexOf(b) ?? 999;
 
-  return aGroupWeight - bGroupWeight
+  return aGroupWeight - bGroupWeight;
 }
 
 type ComponentProviderProps = {
-  components: OryFlowComponents
-  nodeSorter?: (a: UiNode, b: UiNode, ctx: { flowType: string }) => number
-  groupSorter?: (a: UiNodeGroupEnum, b: UiNodeGroupEnum) => number
-}
+  components: OryFlowComponents;
+  nodeSorter?: (a: UiNode, b: UiNode, ctx: { flowType: string }) => number;
+  groupSorter?: (a: UiNodeGroupEnum, b: UiNodeGroupEnum) => number;
+};
 
 export function OryComponentProvider({
   children,
@@ -150,5 +143,5 @@ export function OryComponentProvider({
     >
       {children}
     </ComponentContext.Provider>
-  )
+  );
 }

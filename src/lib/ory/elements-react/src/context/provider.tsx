@@ -2,16 +2,16 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-"use client"
-import { PropsWithChildren } from "react"
+'use client';
 
-import { OryFlowComponents } from "../components"
-import { OryClientConfiguration } from "../util"
-import { OryFlowContainer } from "../util/flowContainer"
-import { OryComponentProvider } from "./component"
-import { OryConfigurationProvider } from "./config"
-import { OryFlowProvider } from "./flow-context"
-import { IntlProvider } from "./intl-context"
+import { PropsWithChildren } from 'react';
+import { OryFlowComponents } from '../components';
+import { OryClientConfiguration } from '../util';
+import { OryFlowContainer } from '../util/flowContainer';
+import { OryComponentProvider } from './component';
+import { OryConfigurationProvider } from './config';
+import { OryFlowProvider } from './flow-context';
+import { IntlProvider } from './intl-context';
 
 /**
  * Props type for the OryProvider component.
@@ -21,14 +21,14 @@ export type OryProviderProps = {
    * The components to use for rendering Ory flows.
    * You can provide custom components to override the default Ory components.
    */
-  components: OryFlowComponents
+  components: OryFlowComponents;
   /**
    * The Ory client configuration.
    * This includes the SDK and project configuration.
    */
-  config: OryClientConfiguration
+  config: OryClientConfiguration;
 } & OryFlowContainer &
-  PropsWithChildren
+  PropsWithChildren;
 
 /**
  * OryProvider is a React component that provides the necessary context for rendering Ory flows.
@@ -81,15 +81,13 @@ export function OryProvider({
   return (
     <OryConfigurationProvider sdk={config.sdk} project={config.project}>
       <IntlProvider
-        locale={config.intl?.locale ?? "en"}
+        locale={config.intl?.locale ?? 'en'}
         customTranslations={config.intl?.customTranslations}
       >
         <OryFlowProvider {...oryFlowProps}>
-          <OryComponentProvider components={Components}>
-            {children}
-          </OryComponentProvider>
+          <OryComponentProvider components={Components}>{children}</OryComponentProvider>
         </OryFlowProvider>
       </IntlProvider>
     </OryConfigurationProvider>
-  )
+  );
 }

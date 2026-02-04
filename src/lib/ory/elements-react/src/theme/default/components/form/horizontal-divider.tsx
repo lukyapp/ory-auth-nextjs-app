@@ -3,5 +3,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export function DefaultHorizontalDivider() {
-  return <hr className="border-interface-border-default-primary" />
+  return <hr className="border-interface-border-default-primary" />;
 }

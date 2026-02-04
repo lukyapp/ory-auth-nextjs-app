@@ -2,17 +2,13 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { UiNodeInputAttributes } from "@ory/client-fetch"
-import { Node, OrySettingsTotpProps, useComponents } from "@ory/elements-react"
-import {
-  UiNodeImage,
-  UiNodeInput,
-  UiNodeText,
-} from "../../../../util/utilFixSDKTypesHelper"
-import QrCode from "../../assets/icons/qrcode.svg"
-import Trash from "../../assets/icons/trash.svg"
-import { DefaultHorizontalDivider } from "../form/horizontal-divider"
-import { Spinner } from "../form/spinner"
+import { UiNodeInputAttributes } from '@ory/client-fetch';
+import { Node, OrySettingsTotpProps, useComponents } from '@ory/elements-react';
+import { UiNodeImage, UiNodeInput, UiNodeText } from '../../../../util/utilFixSDKTypesHelper';
+import QrCode from '../../assets/icons/qrcode.svg';
+import Trash from '../../assets/icons/trash.svg';
+import { DefaultHorizontalDivider } from '../form/horizontal-divider';
+import { Spinner } from '../form/spinner';
 
 export function DefaultSettingsTotp({
   totpImage,
@@ -29,39 +25,33 @@ export function DefaultSettingsTotp({
         onUnlink={onUnlink}
         isSubmitting={isSubmitting}
       />
-    )
+    );
   }
 
   if (totpImage && totpSecret && totpInput) {
-    return (
-      <SettingsTotpLink
-        totpImage={totpImage}
-        totpSecret={totpSecret}
-        totpInput={totpInput}
-      />
-    )
+    return <SettingsTotpLink totpImage={totpImage} totpSecret={totpSecret} totpInput={totpInput} />;
   }
 }
 
 type SettingsTotpUnlinkProps = {
-  totpUnlinkAttributes: UiNodeInputAttributes
-  onUnlink: () => void
-  isSubmitting: boolean
-}
+  totpUnlinkAttributes: UiNodeInputAttributes;
+  onUnlink: () => void;
+  isSubmitting: boolean;
+};
 
 function SettingsTotpUnlink({
   totpUnlinkAttributes,
   onUnlink,
   isSubmitting,
 }: SettingsTotpUnlinkProps) {
-  const { Card } = useComponents()
+  const { Card } = useComponents();
   const {
     type,
     autocomplete: _ignoredAutocomplete,
     label: _ignoredLabel,
     node_type: _ignoredNodeType,
     ...buttonAttrs
-  } = totpUnlinkAttributes
+  } = totpUnlinkAttributes;
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -73,12 +63,12 @@ function SettingsTotpUnlink({
           <QrCode size={32} />
         </div>
         <div className="mr-auto flex flex-col">
-          <p className="text-sm font-medium text-interface-foreground-default-primary">
+          <p className="text-interface-foreground-default-primary text-sm font-medium">
             Authenticator app
           </p>
         </div>
         <button
-          type={type === "button" ? "button" : "submit"}
+          type={type === 'button' ? 'button' : 'submit'}
           {...buttonAttrs}
           onClick={onUnlink}
           disabled={isSubmitting}
@@ -94,26 +84,22 @@ function SettingsTotpUnlink({
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 type SettingsTotpLinkProps = {
-  totpImage: UiNodeImage
-  totpSecret: UiNodeText
-  totpInput: UiNodeInput
-}
+  totpImage: UiNodeImage;
+  totpSecret: UiNodeText;
+  totpInput: UiNodeInput;
+};
 
-function SettingsTotpLink({
-  totpImage,
-  totpSecret,
-  totpInput,
-}: SettingsTotpLinkProps) {
+function SettingsTotpLink({ totpImage, totpSecret, totpInput }: SettingsTotpLinkProps) {
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div className="col-span-full">
         <DefaultHorizontalDivider />
       </div>
-      <div className="flex justify-center rounded-cards bg-interface-background-default-secondary p-8">
+      <div className="rounded-cards bg-interface-background-default-secondary flex justify-center p-8">
         <div className="aspect-square h-44 bg-[white]">
           <div className="-m-3 antialiased mix-blend-multiply">
             <Node node={totpImage} />
@@ -125,5 +111,5 @@ function SettingsTotpLink({
         <Node node={totpInput} />
       </div>
     </div>
-  )
+  );
 }

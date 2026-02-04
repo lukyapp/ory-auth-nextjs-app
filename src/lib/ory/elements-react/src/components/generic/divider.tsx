@@ -2,14 +2,13 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { useComponents } from "../../context"
-import { useOryFlow } from "../../context"
-import { UiNodeGroupEnum } from "@ory/client-fetch"
+import { UiNodeGroupEnum } from '@ory/client-fetch';
+import { useComponents, useOryFlow } from '../../context';
 
 /**
  * Props type for the Form Group Divider component.
  */
-export type OryCardDividerProps = Record<string, never>
+export type OryCardDividerProps = Record<string, never>;
 
 /**
  * Renders the {@link OryFlowComponents.Card.Divider} between the groups of nodes in the Ory Form.
@@ -22,30 +21,26 @@ export type OryCardDividerProps = Record<string, never>
  * @group Components
  */
 export function OryFormGroupDivider() {
-  const { Card } = useComponents()
+  const { Card } = useComponents();
   const {
     flow: { ui },
-  } = useOryFlow()
+  } = useOryFlow();
 
   // Only get the oidc nodes.
   const filteredNodes = ui.nodes.filter(
-    (node) =>
-      node.group === UiNodeGroupEnum.Oidc ||
-      node.group === UiNodeGroupEnum.Saml,
-  )
+    (node) => node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml,
+  );
 
   // Are there other first-factor nodes available?
   const otherNodes = ui.nodes.filter(
     (node) =>
-      !(
-        node.group === UiNodeGroupEnum.Oidc ||
-        node.group === UiNodeGroupEnum.Saml
-      ) && node.group !== "default",
-  )
+      !(node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml) &&
+      node.group !== 'default',
+  );
 
   if (filteredNodes.length > 0 && otherNodes.length > 0) {
-    return <Card.Divider />
+    return <Card.Divider />;
   }
 
-  return null
+  return null;
 }

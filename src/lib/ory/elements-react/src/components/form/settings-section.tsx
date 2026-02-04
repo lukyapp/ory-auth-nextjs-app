@@ -1,29 +1,24 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { UiNode } from "@ory/client-fetch"
-import {
-  ComponentPropsWithoutRef,
-  FormEventHandler,
-  PropsWithChildren,
-} from "react"
-import { useFormContext } from "react-hook-form"
-import { useComponents } from "../../context/component"
-import { OryFormProvider } from "./form-provider"
-import { useOryFormSubmit } from "./useOryFormSubmit"
-import { useOryFlow } from "../../context"
+import { UiNode } from '@ory/client-fetch';
+import { ComponentPropsWithoutRef, FormEventHandler, PropsWithChildren } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { useOryFlow } from '../../context';
+import { useComponents } from '../../context/component';
+import { OryFormProvider } from './form-provider';
+import { useOryFormSubmit } from './useOryFormSubmit';
 
 /**
  * Props for the OrySettingsFormSection component.
  * This type extends the form element props but omits the `action`, `method`, and `onSubmit` properties.
  */
 export type OrySettingsFormProps = Omit<
-  ComponentPropsWithoutRef<"form">,
-  "action" | "method" | "onSubmit"
->
+  ComponentPropsWithoutRef<'form'>,
+  'action' | 'method' | 'onSubmit'
+>;
 
 /**
  * Props for the OrySettingsFormSection component.
@@ -31,16 +26,14 @@ export type OrySettingsFormProps = Omit<
  * @inline
  * @hidden
  */
-export interface OryFormSectionProps
-  extends PropsWithChildren,
-    OrySettingsFormProps {
-  nodes?: UiNode[]
+export interface OryFormSectionProps extends PropsWithChildren, OrySettingsFormProps {
+  nodes?: UiNode[];
 }
 
 export interface OryCardSettingsSectionProps extends PropsWithChildren {
-  action: string
-  method: string
-  onSubmit: FormEventHandler<HTMLFormElement>
+  action: string;
+  method: string;
+  onSubmit: FormEventHandler<HTMLFormElement>;
 }
 
 /**
@@ -52,28 +45,22 @@ export interface OryCardSettingsSectionProps extends PropsWithChildren {
  * @returns
  * @group Components
  */
-export function OrySettingsFormSection({
-  children,
-  nodes,
-  ...rest
-}: OryFormSectionProps) {
+export function OrySettingsFormSection({ children, nodes, ...rest }: OryFormSectionProps) {
   return (
     <OryFormProvider nodes={nodes}>
-      <OrySettingsFormSectionInner {...rest}>
-        {children}
-      </OrySettingsFormSectionInner>
+      <OrySettingsFormSectionInner {...rest}>{children}</OrySettingsFormSectionInner>
     </OryFormProvider>
-  )
+  );
 }
 
 function OrySettingsFormSectionInner({
   children,
   ...rest
 }: PropsWithChildren<OrySettingsFormProps>) {
-  const { Card } = useComponents()
-  const flowContainer = useOryFlow()
-  const onSubmit = useOryFormSubmit()
-  const methods = useFormContext()
+  const { Card } = useComponents();
+  const flowContainer = useOryFlow();
+  const onSubmit = useOryFormSubmit();
+  const methods = useFormContext();
 
   return (
     <Card.SettingsSection
@@ -84,5 +71,5 @@ function OrySettingsFormSectionInner({
     >
       {children}
     </Card.SettingsSection>
-  )
+  );
 }

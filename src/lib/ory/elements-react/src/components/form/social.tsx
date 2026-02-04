@@ -2,16 +2,16 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { getNodeId, UiNode, UiNodeGroupEnum } from "@ory/client-fetch"
-import { PropsWithChildren } from "react"
-import { useComponents, useOryFlow } from "../../context"
-import { OryForm } from "./form"
-import { OryFormProvider } from "./form-provider"
-import { Node } from "./nodes/node"
+import { getNodeId, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
+import { PropsWithChildren } from 'react';
+import { useComponents, useOryFlow } from '../../context';
+import { OryForm } from './form';
+import { OryFormProvider } from './form-provider';
+import { Node } from './nodes/node';
 
 export type OryFormSsoRootProps = PropsWithChildren<{
-  nodes: UiNode[]
-}>
+  nodes: UiNode[];
+}>;
 
 /**
  * Renders the flow's OIDC buttons.
@@ -22,19 +22,17 @@ export type OryFormSsoRootProps = PropsWithChildren<{
 export function OryFormSsoButtons() {
   const {
     flow: { ui },
-  } = useOryFlow()
+  } = useOryFlow();
 
   // Only get the oidc nodes.
   const filteredNodes = ui.nodes.filter(
-    (node) =>
-      node.group === UiNodeGroupEnum.Oidc ||
-      node.group === UiNodeGroupEnum.Saml,
-  )
+    (node) => node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml,
+  );
 
-  const { Form } = useComponents()
+  const { Form } = useComponents();
 
   if (filteredNodes.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -43,7 +41,7 @@ export function OryFormSsoButtons() {
         <Node node={node} key={getNodeId(node)} />
       ))}
     </Form.SsoRoot>
-  )
+  );
 }
 
 /**
@@ -57,17 +55,15 @@ export function OryFormSsoButtons() {
 export function OryFormSsoForm() {
   const {
     flow: { ui },
-  } = useOryFlow()
+  } = useOryFlow();
 
   // Only get the oidc nodes.
   const filteredNodes = ui.nodes.filter(
-    (node) =>
-      node.group === UiNodeGroupEnum.Saml ||
-      node.group === UiNodeGroupEnum.Oidc,
-  )
+    (node) => node.group === UiNodeGroupEnum.Saml || node.group === UiNodeGroupEnum.Oidc,
+  );
 
   if (filteredNodes.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -76,5 +72,5 @@ export function OryFormSsoForm() {
         <OryFormSsoButtons />
       </OryForm>
     </OryFormProvider>
-  )
+  );
 }

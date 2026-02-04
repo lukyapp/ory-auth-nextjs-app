@@ -8,66 +8,66 @@ import {
   UiContainer,
   UiNode,
   UiTextTypeEnum,
-} from "@ory/client-fetch"
-import { ConsentFlow } from "../../../util"
+} from '@ory/client-fetch';
+import { ConsentFlow } from '../../../util';
 
 const rememberCheckbox: UiNode = {
-  type: "input",
-  group: "oauth2_consent",
+  type: 'input',
+  group: 'oauth2_consent',
   meta: {
     label: {
       id: 9999111,
-      text: "Remember my decision",
+      text: 'Remember my decision',
       type: UiTextTypeEnum.Info,
     },
   },
   attributes: {
-    node_type: "input",
-    name: "remember",
+    node_type: 'input',
+    name: 'remember',
     value: false,
-    type: "checkbox",
+    type: 'checkbox',
     disabled: false,
   },
   messages: [],
-}
+};
 const acceptButton: UiNode = {
-  type: "input",
-  group: "oauth2_consent",
+  type: 'input',
+  group: 'oauth2_consent',
   meta: {
     label: {
       id: 9999111,
-      text: "Accept",
+      text: 'Accept',
       type: UiTextTypeEnum.Info,
     },
   },
   attributes: {
-    node_type: "input",
-    name: "action",
-    value: "accept",
-    type: "submit",
+    node_type: 'input',
+    name: 'action',
+    value: 'accept',
+    type: 'submit',
     disabled: false,
   },
   messages: [],
-}
+};
 const rejectButton: UiNode = {
-  type: "input",
-  group: "oauth2_consent",
+  type: 'input',
+  group: 'oauth2_consent',
   meta: {
     label: {
       id: 9999111,
-      text: "Reject",
+      text: 'Reject',
       type: UiTextTypeEnum.Info,
     },
   },
   attributes: {
-    node_type: "input",
-    name: "action",
-    value: "reject",
-    type: "submit",
+    node_type: 'input',
+    name: 'action',
+    value: 'reject',
+    type: 'submit',
     disabled: false,
   },
   messages: [],
-}
+};
 
 export function translateConsentChallengeToUiNodes(
   consentChallenge: OAuth2ConsentRequest,
@@ -85,27 +85,27 @@ export function translateConsentChallengeToUiNodes(
       csrfTokenNode(csrfToken),
       challengeNode(consentChallenge.challenge),
     ],
-    method: "POST",
+    method: 'POST',
     messages: [],
-  }
+  };
 
   return {
-    id: "UNSET",
+    id: 'UNSET',
     created_at: new Date(),
     expires_at: new Date(),
     issued_at: new Date(),
-    state: "show_form",
-    active: "oauth2_consent",
+    state: 'show_form',
+    active: 'oauth2_consent',
     ui,
     consent_request: consentChallenge,
     session,
-  }
+  };
 }
 
 function scopesToUiNodes(scopes: string[]): UiNode[] {
   return scopes.map((scope) => ({
-    type: "input",
-    group: "oauth2_consent",
+    type: 'input',
+    group: 'oauth2_consent',
     meta: {
       label: {
         id: 9999111,
@@ -114,44 +114,44 @@ function scopesToUiNodes(scopes: string[]): UiNode[] {
       },
     },
     attributes: {
-      node_type: "input",
+      node_type: 'input',
       name: `grant_scope`,
       value: scope,
-      type: "checkbox",
+      type: 'checkbox',
       disabled: false,
     },
     messages: [],
-  }))
+  }));
 }
 
 function csrfTokenNode(csrfToken: string): UiNode {
   return {
-    type: "input",
-    group: "default",
+    type: 'input',
+    group: 'default',
     meta: {},
     attributes: {
-      node_type: "input",
-      name: "csrf_token",
+      node_type: 'input',
+      name: 'csrf_token',
       value: csrfToken,
-      type: "hidden",
+      type: 'hidden',
       disabled: false,
     },
     messages: [],
-  }
+  };
 }
 
 function challengeNode(challenge: string): UiNode {
   return {
-    type: "input",
-    group: "oauth2_consent",
+    type: 'input',
+    group: 'oauth2_consent',
     meta: {},
     attributes: {
-      node_type: "input",
-      name: "consent_challenge",
+      node_type: 'input',
+      name: 'consent_challenge',
       value: challenge,
-      type: "hidden",
+      type: 'hidden',
       disabled: false,
     },
     messages: [],
-  }
+  };
 }

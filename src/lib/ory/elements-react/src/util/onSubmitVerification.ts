@@ -7,12 +7,12 @@ import {
   UpdateVerificationFlowBody,
   VerificationFlow,
   verificationUrl,
-} from "@ory/client-fetch"
-import { OryElementsConfiguration } from "../context"
-import { OryFlowContainer } from "./flowContainer"
-import { replaceWindowFlowId } from "./internal"
-import { OnSubmitHandlerProps } from "./submitHandler"
-import { handleFlowError } from "./sdk-helpers"
+} from '@ory/client-fetch';
+import { OryElementsConfiguration } from '../context';
+import { OryFlowContainer } from './flowContainer';
+import { replaceWindowFlowId } from './internal';
+import { handleFlowError } from './sdk-helpers';
+import { OnSubmitHandlerProps } from './submitHandler';
 
 /**
  * Use this method to submit a verification flow. This method is used in the `onSubmit` handler of the verification form.
@@ -26,11 +26,7 @@ import { handleFlowError } from "./sdk-helpers"
 export async function onSubmitVerification(
   { flow }: OryFlowContainer,
   config: OryElementsConfiguration,
-  {
-    setFlowContainer,
-    body,
-    onRedirect,
-  }: OnSubmitHandlerProps<UpdateVerificationFlowBody>,
+  { setFlowContainer, body, onRedirect }: OnSubmitHandlerProps<UpdateVerificationFlowBody>,
 ) {
   await config.sdk.frontend
     .updateVerificationFlowRaw({
@@ -47,19 +43,19 @@ export async function onSubmitVerification(
       handleFlowError({
         onRestartFlow: (useFlowId) => {
           if (useFlowId) {
-            replaceWindowFlowId(useFlowId)
+            replaceWindowFlowId(useFlowId);
           } else {
-            onRedirect(verificationUrl(config), true)
+            onRedirect(verificationUrl(config), true);
           }
         },
         onValidationError: (body: VerificationFlow) => {
           setFlowContainer({
             flow: body,
             flowType: FlowType.Verification,
-          })
+          });
         },
         onRedirect,
         config,
       }),
-    )
+    );
 }

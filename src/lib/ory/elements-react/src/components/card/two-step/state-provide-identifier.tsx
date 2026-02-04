@@ -2,33 +2,29 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { UiNode, UiNodeGroupEnum } from "@ory/client-fetch"
-import { OryCard, OryCardContent, OryCardFooter } from "./../"
-import { useComponents, useNodeSorter, useOryFlow } from "../../../context"
-import { isNodeVisible, withoutSingleSignOnNodes } from "../../../util/ui"
-import { OryForm } from "../../form/form"
-import { OryCardValidationMessages } from "../../form/messages"
-import { Node } from "../../form/nodes/node"
-import { OryFormSsoForm } from "../../form/social"
-import { handleAfterFormSubmit } from "./utils"
-import { OryCardHeader } from "../header"
+import { UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
+import { useComponents, useNodeSorter, useOryFlow } from '../../../context';
+import { isNodeVisible, withoutSingleSignOnNodes } from '../../../util/ui';
+import { OryForm } from '../../form/form';
+import { OryCardValidationMessages } from '../../form/messages';
+import { Node } from '../../form/nodes/node';
+import { OryFormSsoForm } from '../../form/social';
+import { OryCardHeader } from '../header';
+import { OryCard, OryCardContent, OryCardFooter } from './../';
+import { handleAfterFormSubmit } from './utils';
 
 export function ProvideIdentifierForm() {
-  const { Form, Card } = useComponents()
-  const { flowType, flow, dispatchFormState } = useOryFlow()
+  const { Form, Card } = useComponents();
+  const { flowType, flow, dispatchFormState } = useOryFlow();
 
-  const nodeSorter = useNodeSorter()
-  const sortNodes = (a: UiNode, b: UiNode) => nodeSorter(a, b, { flowType })
+  const nodeSorter = useNodeSorter();
+  const sortNodes = (a: UiNode, b: UiNode) => nodeSorter(a, b, { flowType });
 
-  const nonSsoNodes = withoutSingleSignOnNodes(flow.ui.nodes).sort(sortNodes)
+  const nonSsoNodes = withoutSingleSignOnNodes(flow.ui.nodes).sort(sortNodes);
   const hasSso = flow.ui.nodes
     .filter(isNodeVisible)
-    .some(
-      (node) =>
-        node.group === UiNodeGroupEnum.Oidc ||
-        node.group === UiNodeGroupEnum.Saml,
-    )
-  const showSsoDivider = hasSso && nonSsoNodes.some(isNodeVisible)
+    .some((node) => node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml);
+  const showSsoDivider = hasSso && nonSsoNodes.some(isNodeVisible);
 
   return (
     <OryCard>
@@ -47,5 +43,5 @@ export function ProvideIdentifierForm() {
       </OryCardContent>
       <OryCardFooter />
     </OryCard>
-  )
+  );
 }

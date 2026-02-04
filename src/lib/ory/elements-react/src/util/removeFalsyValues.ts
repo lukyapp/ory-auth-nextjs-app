@@ -1,5 +1,5 @@
 /* eslint-disable */
-type AnyObject = Record<string, unknown>
+type AnyObject = Record<string, unknown>;
 
 /**
  * Removes any properties from an object or elements from an array that are empty strings or undefined.
@@ -14,39 +14,33 @@ export function removeEmptyStrings<T>(input: T): T {
       input
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         .map((item) => removeEmptyStrings(item))
-        .filter(
-          (v) => v || typeof v === "boolean" || typeof v === "number",
-        ) as unknown as T
-    )
+        .filter((v) => v || typeof v === 'boolean' || typeof v === 'number') as unknown as T
+    );
   }
 
   // Non-objects: return as-is
-  if (input === null || typeof input !== "object") {
-    return input
+  if (input === null || typeof input !== 'object') {
+    return input;
   }
 
-  const obj = input as AnyObject
-  const out: AnyObject = {}
+  const obj = input as AnyObject;
+  const out: AnyObject = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    if (value && typeof value === "object") {
-      const cleaned = removeEmptyStrings(value)
+    if (value && typeof value === 'object') {
+      const cleaned = removeEmptyStrings(value);
       // keep only if the nested object/array still has content
       if (Array.isArray(cleaned)) {
         if (cleaned.length) {
-          out[key] = cleaned
+          out[key] = cleaned;
         }
       } else if (cleaned && Object.keys(cleaned as AnyObject).length > 0) {
-        out[key] = cleaned
+        out[key] = cleaned;
       }
-    } else if (
-      value ||
-      typeof value === "boolean" ||
-      typeof value === "number"
-    ) {
-      out[key] = value
+    } else if (value || typeof value === 'boolean' || typeof value === 'number') {
+      out[key] = value;
     }
   }
 
-  return out as T
+  return out as T;
 }

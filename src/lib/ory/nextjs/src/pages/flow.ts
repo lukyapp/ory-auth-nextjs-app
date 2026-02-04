@@ -1,19 +1,18 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { FlowType, handleFlowError } from "@ory/client-fetch"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/router"
-import { useSearchParams } from "next/navigation"
-import { handleRestartFlow, onValidationError, useOnRedirect } from "./utils"
-import { toValue } from "../utils/utils"
-import * as runtime from "@ory/client-fetch/src/runtime"
+import { FlowType, handleFlowError } from '@ory/client-fetch';
+import * as runtime from '@ory/client-fetch/src/runtime';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { toValue } from '../utils/utils';
+import { handleRestartFlow, onValidationError, useOnRedirect } from './utils';
 
 interface Flow {
-  id: string
+  id: string;
 }
 
 export function createUseFlowFactory<T extends Flow>(
@@ -22,47 +21,44 @@ export function createUseFlowFactory<T extends Flow>(
   getFlow: (id: string) => Promise<runtime.ApiResponse<T>>,
 ): () => T | null | void {
   return () => {
-    const [flow, setFlow] = useState<T>()
-    const router = useRouter()
-    const searchParams = useSearchParams()
-    const onRestartFlow = handleRestartFlow(searchParams, flowType)
-    const onRedirect = useOnRedirect()
+    const [flow, setFlow] = useState<T>();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const onRestartFlow = handleRestartFlow(searchParams, flowType);
+    const onRedirect = useOnRedirect();
 
     const errorHandler = handleFlowError({
       onValidationError,
       onRestartFlow,
       onRedirect,
-    })
+    });
 
     const handleSetFlow = async (flow: T) => {
-      setFlow(flow)
+      setFlow(flow);
 
       // Use the router to update the `flow` search parameter only
       await router.replace({
         query: { flow: flow.id },
-      })
-      return
-    }
+      });
+      return;
+    };
 
     useEffect(() => {
-      const id = searchParams.get("flow")
+      const id = searchParams.get('flow');
 
       // If the router is not ready yet, or we already have a flow, do nothing.
       if (!router.isReady || flow !== undefined) {
-        return
+        return;
       }
 
       if (!id) {
-        createFlow(searchParams)
-          .then(toValue)
-          .then(handleSetFlow)
-          .catch(errorHandler)
-        return
+        createFlow(searchParams).then(toValue).then(handleSetFlow).catch(errorHandler);
+        return;
       }
 
-      getFlow(id).then(toValue).then(handleSetFlow).catch(errorHandler)
-    }, [searchParams, router, router.isReady, flow])
+      getFlow(id).then(toValue).then(handleSetFlow).catch(errorHandler);
+    }, [searchParams, router, router.isReady, flow]);
 
-    return flow
-  }
+    return flow;
+  };
 }

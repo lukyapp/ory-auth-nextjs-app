@@ -2,9 +2,9 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { UiText } from "@ory/client-fetch"
-import { IntlShape, useIntl } from "react-intl"
-import { isDynamicText } from "../nodes"
+import { UiText } from '@ory/client-fetch';
+import { IntlShape, useIntl } from 'react-intl';
+import { isDynamicText } from '../nodes';
 
 /**
  * Converts a UiText to a FormattedMessage.
@@ -54,56 +54,47 @@ import { isDynamicText } from "../nodes"
  * @group Utilities
  */
 export const uiTextToFormattedMessage = (
-  { id, context = {}, text }: Omit<UiText, "type">,
+  { id, context = {}, text }: Omit<UiText, 'type'>,
   intl: IntlShape,
 ) => {
-  const contextInjectedMessage = Object.entries(context).reduce(
-    (accumulator, [key, value]) => {
-      // context might provide an array of objects instead of a single object
-      // for example when looking up a recovery code
-      if (Array.isArray(value)) {
-        return {
-          ...accumulator,
-          [key]: value,
-          [key + "_list"]: intl.formatList<string>(value),
-        }
-      } else if (key.endsWith("_unix")) {
-        if (typeof value === "number") {
-          return {
-            ...accumulator,
-            [key]: intl.formatDate(new Date(value * 1000)),
-            [key + "_since"]: intl.formatDateTimeRange(
-              new Date(value),
-              new Date(),
-            ),
-            [key + "_since_minutes"]: Math.ceil(
-              (value - new Date().getTime() / 1000) / 60,
-            ).toFixed(0),
-            [key + "_until"]: intl.formatDateTimeRange(
-              new Date(),
-              new Date(value),
-            ),
-            [key + "_until_minutes"]: Math.ceil(
-              (new Date().getTime() / 1000 - value) / 60,
-            ).toFixed(0),
-          }
-        }
-      } else if (key === "property") {
-        return {
-          ...accumulator,
-          [key]: intl.formatMessage({
-            id: `property.${value}`,
-            defaultMessage: value,
-          }),
-        }
-      }
+  const contextInjectedMessage = Object.entries(context).reduce((accumulator, [key, value]) => {
+    // context might provide an array of objects instead of a single object
+    // for example when looking up a recovery code
+    if (Array.isArray(value)) {
       return {
         ...accumulator,
-        [key]: value as string | number,
+        [key]: value,
+        [key + '_list']: intl.formatList<string>(value),
+      };
+    } else if (key.endsWith('_unix')) {
+      if (typeof value === 'number') {
+        return {
+          ...accumulator,
+          [key]: intl.formatDate(new Date(value * 1000)),
+          [key + '_since']: intl.formatDateTimeRange(new Date(value), new Date()),
+          [key + '_since_minutes']: Math.ceil((value - new Date().getTime() / 1000) / 60).toFixed(
+            0,
+          ),
+          [key + '_until']: intl.formatDateTimeRange(new Date(), new Date(value)),
+          [key + '_until_minutes']: Math.ceil((new Date().getTime() / 1000 - value) / 60).toFixed(
+            0,
+          ),
+        };
       }
-    },
-    {},
-  )
+    } else if (key === 'property') {
+      return {
+        ...accumulator,
+        [key]: intl.formatMessage({
+          id: `property.${value}`,
+          defaultMessage: value,
+        }),
+      };
+    }
+    return {
+      ...accumulator,
+      [key]: value as string | number,
+    };
+  }, {});
 
   return intl.formatMessage(
     {
@@ -111,28 +102,25 @@ export const uiTextToFormattedMessage = (
       defaultMessage: text,
     },
     contextInjectedMessage,
-  )
-}
+  );
+};
 
-export function resolvePlaceholder(
-  text: UiText,
-  intl: ReturnType<typeof useIntl>,
-) {
+export function resolvePlaceholder(text: UiText, intl: ReturnType<typeof useIntl>) {
   const fallback = intl.formatMessage(
     {
-      id: "input.placeholder",
-      defaultMessage: "Enter your {placeholder}",
+      id: 'input.placeholder',
+      defaultMessage: 'Enter your {placeholder}',
     },
     {
       placeholder: uiTextToFormattedMessage(text, intl),
     },
-  )
+  );
   if (isDynamicText(text)) {
-    const field = text.context.name
+    const field = text.context.name;
     return intl.formatMessage({
       id: `forms.input.placeholder.${field}`,
       defaultMessage: fallback,
-    })
+    });
   }
-  return fallback
+  return fallback;
 }

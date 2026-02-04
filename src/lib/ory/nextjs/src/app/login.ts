@@ -1,13 +1,12 @@
 /* eslint-disable */
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-import { FlowType, LoginFlow } from "@ory/client-fetch"
-
-import { initOverrides, QueryParams } from "../types"
-import { guessPotentiallyProxiedOrySdkUrl } from "../utils/sdk"
-import { serverSideFrontendClient } from "./client"
-import { getFlowFactory } from "./flow"
-import { getPublicUrl, toGetFlowParameter } from "./utils"
+import { FlowType, LoginFlow } from '@ory/client-fetch';
+import { initOverrides, QueryParams } from '../types';
+import { guessPotentiallyProxiedOrySdkUrl } from '../utils/sdk';
+import { serverSideFrontendClient } from './client';
+import { getFlowFactory } from './flow';
+import { getPublicUrl, toGetFlowParameter } from './utils';
 
 /**
  * Use this method in an app router page to fetch an existing login flow or to create a new one. This method works with server-side rendering.
@@ -52,14 +51,11 @@ export async function getLoginFlow(
   return getFlowFactory(
     await params,
     async () =>
-      serverSideFrontendClient().getLoginFlowRaw(
-        await toGetFlowParameter(params),
-        initOverrides,
-      ),
+      serverSideFrontendClient().getLoginFlowRaw(await toGetFlowParameter(params), initOverrides),
     FlowType.Login,
     guessPotentiallyProxiedOrySdkUrl({
       knownProxiedUrl: await getPublicUrl(),
     }),
     config.project.login_ui_url,
-  )
+  );
 }

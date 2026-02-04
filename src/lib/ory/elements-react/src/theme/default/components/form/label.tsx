@@ -1,15 +1,9 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import {
-  FlowType,
-  getNodeLabel,
-  instanceOfUiText,
-  UiNodeInputAttributes,
-} from "@ory/client-fetch"
+import { FlowType, getNodeLabel, instanceOfUiText, UiNodeInputAttributes } from '@ory/client-fetch';
 import {
   messageTestId,
   OryNodeLabelProps,
@@ -17,22 +11,17 @@ import {
   useOryConfiguration,
   useOryFlow,
   useResendCode,
-} from "@ory/elements-react"
-import { useMemo } from "react"
-import { useIntl } from "react-intl"
-import { resolveLabel } from "../../../../util/nodes"
-import { initFlowUrl } from "../../utils/url"
+} from '@ory/elements-react';
+import { useMemo } from 'react';
+import { useIntl } from 'react-intl';
+import { resolveLabel } from '../../../../util/nodes';
+import { initFlowUrl } from '../../utils/url';
 
-export function DefaultLabel({
-  node,
-  children,
-  attributes,
-  fieldError,
-}: OryNodeLabelProps) {
-  const intl = useIntl()
-  const label = getNodeLabel(node)
-  const { Message } = useComponents()
-  const { resendCode, resendCodeNode } = useResendCode()
+export function DefaultLabel({ node, children, attributes, fieldError }: OryNodeLabelProps) {
+  const intl = useIntl();
+  const label = getNodeLabel(node);
+  const { Message } = useComponents();
+  const { resendCode, resendCodeNode } = useResendCode();
 
   return (
     <div className="flex flex-col gap-1 antialiased">
@@ -40,22 +29,22 @@ export function DefaultLabel({
         <span className="inline-flex justify-between">
           <label
             {...messageTestId(label)}
-            className="leading-normal text-input-foreground-primary"
+            className="text-input-foreground-primary leading-normal"
             htmlFor={attributes.name}
             data-testid={`ory/form/node/input/label/${attributes.name}`}
           >
             {resolveLabel(label, intl)}
           </label>
           <LabelAction attributes={attributes} />
-          {resendCodeNode?.attributes.node_type === "input" && (
+          {resendCodeNode?.attributes.node_type === 'input' && (
             <button
               type="button"
               name={resendCodeNode.attributes.name}
               value={resendCodeNode.attributes.value}
               onClick={resendCode}
-              className="cursor-pointer text-button-link-brand-brand underline transition-colors hover:text-button-link-brand-brand-hover"
+              className="text-button-link-brand-brand hover:text-button-link-brand-brand-hover cursor-pointer underline transition-colors"
             >
-              {intl.formatMessage({ id: "identities.messages.1070008" })}
+              {intl.formatMessage({ id: 'identities.messages.1070008' })}
             </button>
           )}
         </span>
@@ -64,44 +53,42 @@ export function DefaultLabel({
       {node.messages.map((message) => (
         <Message.Content key={message.id} message={message} />
       ))}
-      {fieldError && instanceOfUiText(fieldError) && (
-        <Message.Content message={fieldError} />
-      )}
+      {fieldError && instanceOfUiText(fieldError) && <Message.Content message={fieldError} />}
     </div>
-  )
+  );
 }
 
 type LabelActionProps = {
-  attributes: UiNodeInputAttributes
-}
+  attributes: UiNodeInputAttributes;
+};
 
 function LabelAction({ attributes }: LabelActionProps) {
-  const intl = useIntl()
-  const { flowType, flow, formState } = useOryFlow()
-  const config = useOryConfiguration()
+  const intl = useIntl();
+  const { flowType, flow, formState } = useOryFlow();
+  const config = useOryConfiguration();
 
   const action = useMemo(() => {
     if (flowType === FlowType.Login && config.project.recovery_enabled) {
-      if (formState.current === "provide_identifier" && !flow.refresh) {
-        if (attributes.name === "identifier") {
+      if (formState.current === 'provide_identifier' && !flow.refresh) {
+        if (attributes.name === 'identifier') {
           return {
             message: intl.formatMessage({
-              id: "forms.label.recover-account",
-              defaultMessage: "Recover Account",
+              id: 'forms.label.recover-account',
+              defaultMessage: 'Recover Account',
             }),
-            href: initFlowUrl(config.sdk.url, "recovery", flow),
-            testId: "recover-account",
-          }
+            href: initFlowUrl(config.sdk.url, 'recovery', flow),
+            testId: 'recover-account',
+          };
         }
-      } else if (attributes.type === "password") {
+      } else if (attributes.type === 'password') {
         return {
           message: intl.formatMessage({
-            id: "forms.label.forgot-password",
-            defaultMessage: "Forgot password?",
+            id: 'forms.label.forgot-password',
+            defaultMessage: 'Forgot password?',
           }),
-          href: initFlowUrl(config.sdk.url, "recovery", flow),
-          testId: "forgot-password",
-        }
+          href: initFlowUrl(config.sdk.url, 'recovery', flow),
+          testId: 'forgot-password',
+        };
       }
     }
   }, [
@@ -112,15 +99,15 @@ function LabelAction({ attributes }: LabelActionProps) {
     intl,
     config.sdk.url,
     formState,
-  ])
+  ]);
 
   return action ? (
     <a
       href={action.href}
-      className="text-button-link-brand-brand underline transition-colors hover:text-button-link-brand-brand-hover"
+      className="text-button-link-brand-brand hover:text-button-link-brand-brand-hover underline transition-colors"
       data-testid={`ory/screen/login/action/${action.testId}`}
     >
       {action.message}
     </a>
-  ) : null
+  ) : null;
 }

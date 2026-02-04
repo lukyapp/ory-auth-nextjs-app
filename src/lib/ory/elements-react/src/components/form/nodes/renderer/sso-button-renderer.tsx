@@ -1,63 +1,61 @@
 /* eslint-disable */
-"use client"
+'use client';
 
-import { useCallback, useEffect } from "react"
-import { useFormContext } from "react-hook-form"
-import { useDebounceValue } from "usehooks-ts"
-import { useComponents } from "../../../../context"
-import { OryNodeButtonButtonProps } from "../../../../types"
-import { UiNodeInput } from "../../../../util/utilFixSDKTypesHelper"
+import { useCallback, useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { useDebounceValue } from 'usehooks-ts';
+import { useComponents } from '../../../../context';
+import { OryNodeButtonButtonProps } from '../../../../types';
+import { UiNodeInput } from '../../../../util/utilFixSDKTypesHelper';
 
 type SsoButtonProps = {
-  node: UiNodeInput
-}
+  node: UiNodeInput;
+};
 
-export function extractProvider(
-  context: object | undefined,
-): string | undefined {
+export function extractProvider(context: object | undefined): string | undefined {
   if (
     context &&
-    typeof context === "object" &&
-    "provider" in context &&
-    typeof context.provider === "string"
+    typeof context === 'object' &&
+    'provider' in context &&
+    typeof context.provider === 'string'
   ) {
-    return context.provider
+    return context.provider;
   }
-  return undefined
+  return undefined;
 }
 
 export function SSOButtonRenderer({ node }: SsoButtonProps) {
-  const { Node } = useComponents()
-  const attributes = node.attributes
+  const { Node } = useComponents();
+  const attributes = node.attributes;
 
   const {
     setValue,
     formState: { isSubmitting, isReady },
-  } = useFormContext()
+  } = useFormContext();
   // Safari cancels form submission events, if we do a state update in the same tick
   // so we delay the state update by 100ms
-  const [clicked, setClicked] = useDebounceValue(false, 100)
+  const [clicked, setClicked] = useDebounceValue(false, 100);
 
   useEffect(() => {
     if (!isSubmitting) {
-      setClicked(false)
+      setClicked(false);
     }
-  }, [isSubmitting, setClicked])
+  }, [isSubmitting, setClicked]);
 
   const clickHandler = useCallback(() => {
-    setValue("provider", attributes.value)
-    setValue("method", node.group)
-    setClicked(true)
-  }, [setValue, attributes.value, node.group, setClicked])
+    setValue('provider', attributes.value);
+    setValue('method', node.group);
+    setClicked(true);
+  }, [setValue, attributes.value, node.group, setClicked]);
 
   const buttonProps = {
-    type: "submit",
+    type: 'submit',
     name: attributes.name,
     value: attributes.value,
     onClick: clickHandler,
     disabled: attributes.disabled || !isReady || isSubmitting,
-  } satisfies OryNodeButtonButtonProps
-  const provider = extractProvider(node.meta.label?.context) ?? ""
+  } satisfies OryNodeButtonButtonProps;
+  const provider = extractProvider(node.meta.label?.context) ?? '';
 
   return (
     <Node.SsoButton
@@ -67,5 +65,5 @@ export function SSOButtonRenderer({ node }: SsoButtonProps) {
       provider={provider}
       isSubmitting={clicked}
     />
-  )
+  );
 }

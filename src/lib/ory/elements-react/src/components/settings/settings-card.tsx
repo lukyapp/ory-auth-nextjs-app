@@ -1,42 +1,36 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import {
-  getNodeId,
-  isUiNodeScriptAttributes,
-  UiNode,
-  UiNodeGroupEnum,
-} from "@ory/client-fetch"
-import { useEffect } from "react"
-import { useIntl } from "react-intl"
-import { Toaster } from "sonner"
-import { useComponents, useOryFlow } from "../../context"
-import { showToast } from "../../util/showToast"
-import { useNodesGroups } from "../../util/ui"
-import { Node } from "../form/nodes/node"
-import { OrySettingsFormSection } from "../form/settings-section"
-import { OrySettingsOidc } from "./oidc-settings"
-import { OrySettingsPasskey } from "./passkey-settings"
-import { OrySettingsRecoveryCodes } from "./recovery-codes-settings"
-import { OrySettingsTotp } from "./totp-settings"
-import { OrySettingsWebauthn } from "./webauthn-settings"
+import { getNodeId, isUiNodeScriptAttributes, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
+import { useEffect } from 'react';
+import { useIntl } from 'react-intl';
+import { Toaster } from 'sonner';
+import { useComponents, useOryFlow } from '../../context';
+import { showToast } from '../../util/showToast';
+import { useNodesGroups } from '../../util/ui';
+import { Node } from '../form/nodes/node';
+import { OrySettingsFormSection } from '../form/settings-section';
+import { OrySettingsOidc } from './oidc-settings';
+import { OrySettingsPasskey } from './passkey-settings';
+import { OrySettingsRecoveryCodes } from './recovery-codes-settings';
+import { OrySettingsTotp } from './totp-settings';
+import { OrySettingsWebauthn } from './webauthn-settings';
 
 type SettingsSectionProps = {
-  group: UiNodeGroupEnum
-  nodes: UiNode[]
-}
+  group: UiNodeGroupEnum;
+  nodes: UiNode[];
+};
 
 function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
-  const { Card } = useComponents()
-  const intl = useIntl()
-  const { flow } = useOryFlow()
+  const { Card } = useComponents();
+  const intl = useIntl();
+  const { flow } = useOryFlow();
   const groupedNodes = useNodesGroups(flow.ui.nodes, {
     // Script nodes are already handled by the parent component.
-    omit: ["script"],
-  })
+    omit: ['script'],
+  });
 
   if (group === UiNodeGroupEnum.Totp) {
     return (
@@ -49,7 +43,7 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
           <Node key={getNodeId(node)} node={node} />
         ))}
       </OrySettingsFormSection>
-    )
+    );
   }
 
   if (group === UiNodeGroupEnum.LookupSecret) {
@@ -58,14 +52,12 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
         nodes={groupedNodes.groups.lookup_secret}
         data-testid="ory/screen/settings/group/lookup_secret"
       >
-        <OrySettingsRecoveryCodes
-          nodes={groupedNodes.groups.lookup_secret ?? []}
-        />
+        <OrySettingsRecoveryCodes nodes={groupedNodes.groups.lookup_secret ?? []} />
         {groupedNodes.groups.default?.map((node) => (
           <Node key={getNodeId(node)} node={node} />
         ))}
       </OrySettingsFormSection>
-    )
+    );
   }
 
   if (group === UiNodeGroupEnum.Oidc) {
@@ -79,7 +71,7 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
           <Node key={getNodeId(node)} node={node} />
         ))}
       </OrySettingsFormSection>
-    )
+    );
   }
 
   if (group === UiNodeGroupEnum.Webauthn) {
@@ -93,7 +85,7 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
           <Node key={getNodeId(node)} node={node} />
         ))}
       </OrySettingsFormSection>
-    )
+    );
   }
 
   if (group === UiNodeGroupEnum.Passkey) {
@@ -107,14 +99,11 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
           <Node key={getNodeId(node)} node={node} />
         ))}
       </OrySettingsFormSection>
-    )
+    );
   }
 
   return (
-    <OrySettingsFormSection
-      nodes={nodes}
-      data-testid={`ory/screen/settings/group/${group}`}
-    >
+    <OrySettingsFormSection nodes={nodes} data-testid={`ory/screen/settings/group/${group}`}>
       <Card.SettingsSectionContent
         title={intl.formatMessage({
           id: `settings.${group}.title`,
@@ -127,34 +116,26 @@ function SettingsSectionContent({ group, nodes }: SettingsSectionProps) {
           <Node key={getNodeId(node)} node={node} />
         ))}
         {nodes
-          .filter(
-            (node) =>
-              "type" in node.attributes && node.attributes.type !== "submit",
-          )
+          .filter((node) => 'type' in node.attributes && node.attributes.type !== 'submit')
           .map((node) => (
             <Node key={getNodeId(node)} node={node} />
           ))}
       </Card.SettingsSectionContent>
       <Card.SettingsSectionFooter>
         {nodes
-          .filter(
-            (node) =>
-              "type" in node.attributes && node.attributes.type === "submit",
-          )
+          .filter((node) => 'type' in node.attributes && node.attributes.type === 'submit')
           .map((node) => (
             <Node key={getNodeId(node)} node={node} />
           ))}
       </Card.SettingsSectionFooter>
     </OrySettingsFormSection>
-  )
+  );
 }
 
 const onlyScriptNodes = (nodes: UiNode[]): UiNode[] =>
   nodes.filter(
-    (node) =>
-      isUiNodeScriptAttributes(node.attributes) &&
-      node.attributes.id === "webauthn_script",
-  )
+    (node) => isUiNodeScriptAttributes(node.attributes) && node.attributes.id === 'webauthn_script',
+  );
 
 /**
  * Renders the Ory Settings Card component.
@@ -167,11 +148,11 @@ const onlyScriptNodes = (nodes: UiNode[]): UiNode[] =>
  * @group Components
  */
 export function OrySettingsCard() {
-  const { flow } = useOryFlow()
+  const { flow } = useOryFlow();
 
   // Script nodes render individually so we don't render blocks for them.
-  const uniqueGroups = useNodesGroups(flow.ui.nodes, { omit: ["script"] })
-  const scriptNodes = onlyScriptNodes(flow.ui.nodes)
+  const uniqueGroups = useNodesGroups(flow.ui.nodes, { omit: ['script'] });
+  const scriptNodes = onlyScriptNodes(flow.ui.nodes);
 
   return (
     <>
@@ -180,25 +161,23 @@ export function OrySettingsCard() {
       ))}
       {uniqueGroups.entries.map(([group, nodes]) => {
         if (group === UiNodeGroupEnum.Default) {
-          return null
+          return null;
         }
 
-        return (
-          <SettingsSectionContent key={group} group={group} nodes={nodes} />
-        )
+        return <SettingsSectionContent key={group} group={group} nodes={nodes} />;
       })}
       <SettingsMessageToaster />
     </>
-  )
+  );
 }
 
 function SettingsMessageToaster() {
-  const { flow } = useOryFlow()
-  const { Message } = useComponents()
+  const { flow } = useOryFlow();
+  const { Message } = useComponents();
 
   useEffect(() => {
     if (!flow.ui.messages) {
-      return
+      return;
     }
     flow.ui.messages.forEach((message) => {
       showToast(
@@ -206,9 +185,9 @@ function SettingsMessageToaster() {
           message,
         },
         Message.Toast,
-      )
-    })
-  }, [flow.ui.messages, Message.Toast])
+      );
+    });
+  }, [flow.ui.messages, Message.Toast]);
 
-  return <Toaster />
+  return <Toaster />;
 }

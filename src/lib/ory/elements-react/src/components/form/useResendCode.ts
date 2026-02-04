@@ -1,19 +1,19 @@
 /* eslint-disable */
-import { UiNode } from "@ory/client-fetch"
-import { useOryFlow } from "../../context"
-import { useOryFormSubmit } from "./useOryFormSubmit"
-import { computeDefaultValues } from "./form-helpers"
-import { FormValues } from "../../types"
-import { useCallback } from "react"
+import { UiNode } from '@ory/client-fetch';
+import { useCallback } from 'react';
+import { useOryFlow } from '../../context';
+import { FormValues } from '../../types';
+import { computeDefaultValues } from './form-helpers';
+import { useOryFormSubmit } from './useOryFormSubmit';
 
 function findResendNode(nodes: UiNode[]) {
   return nodes.find(
     (n) =>
-      "name" in n.attributes &&
-      ((["email", "recovery_confirm_address"].includes(n.attributes.name) &&
-        n.attributes.type === "submit") ||
-        n.attributes.name === "resend"),
-  )
+      'name' in n.attributes &&
+      ((['email', 'recovery_confirm_address'].includes(n.attributes.name) &&
+        n.attributes.type === 'submit') ||
+        n.attributes.name === 'resend'),
+  );
 }
 
 /**
@@ -38,39 +38,34 @@ function findResendNode(nodes: UiNode[]) {
  * @group Hooks
  */
 export function useResendCode() {
-  const flowContainer = useOryFlow()
-  const resendCodeNode = findResendNode(flowContainer.flow.ui.nodes)
-  const formSubmit = useOryFormSubmit()
+  const flowContainer = useOryFlow();
+  const resendCodeNode = findResendNode(flowContainer.flow.ui.nodes);
+  const formSubmit = useOryFormSubmit();
 
   const handleResend = useCallback(() => {
     const hiddenFields = flowContainer.flow.ui.nodes.filter(
       (n) =>
-        n.attributes.node_type === "input" &&
-        (n.attributes.type === "hidden" || n.group === "default"),
-    )
+        n.attributes.node_type === 'input' &&
+        (n.attributes.type === 'hidden' || n.group === 'default'),
+    );
 
     const hiddenData = computeDefaultValues({
       active: flowContainer.flow.active,
       ui: { nodes: hiddenFields },
-    })
+    });
 
-    if (resendCodeNode?.attributes && "name" in resendCodeNode.attributes) {
+    if (resendCodeNode?.attributes && 'name' in resendCodeNode.attributes) {
       const data: FormValues = {
         code: undefined,
         [resendCodeNode.attributes.name]: resendCodeNode.attributes.value,
-        method: "code",
-      }
-      formSubmit({ ...hiddenData, ...data })
+        method: 'code',
+      };
+      formSubmit({ ...hiddenData, ...data });
     }
-  }, [
-    flowContainer.flow.active,
-    flowContainer.flow.ui.nodes,
-    formSubmit,
-    resendCodeNode,
-  ])
+  }, [flowContainer.flow.active, flowContainer.flow.ui.nodes, formSubmit, resendCodeNode]);
 
   return {
     resendCode: handleResend,
     resendCodeNode,
-  }
+  };
 }

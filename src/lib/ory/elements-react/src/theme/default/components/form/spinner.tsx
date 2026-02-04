@@ -2,17 +2,14 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { cn } from "../../utils/cn"
+import { cn } from '../../utils/cn';
 
 export function Spinner({ className }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
       role="status"
-      className={cn(
-        "pointer-events-none absolute inset-0 m-auto size-8 animate-spin",
-        className,
-      )}
+      className={cn('pointer-events-none absolute inset-0 m-auto size-8 animate-spin', className)}
       viewBox="0 0 34 34"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -36,5 +33,5 @@ export function Spinner({ className }: { className?: string }) {
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }

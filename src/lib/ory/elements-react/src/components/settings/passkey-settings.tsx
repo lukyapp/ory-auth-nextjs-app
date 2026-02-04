@@ -1,82 +1,76 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { UiNode, UiNodeInputAttributes } from "@ory/client-fetch"
-import { useFormContext } from "react-hook-form"
-import { useIntl } from "react-intl"
-import { useComponents } from "../../context"
-import { triggerToWindowCall } from "../../util/ui"
-import { isUiNodeInput, UiNodeInput } from "../../util/utilFixSDKTypesHelper"
-import { Node } from "../form/nodes/node"
+import { UiNode, UiNodeInputAttributes } from '@ory/client-fetch';
+import { useFormContext } from 'react-hook-form';
+import { useIntl } from 'react-intl';
+import { useComponents } from '../../context';
+import { triggerToWindowCall } from '../../util/ui';
+import { isUiNodeInput, UiNodeInput } from '../../util/utilFixSDKTypesHelper';
+import { Node } from '../form/nodes/node';
 
 const getTriggerNode = (nodes: UiNode[]): UiNodeInput | undefined =>
   nodes
     .filter(isUiNodeInput)
     .find(
-      (node) =>
-        "name" in node.attributes &&
-        node.attributes.name === "passkey_register_trigger",
-    )
+      (node) => 'name' in node.attributes && node.attributes.name === 'passkey_register_trigger',
+    );
 
 const getSettingsNodes = (nodes: UiNode[]): UiNode[] =>
   nodes.filter(
     (node) =>
-      "name" in node.attributes &&
-      (node.attributes.name === "passkey_settings_register" ||
-        node.attributes.name === "passkey_create_data"),
-  )
+      'name' in node.attributes &&
+      (node.attributes.name === 'passkey_settings_register' ||
+        node.attributes.name === 'passkey_create_data'),
+  );
 
 const getRemoveNodes = (nodes: UiNode[]): UiNodeInput[] =>
   nodes
-    .filter(
-      (node) =>
-        "name" in node.attributes && node.attributes.name === "passkey_remove",
-    )
-    .filter(isUiNodeInput)
+    .filter((node) => 'name' in node.attributes && node.attributes.name === 'passkey_remove')
+    .filter(isUiNodeInput);
 
 interface HeadlessSettingsPasskeyProps {
-  nodes: UiNode[]
+  nodes: UiNode[];
 }
 
 export function OrySettingsPasskey({ nodes }: HeadlessSettingsPasskeyProps) {
-  const { Card, Form } = useComponents()
-  const intl = useIntl()
-  const { setValue, formState } = useFormContext()
+  const { Card, Form } = useComponents();
+  const intl = useIntl();
+  const { setValue, formState } = useFormContext();
 
-  const triggerButton = getTriggerNode(nodes)
-  const settingsNodes = getSettingsNodes(nodes)
-  const removeNodes = getRemoveNodes(nodes)
+  const triggerButton = getTriggerNode(nodes);
+  const settingsNodes = getSettingsNodes(nodes);
+  const removeNodes = getRemoveNodes(nodes);
 
   if (!triggerButton) {
-    return null
+    return null;
   }
 
   const {
     onclick: _onClick,
     onclickTrigger,
     ...triggerAttributes
-  } = triggerButton.attributes as UiNodeInputAttributes
+  } = triggerButton.attributes as UiNodeInputAttributes;
 
   const onTriggerClick = () => {
-    triggerToWindowCall(onclickTrigger)
-  }
+    triggerToWindowCall(onclickTrigger);
+  };
 
   const removePasskeyHandler = (value: string) => {
     return () => {
-      setValue("passkey_remove", value)
-      setValue("method", "passkey")
-    }
-  }
+      setValue('passkey_remove', value);
+      setValue('method', 'passkey');
+    };
+  };
 
   return (
     <>
       <Card.SettingsSectionContent
-        title={intl.formatMessage({ id: "settings.passkey.title" })}
+        title={intl.formatMessage({ id: 'settings.passkey.title' })}
         description={intl.formatMessage({
-          id: "settings.passkey.description",
+          id: 'settings.passkey.description',
         })}
       >
         {settingsNodes.map((node, i) => (
@@ -91,30 +85,30 @@ export function OrySettingsPasskey({ nodes }: HeadlessSettingsPasskeyProps) {
               name: triggerAttributes.name,
               value: triggerAttributes.value,
               onClick: onTriggerClick,
-              type: "button",
+              type: 'button',
             },
           }}
           removeButtons={removeNodes.map((node) => ({
             ...node,
             onClick:
-              node.attributes.node_type === "input"
+              node.attributes.node_type === 'input'
                 ? removePasskeyHandler(node.attributes.value as string)
                 : () => {},
             buttonProps: {
               name: node.attributes.name,
               value: node.attributes.value,
               onClick:
-                node.attributes.node_type === "input"
+                node.attributes.node_type === 'input'
                   ? removePasskeyHandler(node.attributes.value as string)
                   : () => {},
-              type: "button",
+              type: 'button',
             },
           }))}
         />
       </Card.SettingsSectionContent>
       <Card.SettingsSectionFooter
-        text={intl.formatMessage({ id: "settings.passkey.info" })}
+        text={intl.formatMessage({ id: 'settings.passkey.info' })}
       ></Card.SettingsSectionFooter>
     </>
-  )
+  );
 }

@@ -3,11 +3,11 @@
 
 @layer ory-elements;
 
-@import "tailwindcss/preflight" layer(ory-elements);
-@import "tailwindcss/utilities" layer(ory-elements);
-@import "tailwindcss/theme" layer(ory-elements);
+@import 'tailwindcss/preflight' layer(ory-elements);
+@import 'tailwindcss/utilities' layer(ory-elements);
+@import 'tailwindcss/theme' layer(ory-elements);
 
-@import "../../../tailwind/generated/variables.css";
+@import '../../../tailwind/generated/variables.css';
 
 @theme {
   --font-sans: initial;
@@ -51,7 +51,7 @@
 }
 
 @custom-variant loading {
-  &[data-loading="true"] {
+  &[data-loading='true'] {
     @slot;
   }
 }

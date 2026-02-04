@@ -8,12 +8,9 @@ import {
   UiNode,
   UiNodeAttributes,
   UiNodeGroupEnum,
-} from "@ory/client-fetch"
-import {
-  LoginFlowContainer,
-  RegistrationFlowContainer,
-} from "@ory/elements-react"
-import { getFinalNodes, isChoosingMethod } from "../utils"
+} from '@ory/client-fetch';
+import { LoginFlowContainer, RegistrationFlowContainer } from '@ory/elements-react';
+import { getFinalNodes, isChoosingMethod } from '../utils';
 
 const makeFlow = (
   nodes: UiNode[],
@@ -28,119 +25,117 @@ const makeFlow = (
         nodes,
       },
     },
-  }) as LoginFlowContainer | RegistrationFlowContainer
+  }) as LoginFlowContainer | RegistrationFlowContainer;
 
-describe("CardTwoStep/utils", () => {
-  describe("isChoosingMethod", () => {
+describe('CardTwoStep/utils', () => {
+  describe('isChoosingMethod', () => {
     test("should return true if a node has value 'screen=previous'", () => {
       const uiNodes: UiNode[] = [
         {
-          attributes: { value: "previous", name: "screen" } as UiNodeAttributes,
+          attributes: { value: 'previous', name: 'screen' } as UiNodeAttributes,
           group: UiNodeGroupEnum.Default,
         } as UiNode,
-      ]
-      expect(isChoosingMethod(makeFlow(uiNodes))).toBe(true)
-    })
+      ];
+      expect(isChoosingMethod(makeFlow(uiNodes))).toBe(true);
+    });
 
-    test("should return true if a node is identifier first and hidden", () => {
+    test('should return true if a node is identifier first and hidden', () => {
       const uiNodes: UiNode[] = [
         {
           attributes: {
-            name: "identifier",
-            type: "hidden",
+            name: 'identifier',
+            type: 'hidden',
           } as UiNodeAttributes,
           group: UiNodeGroupEnum.IdentifierFirst,
         } as UiNode,
-      ]
-      expect(isChoosingMethod(makeFlow(uiNodes))).toBe(true)
-    })
+      ];
+      expect(isChoosingMethod(makeFlow(uiNodes))).toBe(true);
+    });
 
-    test("should return true if a flow is aal2 login", () => {
-      expect(isChoosingMethod(makeFlow([], FlowType.Login, "aal2"))).toBe(true)
-    })
+    test('should return true if a flow is aal2 login', () => {
+      expect(isChoosingMethod(makeFlow([], FlowType.Login, 'aal2'))).toBe(true);
+    });
 
-    test("should return false if no conditions are met", () => {
+    test('should return false if no conditions are met', () => {
       const uiNodes: UiNode[] = [
         {
-          attributes: { name: "other", type: "text" } as UiNodeAttributes,
+          attributes: { name: 'other', type: 'text' } as UiNodeAttributes,
           group: UiNodeGroupEnum.Default,
         } as UiNode,
-      ]
-      expect(isChoosingMethod(makeFlow(uiNodes, FlowType.Login, "aal1"))).toBe(
-        false,
-      )
-    })
-  })
+      ];
+      expect(isChoosingMethod(makeFlow(uiNodes, FlowType.Login, 'aal1'))).toBe(false);
+    });
+  });
 
-  describe("getFinalNodes", () => {
-    test("should return hidden nodes from identifier_first and default groups, concatenated with selected nodes", () => {
+  describe('getFinalNodes', () => {
+    test('should return hidden nodes from identifier_first and default groups, concatenated with selected nodes', () => {
       const uniqueGroups = {
         identifier_first: [
           {
-            attributes: { type: "hidden" } as UiNodeAttributes,
+            attributes: { type: 'hidden' } as UiNodeAttributes,
           } as UiNode,
         ],
         default: [
           {
-            attributes: { type: "hidden" } as UiNodeAttributes,
+            attributes: { type: 'hidden' } as UiNodeAttributes,
           } as UiNode,
         ],
-      }
-      const selectedGroup = UiNodeGroupEnum.Default
-      const result = getFinalNodes(uniqueGroups, selectedGroup)
-      expect(result).toHaveLength(3)
-    })
+      };
+      const selectedGroup = UiNodeGroupEnum.Default;
+      const result = getFinalNodes(uniqueGroups, selectedGroup);
+      expect(result).toHaveLength(3);
+    });
 
-    test("should return only hidden nodes if no group is selected", () => {
+    test('should return only hidden nodes if no group is selected', () => {
       const uniqueGroups = {
         identifier_first: [
           {
-            attributes: { type: "hidden" } as UiNodeAttributes,
+            attributes: { type: 'hidden' } as UiNodeAttributes,
           } as UiNode,
         ],
         default: [
           {
-            attributes: { type: "hidden" } as UiNodeAttributes,
+            attributes: { type: 'hidden' } as UiNodeAttributes,
           } as UiNode,
         ],
-      }
-      const result = getFinalNodes(uniqueGroups, undefined)
-      expect(result).toHaveLength(2)
-    })
+      };
+      const result = getFinalNodes(uniqueGroups, undefined);
+      expect(result).toHaveLength(2);
+    });
 
-    test("should return an empty array if no hidden nodes are found and no group is selected", () => {
+    test('should return an empty array if no hidden nodes are found and no group is selected', () => {
       const uniqueGroups = {
         identifier_first: [
           {
-            attributes: { type: "text" } as UiNodeAttributes,
+            attributes: { type: 'text' } as UiNodeAttributes,
           } as UiNode,
         ],
         default: [
           {
-            attributes: { type: "text" } as UiNodeAttributes,
+            attributes: { type: 'text' } as UiNodeAttributes,
           } as UiNode,
         ],
-      }
-      const result = getFinalNodes(uniqueGroups, undefined)
-      expect(result).toHaveLength(0)
-    })
+      };
+      const result = getFinalNodes(uniqueGroups, undefined);
+      expect(result).toHaveLength(0);
+    });
 
-    test("should return selected nodes if no hidden nodes are found", () => {
+    test('should return selected nodes if no hidden nodes are found', () => {
       const uniqueGroups = {
         identifier_first: [
           {
-            attributes: { type: "text" } as UiNodeAttributes,
+            attributes: { type: 'text' } as UiNodeAttributes,
           } as UiNode,
         ],
         default: [
           {
-            attributes: { type: "text" } as UiNodeAttributes,
+            attributes: { type: 'text' } as UiNodeAttributes,
           } as UiNode,
         ],
-      }
-      const selectedGroup = UiNodeGroupEnum.Default
-      const result = getFinalNodes(uniqueGroups, selectedGroup)
-      expect(result).toHaveLength(1)
-    })
-  })
-})
+      };
+      const selectedGroup = UiNodeGroupEnum.Default;
+      const result = getFinalNodes(uniqueGroups, selectedGroup);
+      expect(result).toHaveLength(1);
+    });
+  });
+});

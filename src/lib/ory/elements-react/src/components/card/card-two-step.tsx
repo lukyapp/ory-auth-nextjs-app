@@ -1,14 +1,13 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { FlowType } from "@ory/client-fetch"
-import { MethodActiveForm } from "./two-step/state-method-active"
-import { ProvideIdentifierForm } from "./two-step/state-provide-identifier"
-import { SelectMethodForm } from "./two-step/state-select-method"
-import { OrySettingsCard, useOryFlow } from "@ory/elements-react"
+import { FlowType } from '@ory/client-fetch';
+import { OrySettingsCard, useOryFlow } from '@ory/elements-react';
+import { MethodActiveForm } from './two-step/state-method-active';
+import { ProvideIdentifierForm } from './two-step/state-provide-identifier';
+import { SelectMethodForm } from './two-step/state-select-method';
 
 /**
  * The `OrySelfServiceFlowCard` component is an umbrella component that can render the self-service flows.
@@ -35,20 +34,20 @@ import { OrySettingsCard, useOryFlow } from "@ory/elements-react"
  * @group Components
  */
 export function OrySelfServiceFlowCard() {
-  const { formState, flowType } = useOryFlow()
+  const { formState, flowType } = useOryFlow();
 
   if (flowType === FlowType.Settings) {
-    return <OrySettingsCard />
+    return <OrySettingsCard />;
   }
 
   switch (formState.current) {
-    case "provide_identifier":
-      return <ProvideIdentifierForm />
-    case "select_method":
-      return <SelectMethodForm />
-    case "method_active":
-      return <MethodActiveForm formState={formState} />
+    case 'provide_identifier':
+      return <ProvideIdentifierForm />;
+    case 'select_method':
+      return <SelectMethodForm />;
+    case 'method_active':
+      return <MethodActiveForm formState={formState} />;
   }
 
-  return <>unknown form state: {formState.current}</>
+  return <>unknown form state: {formState.current}</>;
 }

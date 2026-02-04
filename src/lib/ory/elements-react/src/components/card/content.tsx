@@ -2,13 +2,13 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { PropsWithChildren } from "react"
-import { useComponents } from "../../context"
+import { PropsWithChildren } from 'react';
+import { useComponents } from '../../context';
 
 /**
  * Props for the OryCardContent component.
  */
-export type OryCardContentProps = PropsWithChildren
+export type OryCardContentProps = PropsWithChildren;
 
 /**
  * A component that renders the content of the Ory Card.
@@ -23,7 +23,7 @@ export type OryCardContentProps = PropsWithChildren
  * @group Components
  */
 export function OryCardContent({ children }: OryCardContentProps) {
-  const { Card } = useComponents()
+  const { Card } = useComponents();
 
-  return <Card.Content>{children}</Card.Content>
+  return <Card.Content>{children}</Card.Content>;
 }

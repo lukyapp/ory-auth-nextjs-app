@@ -1,45 +1,44 @@
 /* eslint-disable */
-"use client"
+'use client';
 
-import { useCallback, useEffect } from "react"
-import { useFormContext } from "react-hook-form"
-import { useDebounceValue } from "usehooks-ts"
-import { useComponents } from "../../../../context"
-import { OryNodeButtonButtonProps } from "../../../../types"
-import { triggerToWindowCall } from "../../../../util/ui"
-import { UiNodeInput } from "../../../../util/utilFixSDKTypesHelper"
+import { useCallback, useEffect } from 'react';
+import { useFormContext } from 'react-hook-form';
+import { useDebounceValue } from 'usehooks-ts';
+import { useComponents } from '../../../../context';
+import { OryNodeButtonButtonProps } from '../../../../types';
+import { triggerToWindowCall } from '../../../../util/ui';
+import { UiNodeInput } from '../../../../util/utilFixSDKTypesHelper';
 
 type ButtonRendererProps = {
-  node: UiNodeInput
-}
+  node: UiNodeInput;
+};
 
 export function ButtonRenderer({ node }: ButtonRendererProps) {
-  const { Node } = useComponents()
-  const { formState, setValue } = useFormContext()
-  const [clicked, setClicked] = useDebounceValue(false, 100)
+  const { Node } = useComponents();
+  const { formState, setValue } = useFormContext();
+  const [clicked, setClicked] = useDebounceValue(false, 100);
 
   const handleClick = useCallback(() => {
-    setValue(node.attributes.name, node.attributes.value)
-    setClicked(true)
+    setValue(node.attributes.name, node.attributes.value);
+    setClicked(true);
     if (node.attributes.onclickTrigger) {
-      triggerToWindowCall(node.attributes.onclickTrigger)
+      triggerToWindowCall(node.attributes.onclickTrigger);
     }
-  }, [node.attributes, setValue, setClicked])
+  }, [node.attributes, setValue, setClicked]);
 
   const buttonProps = {
-    type: node.attributes.type === "submit" ? "submit" : "button",
+    type: node.attributes.type === 'submit' ? 'submit' : 'button',
     name: node.attributes.name,
     value: node.attributes.value,
     onClick: handleClick,
-    disabled:
-      node.attributes.disabled || !formState.isReady || formState.isSubmitting,
-  } satisfies OryNodeButtonButtonProps
+    disabled: node.attributes.disabled || !formState.isReady || formState.isSubmitting,
+  } satisfies OryNodeButtonButtonProps;
 
   useEffect(() => {
     if (!formState.isSubmitting) {
-      setClicked(false)
+      setClicked(false);
     }
-  }, [formState.isSubmitting, setClicked])
+  }, [formState.isSubmitting, setClicked]);
 
   return (
     <Node.Button
@@ -48,7 +47,7 @@ export function ButtonRenderer({ node }: ButtonRendererProps) {
       buttonProps={buttonProps}
       isSubmitting={clicked}
     />
-  )
+  );
 }
 
 /**
@@ -57,4 +56,4 @@ export function ButtonRenderer({ node }: ButtonRendererProps) {
  * @param props - The properties of the button node to render.
  * @returns A React element representing the button node.
  */
-export type ButtonRenderer = typeof ButtonRenderer
+export type ButtonRenderer = typeof ButtonRenderer;

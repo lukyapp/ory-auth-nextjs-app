@@ -1,30 +1,29 @@
 /* eslint-disable */
-import { UiNodeGroupEnum } from "@ory/client-fetch"
-import { UiNodeInput } from "../../../util/utilFixSDKTypesHelper"
-import { NodeRenderer } from "./renderer"
+import { UiNodeGroupEnum } from '@ory/client-fetch';
+import { UiNodeInput } from '../../../util/utilFixSDKTypesHelper';
+import { NodeRenderer } from './renderer';
 
 type NodeButtonProps = {
-  node: UiNodeInput
-}
+  node: UiNodeInput;
+};
 export function NodeButton({ node }: NodeButtonProps) {
-  const isResendNode = node.meta.label?.id === 1070008
+  const isResendNode = node.meta.label?.id === 1070008;
 
-  const isScreenSelectionNode =
-    "name" in node.attributes && node.attributes.name === "screen"
+  const isScreenSelectionNode = 'name' in node.attributes && node.attributes.name === 'screen';
 
   if (isResendNode || isScreenSelectionNode) {
-    return null
+    return null;
   }
-  if (node.group === "oauth2_consent") {
-    return null
+  if (node.group === 'oauth2_consent') {
+    return null;
   }
 
   const isSocial =
-    (node.attributes.name === "provider" || node.attributes.name === "link") &&
-    (node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml)
+    (node.attributes.name === 'provider' || node.attributes.name === 'link') &&
+    (node.group === UiNodeGroupEnum.Oidc || node.group === UiNodeGroupEnum.Saml);
 
   if (isSocial) {
-    return <NodeRenderer.SsoButton node={node} />
+    return <NodeRenderer.SsoButton node={node} />;
   }
-  return <NodeRenderer.Button node={node} />
+  return <NodeRenderer.Button node={node} />;
 }

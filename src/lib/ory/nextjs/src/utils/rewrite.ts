@@ -2,9 +2,9 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { OryMiddlewareOptions } from "src/middleware/middleware"
-import { orySdkUrl } from "./sdk"
-import { joinUrlPaths } from "./utils"
+import { OryMiddlewareOptions } from 'src/middleware/middleware';
+import { orySdkUrl } from './sdk';
+import { joinUrlPaths } from './utils';
 
 export function rewriteUrls(
   source: string,
@@ -16,32 +16,29 @@ export function rewriteUrls(
     // TODO load these dynamically from the project config
 
     // Old AX routes
-    ["/ui/recovery", config.project?.recovery_ui_url],
-    ["/ui/registration", config.project?.registration_ui_url],
-    ["/ui/login", config.project?.login_ui_url],
-    ["/ui/verification", config.project?.verification_ui_url],
-    ["/ui/settings", config.project?.settings_ui_url],
-    ["/ui/welcome", config.project?.default_redirect_url],
+    ['/ui/recovery', config.project?.recovery_ui_url],
+    ['/ui/registration', config.project?.registration_ui_url],
+    ['/ui/login', config.project?.login_ui_url],
+    ['/ui/verification', config.project?.verification_ui_url],
+    ['/ui/settings', config.project?.settings_ui_url],
+    ['/ui/welcome', config.project?.default_redirect_url],
 
     // New AX routes
-    ["/recovery", config.project?.recovery_ui_url],
-    ["/registration", config.project?.registration_ui_url],
-    ["/login", config.project?.login_ui_url],
-    ["/verification", config.project?.verification_ui_url],
-    ["/settings", config.project?.settings_ui_url],
+    ['/recovery', config.project?.recovery_ui_url],
+    ['/registration', config.project?.registration_ui_url],
+    ['/login', config.project?.login_ui_url],
+    ['/verification', config.project?.verification_ui_url],
+    ['/settings', config.project?.settings_ui_url],
   ].entries()) {
-    const match = joinUrlPaths(matchBaseUrl, matchPath || "")
+    const match = joinUrlPaths(matchBaseUrl, matchPath || '');
     if (replaceWith && source.startsWith(match)) {
-      source = source.replaceAll(
-        match,
-        new URL(replaceWith, selfUrl).toString(),
-      )
+      source = source.replaceAll(match, new URL(replaceWith, selfUrl).toString());
     }
   }
   return source.replaceAll(
-    matchBaseUrl.replace(/\/$/, ""),
-    new URL(selfUrl).toString().replace(/\/$/, ""),
-  )
+    matchBaseUrl.replace(/\/$/, ''),
+    new URL(selfUrl).toString().replace(/\/$/, ''),
+  );
 }
 
 /**
@@ -52,10 +49,7 @@ export function rewriteUrls(
  * @param obj - The object to rewrite
  * @param proxyUrl - The proxy URL to replace the SDK URL with
  */
-export function rewriteJsonResponse<T extends object>(
-  obj: T,
-  proxyUrl?: string,
-): T {
+export function rewriteJsonResponse<T extends object>(obj: T, proxyUrl?: string): T {
   return Object.fromEntries(
     Object.entries(obj)
       .filter(([_, value]) => value !== undefined)
@@ -66,25 +60,25 @@ export function rewriteJsonResponse<T extends object>(
             key,
             value
               .map((item) => {
-                if (typeof item === "object" && item !== null) {
+                if (typeof item === 'object' && item !== null) {
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                  return rewriteJsonResponse(item, proxyUrl)
-                } else if (typeof item === "string" && proxyUrl) {
-                  return item.replaceAll(orySdkUrl(), proxyUrl)
+                  return rewriteJsonResponse(item, proxyUrl);
+                } else if (typeof item === 'string' && proxyUrl) {
+                  return item.replaceAll(orySdkUrl(), proxyUrl);
                 }
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return item
+                return item;
               })
               .filter((item) => item !== undefined),
-          ]
-        } else if (typeof value === "object" && value !== null) {
+          ];
+        } else if (typeof value === 'object' && value !== null) {
           // Recursively remove undefined in nested objects
-          return [key, rewriteJsonResponse(value, proxyUrl)]
-        } else if (typeof value === "string" && proxyUrl) {
+          return [key, rewriteJsonResponse(value, proxyUrl)];
+        } else if (typeof value === 'string' && proxyUrl) {
           // Replace SDK URL with the provided proxy URL
-          return [key, value.replaceAll(orySdkUrl(), proxyUrl)]
+          return [key, value.replaceAll(orySdkUrl(), proxyUrl)];
         }
-        return [key, value]
+        return [key, value];
       }),
-  ) as T
+  ) as T;
 }

@@ -1,1 +1,1 @@
-export * from './client-fetch'
+export * from './client-fetch';

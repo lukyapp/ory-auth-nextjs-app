@@ -1,23 +1,18 @@
 /* eslint-disable */
-"use client"
+'use client';
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import {
-  OryNodeTextProps,
-  UiNodeInput,
-  uiTextToFormattedMessage,
-} from "@ory/elements-react"
-import { useIntl } from "react-intl"
-import { DefaultLabel } from "./label"
-import { DefaultInput } from "./input"
-import { UiNodeInputAttributes } from "@ory/client-fetch"
+import { UiNodeInputAttributes } from '@ory/client-fetch';
+import { OryNodeTextProps, UiNodeInput, uiTextToFormattedMessage } from '@ory/elements-react';
+import { useIntl } from 'react-intl';
+import { DefaultInput } from './input';
+import { DefaultLabel } from './label';
 
 export function DefaultText({ node }: OryNodeTextProps) {
-  const intl = useIntl()
+  const intl = useIntl();
 
-  if (node.attributes.id === "totp_secret_key") {
+  if (node.attributes.id === 'totp_secret_key') {
     // This node represents the TOTP secret key and needs special handling
 
     return (
@@ -36,28 +31,21 @@ export function DefaultText({ node }: OryNodeTextProps) {
           />
         </div>
       </DefaultLabel>
-    )
+    );
   }
 
-  if (node.attributes.id === "lookup_secret_codes") {
+  if (node.attributes.id === 'lookup_secret_codes') {
     // TODO (jonas): We might want to handle this more gracefully in the future
     // This node is rendered by the settings directly, so we don't need to render it here.
     // The problem is that it would cause an exception in the translation system, because
     // this node has an array of nodes in its context.
-    throw new Error("node `lookup_secret_codes` cannot be rendered as text")
+    throw new Error('node `lookup_secret_codes` cannot be rendered as text');
   }
 
   return (
-    <p
-      data-testid={`ory/form/node/text/${node.attributes.id}/label`}
-      id={node.attributes.id}
-    >
-      {node.meta.label ? (
-        <label>{uiTextToFormattedMessage(node.meta.label, intl)}</label>
-      ) : null}
-      {node.attributes.text
-        ? uiTextToFormattedMessage(node.attributes.text, intl)
-        : ""}
+    <p data-testid={`ory/form/node/text/${node.attributes.id}/label`} id={node.attributes.id}>
+      {node.meta.label ? <label>{uiTextToFormattedMessage(node.meta.label, intl)}</label> : null}
+      {node.attributes.text ? uiTextToFormattedMessage(node.attributes.text, intl) : ''}
     </p>
-  )
+  );
 }

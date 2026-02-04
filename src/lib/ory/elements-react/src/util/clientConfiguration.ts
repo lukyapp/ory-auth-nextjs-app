@@ -2,12 +2,9 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import {
-  AccountExperienceConfiguration,
-  ConfigurationParameters,
-} from "@ory/client-fetch"
-import { Locale } from "../context/intl-context"
-import { LocaleMap } from "../locales"
+import { AccountExperienceConfiguration, ConfigurationParameters } from '@ory/client-fetch';
+import { Locale } from '../context/intl-context';
+import { LocaleMap } from '../locales';
 
 /**
  * The configuration for internationalization (i18n) in Ory Elements.
@@ -21,12 +18,12 @@ export type IntlConfig = {
    *
    * @defaultValue "en"
    */
-  locale: Locale
+  locale: Locale;
   /**
    * Provide custom translations for the UI.
    */
-  customTranslations?: Partial<LocaleMap>
-}
+  customTranslations?: Partial<LocaleMap>;
+};
 
 /**
  * The configuration for Ory Elements.
@@ -48,13 +45,13 @@ export interface OryClientConfiguration {
      * The URL the Ory SDK should connect to.
      * This is typically the base URL of your Ory instance.
      */
-    url?: string
+    url?: string;
     /**
      * Additional parameters for the Ory SDK configuration.
      * This can include options like headers, credentials, and other settings.
      */
-    options?: Partial<ConfigurationParameters>
-  }
+    options?: Partial<ConfigurationParameters>;
+  };
 
   /**
    * The internationalization configuration.
@@ -62,10 +59,10 @@ export interface OryClientConfiguration {
    * The locale is used to determine the language of the UI.
    * The default locale is "en".
    */
-  intl?: IntlConfig
+  intl?: IntlConfig;
 
   /**
    * The configuration for the project.
    */
-  project: AccountExperienceConfiguration
+  project: AccountExperienceConfiguration;
 }

@@ -13,57 +13,57 @@ import {
   SettingsFlow,
   UiContainer,
   VerificationFlow,
-} from "@ory/client-fetch"
+} from '@ory/client-fetch';
 
 /**
  * A flow container for the {@link LoginFlow}
  * @interface
  */
 export type LoginFlowContainer = {
-  flowType: FlowType.Login
-  flow: LoginFlow
-}
+  flowType: FlowType.Login;
+  flow: LoginFlow;
+};
 
 /**
  * A flow container for the {@link RegistrationFlow}
  * @interface
  */
 export type RegistrationFlowContainer = {
-  flowType: FlowType.Registration
-  flow: RegistrationFlow
-}
+  flowType: FlowType.Registration;
+  flow: RegistrationFlow;
+};
 
 /**
  * A flow container for the {@link RecoveryFlow}
  * @interface
  */
 export type RecoveryFlowContainer = {
-  flowType: FlowType.Recovery
-  flow: RecoveryFlow
-}
+  flowType: FlowType.Recovery;
+  flow: RecoveryFlow;
+};
 
 /**
  * A flow container for the {@link VerificationFlow}
  * @interface
  */
 export type VerificationFlowContainer = {
-  flowType: FlowType.Verification
-  flow: VerificationFlow
-}
+  flowType: FlowType.Verification;
+  flow: VerificationFlow;
+};
 /**
  * A flow container for the {@link SettingsFlow}
  * @interface
  */
 export type SettingsFlowContainer = {
-  flowType: FlowType.Settings
-  flow: SettingsFlow
-}
+  flowType: FlowType.Settings;
+  flow: SettingsFlow;
+};
 
 /**
  * A flow container for the {@link FlowError}
  * @interface
  */
-export type ErrorFlowContainer = { flowType: FlowType.Error; flow: FlowError }
+export type ErrorFlowContainer = { flowType: FlowType.Error; flow: FlowError };
 
 /**
  * A flow container for the OAuth2 consent flow
@@ -76,19 +76,19 @@ export type ConsentFlow = {
   /**
    * When the flow was created.
    */
-  created_at: Date
+  created_at: Date;
   /**
    * When the flow expires.
    */
-  expires_at: Date
+  expires_at: Date;
   /**
    * Always "UNSET" as the consent flow does not have a specific ID.
    */
-  id: "UNSET"
+  id: 'UNSET';
   /**
    * When the flow was issued.
    */
-  issued_at: Date
+  issued_at: Date;
   /**
    * The state of the consent flow.
    *
@@ -96,25 +96,25 @@ export type ConsentFlow = {
    * - "rejected": The user has rejected the consent request.
    * - "accepted": The user has accepted the consent request.
    */
-  state: "show_form" | "rejected" | "accepted"
+  state: 'show_form' | 'rejected' | 'accepted';
   /**
    * The active part of the flow, which is always "oauth2_consent" for this flow.
    */
-  active: "oauth2_consent"
-  ui: UiContainer
-  consent_request: OAuth2ConsentRequest
-  session: Session
-  return_to?: string
-}
+  active: 'oauth2_consent';
+  ui: UiContainer;
+  consent_request: OAuth2ConsentRequest;
+  session: Session;
+  return_to?: string;
+};
 
 /**
  * A flow container for the OAuth2 {@link ConsentFlow}
  * @interface
  */
 export type ConsentFlowContainer = {
-  flowType: FlowType.OAuth2Consent
-  flow: ConsentFlow
-}
+  flowType: FlowType.OAuth2Consent;
+  flow: ConsentFlow;
+};
 
 /**
  * A union type of all flow containers
@@ -125,5 +125,5 @@ export type OryFlowContainer =
   | RecoveryFlowContainer
   | VerificationFlowContainer
   | SettingsFlowContainer
-  | ConsentFlowContainer
+  | ConsentFlowContainer;
 // TODO: Add ErrorFlowContainer

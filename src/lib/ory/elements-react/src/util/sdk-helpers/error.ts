@@ -3,29 +3,27 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  ContinueWith,
   ErrorBrowserLocationChangeRequired,
   ErrorFlowReplaced,
+  ErrorGeneric,
+  FetchError,
   GenericError,
   NeedsPrivilegedSessionError,
   ResponseError,
   SelfServiceFlowExpiredError,
-  FetchError,
-  ErrorGeneric,
-  ContinueWith,
-} from "@ory/client-fetch"
-import type { GenericErrorContent } from "@ory/client-fetch/src/models/GenericErrorContent"
+} from '@ory/client-fetch';
+import type { GenericErrorContent } from '@ory/client-fetch/src/models/GenericErrorContent';
 
-export function isGenericErrorResponse(
-  response: unknown,
-): response is { error: GenericError } {
+export function isGenericErrorResponse(response: unknown): response is { error: GenericError } {
   return (
-    typeof response === "object" &&
+    typeof response === 'object' &&
     !!response &&
-    "error" in response &&
-    typeof response.error === "object" &&
+    'error' in response &&
+    typeof response.error === 'object' &&
     !!response.error &&
-    "id" in response.error
-  )
+    'id' in response.error
+  );
 }
 
 /**
@@ -37,10 +35,7 @@ export function isGenericErrorResponse(
 export function isNeedsPrivilegedSessionError(
   response: unknown,
 ): response is NeedsPrivilegedSessionError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_refresh_required"
-  )
+  return isGenericErrorResponse(response) && response.error.id === 'session_refresh_required';
 }
 
 /**1
@@ -51,10 +46,7 @@ export function isNeedsPrivilegedSessionError(
 export function isSelfServiceFlowExpiredError(
   response: unknown,
 ): response is SelfServiceFlowExpiredError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "self_service_flow_expired"
-  )
+  return isGenericErrorResponse(response) && response.error.id === 'self_service_flow_expired';
 }
 
 /**
@@ -62,14 +54,12 @@ export function isSelfServiceFlowExpiredError(
  *
  * @param response - The response to check.
  */
-export function isSelfServiceFlowDisabled(
-  response: unknown,
-): response is GenericError {
+export function isSelfServiceFlowDisabled(response: unknown): response is GenericError {
   return (
     isGenericErrorResponse(response) &&
     isGenericErrorResponse(response) &&
-    response.error.id === "self_service_flow_disabled"
-  )
+    response.error.id === 'self_service_flow_disabled'
+  );
 }
 
 /**
@@ -82,34 +72,24 @@ export function isBrowserLocationChangeRequired(
   return (
     isGenericErrorResponse(response) &&
     isGenericErrorResponse(response) &&
-    response.error.id === "browser_location_change_required"
-  )
+    response.error.id === 'browser_location_change_required'
+  );
 }
 
 /**
  * Checks if the response is a ErrorFlowReplaced.
  * @param response - The response to check.
  */
-export function isSelfServiceFlowReplaced(
-  response: unknown,
-): response is ErrorFlowReplaced {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "self_service_flow_replaced"
-  )
+export function isSelfServiceFlowReplaced(response: unknown): response is ErrorFlowReplaced {
+  return isGenericErrorResponse(response) && response.error.id === 'self_service_flow_replaced';
 }
 
 /**
  * Checks if the response is a GenericError due to the session already being available.
  * @param response - The response to check.
  */
-export function isSessionAlreadyAvailable(
-  response: unknown,
-): response is GenericError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_already_available"
-  )
+export function isSessionAlreadyAvailable(response: unknown): response is GenericError {
+  return isGenericErrorResponse(response) && response.error.id === 'session_already_available';
 }
 
 /**
@@ -120,14 +100,13 @@ export function isSessionAlreadyAvailable(
 export function isAddressNotVerified(response: unknown): response is {
   error: GenericErrorContent & {
     details?: {
-      continue_with?: [ContinueWith]
-    }
-  }
+      continue_with?: [ContinueWith];
+    };
+  };
 } {
   return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_verified_address_required"
-  )
+    isGenericErrorResponse(response) && response.error.id === 'session_verified_address_required'
+  );
 }
 
 /**
@@ -135,13 +114,8 @@ export function isAddressNotVerified(response: unknown): response is {
  *
  * @param response - The response to check.
  */
-export function isAalAlreadyFulfilled(
-  response: unknown,
-): response is GenericError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_aal_already_fulfilled"
-  )
+export function isAalAlreadyFulfilled(response: unknown): response is GenericError {
+  return isGenericErrorResponse(response) && response.error.id === 'session_aal_already_fulfilled';
 }
 
 /**
@@ -149,13 +123,8 @@ export function isAalAlreadyFulfilled(
  *
  * @param response - The response to check.
  */
-export function isSessionAal1Required(
-  response: unknown,
-): response is ErrorGeneric {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_aal1_required"
-  )
+export function isSessionAal1Required(response: unknown): response is ErrorGeneric {
+  return isGenericErrorResponse(response) && response.error.id === 'session_aal1_required';
 }
 
 /**
@@ -163,13 +132,8 @@ export function isSessionAal1Required(
  *
  * @param response - The response to check.
  */
-export function isSessionAal2Required(
-  response: unknown,
-): response is GenericError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "session_aal2_required"
-  )
+export function isSessionAal2Required(response: unknown): response is GenericError {
+  return isGenericErrorResponse(response) && response.error.id === 'session_aal2_required';
 }
 
 /**
@@ -178,9 +142,7 @@ export function isSessionAal2Required(
  * @param response - The response to check.
  */
 export function isNoActiveSession(response: unknown): response is GenericError {
-  return (
-    isGenericErrorResponse(response) && response.error.id === "session_inactive"
-  )
+  return isGenericErrorResponse(response) && response.error.id === 'session_inactive';
 }
 
 /**
@@ -189,10 +151,7 @@ export function isNoActiveSession(response: unknown): response is GenericError {
  * @param response - The response to check.
  */
 export function isCsrfError(response: unknown): response is GenericError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "security_csrf_violation"
-  )
+  return isGenericErrorResponse(response) && response.error.id === 'security_csrf_violation';
 }
 
 /**
@@ -200,13 +159,11 @@ export function isCsrfError(response: unknown): response is GenericError {
  *
  * @param response - The response to check.
  */
-export function isRedirectUrlNotAllowed(
-  response: unknown,
-): response is GenericError {
+export function isRedirectUrlNotAllowed(response: unknown): response is GenericError {
   return (
     isGenericErrorResponse(response) &&
-    response.error.id === "self_service_flow_return_to_forbidden"
-  )
+    response.error.id === 'self_service_flow_return_to_forbidden'
+  );
 }
 
 /**
@@ -214,28 +171,18 @@ export function isRedirectUrlNotAllowed(
  *
  * @param response - The response to check.
  */
-export function isSecurityIdentityMismatch(
-  response: unknown,
-): response is GenericError {
-  return (
-    isGenericErrorResponse(response) &&
-    response.error.id === "security_identity_mismatch"
-  )
+export function isSecurityIdentityMismatch(response: unknown): response is GenericError {
+  return isGenericErrorResponse(response) && response.error.id === 'security_identity_mismatch';
 }
 
 export const isResponseError = (err: unknown): err is ResponseError => {
   if (err instanceof ResponseError) {
-    return true
+    return true;
   }
 
-  return (
-    typeof err === "object" &&
-    !!err &&
-    "name" in err &&
-    err.name === "ResponseError"
-  )
-}
+  return typeof err === 'object' && !!err && 'name' in err && err.name === 'ResponseError';
+};
 
 export const isFetchError = (err: unknown): err is FetchError => {
-  return err instanceof FetchError
-}
+  return err instanceof FetchError;
+};

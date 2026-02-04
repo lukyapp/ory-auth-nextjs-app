@@ -10,9 +10,9 @@
  * @group Utilities
  */
 export function messageTestId(message: { id: number | string }): {
-  "data-testid": string
+  'data-testid': string;
 } {
   return {
-    "data-testid": `ory/message/${message.id}`,
-  }
+    'data-testid': `ory/message/${message.id}`,
+  };
 }

@@ -2,9 +2,9 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { useComponents } from "../../context"
+import { useComponents } from '../../context';
 
-export type OryPageHeaderProps = Record<never, never>
+export type OryPageHeaderProps = Record<never, never>;
 
 /**
  * The OryPageHeader component renders the header of the page.
@@ -15,7 +15,7 @@ export type OryPageHeaderProps = Record<never, never>
  * @group Components
  */
 export const OryPageHeader = () => {
-  const { Page } = useComponents()
+  const { Page } = useComponents();
 
-  return <Page.Header />
-}
+  return <Page.Header />;
+};

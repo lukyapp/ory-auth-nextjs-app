@@ -2,14 +2,14 @@
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { useComponents, useOryFlow } from "../../context"
-import { OryForm } from "../form"
-import { Node } from "../form/nodes/node"
-import { OryCard } from "./card"
-import { OryCardContent } from "./content"
-import { OryCardFooter } from "./footer"
-import { OryCardHeader } from "./header"
-import { getNodeId } from "@ory/client-fetch"
+import { getNodeId } from '@ory/client-fetch';
+import { useComponents, useOryFlow } from '../../context';
+import { OryForm } from '../form';
+import { Node } from '../form/nodes/node';
+import { OryCard } from './card';
+import { OryCardContent } from './content';
+import { OryCardFooter } from './footer';
+import { OryCardHeader } from './header';
 
 /**
  * The `OryConsentCard` component renders a card for displaying the OAuth2 consent flow.
@@ -18,8 +18,8 @@ import { getNodeId } from "@ory/client-fetch"
  * @group Components
  */
 export function OryConsentCard() {
-  const { Form, Card } = useComponents()
-  const flow = useOryFlow()
+  const { Form, Card } = useComponents();
+  const flow = useOryFlow();
   return (
     <OryCard>
       <OryCardHeader />
@@ -36,5 +36,5 @@ export function OryConsentCard() {
         </OryForm>
       </OryCardContent>
     </OryCard>
-  )
+  );
 }

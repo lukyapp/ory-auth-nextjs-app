@@ -8,12 +8,12 @@ import {
   RegistrationFlow,
   registrationUrl,
   UpdateRegistrationFlowBody,
-} from "@ory/client-fetch"
-import { OryElementsConfiguration } from "../context"
-import { OryFlowContainer } from "./flowContainer"
-import { replaceWindowFlowId } from "./internal"
-import { OnSubmitHandlerProps } from "./submitHandler"
-import { handleFlowError } from "./sdk-helpers"
+} from '@ory/client-fetch';
+import { OryElementsConfiguration } from '../context';
+import { OryFlowContainer } from './flowContainer';
+import { replaceWindowFlowId } from './internal';
+import { handleFlowError } from './sdk-helpers';
+import { OnSubmitHandlerProps } from './submitHandler';
 
 /**
  * Use this method to submit a registration flow. This method is used in the `onSubmit` handler of the registration form.
@@ -27,11 +27,7 @@ import { handleFlowError } from "./sdk-helpers"
 export async function onSubmitRegistration(
   { flow }: OryFlowContainer,
   config: OryElementsConfiguration,
-  {
-    setFlowContainer,
-    body,
-    onRedirect,
-  }: OnSubmitHandlerProps<UpdateRegistrationFlowBody>,
+  { setFlowContainer, body, onRedirect }: OnSubmitHandlerProps<UpdateRegistrationFlowBody>,
 ) {
   await config.sdk.frontend
     .updateRegistrationFlowRaw({
@@ -39,38 +35,38 @@ export async function onSubmitRegistration(
       updateRegistrationFlowBody: body,
     })
     .then(async (res) => {
-      const body = await res.value()
+      const body = await res.value();
 
       const didContinueWith = handleContinueWith(body.continue_with, {
         onRedirect,
-      })
+      });
 
       // eslint-disable-next-line promise/always-return
       if (didContinueWith) {
-        return
+        return;
       }
 
       // We did not receive a valid continue_with, but the state flow is still a success. In this case we re-initialize
       // the registration flow which will redirect the user to the default url.
-      onRedirect(registrationUrl(config), true)
+      onRedirect(registrationUrl(config), true);
     })
     .catch(
       handleFlowError({
         onRestartFlow: (useFlowId) => {
           if (useFlowId) {
-            replaceWindowFlowId(useFlowId)
+            replaceWindowFlowId(useFlowId);
           } else {
-            onRedirect(registrationUrl(config), true)
+            onRedirect(registrationUrl(config), true);
           }
         },
         onValidationError: (body: RegistrationFlow) => {
           setFlowContainer({
             flow: body,
             flowType: FlowType.Registration,
-          })
+          });
         },
         onRedirect,
         config,
       }),
-    )
+    );
 }
