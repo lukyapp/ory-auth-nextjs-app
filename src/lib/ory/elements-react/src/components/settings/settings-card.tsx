@@ -3,7 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { getNodeId, isUiNodeScriptAttributes, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
 import { useEffect } from 'react';
 import { useIntl } from 'react-intl';

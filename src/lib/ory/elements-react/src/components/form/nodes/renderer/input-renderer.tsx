@@ -3,7 +3,6 @@
 
 // Copyright © 2026 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { getNodeLabel } from '@ory/client-fetch';
 import { useFormState } from 'react-hook-form';
 import { useIntl } from 'react-intl';

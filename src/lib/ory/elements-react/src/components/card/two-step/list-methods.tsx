@@ -3,7 +3,6 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { UiNodeGroupEnum } from '@ory/client-fetch';
 import { useComponents, useOryFlow } from '@ory/elements-react';
 import { useFormContext } from 'react-hook-form';

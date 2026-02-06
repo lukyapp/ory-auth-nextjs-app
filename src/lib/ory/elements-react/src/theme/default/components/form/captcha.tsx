@@ -3,7 +3,6 @@
 
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
 import { isUiNodeInputAttributes, UiText } from '@ory/client-fetch';
 import { OryNodeCaptchaProps, useComponents, useOryFlow } from '@ory/elements-react';

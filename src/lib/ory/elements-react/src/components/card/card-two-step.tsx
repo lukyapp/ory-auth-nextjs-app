@@ -3,7 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { FlowType } from '@ory/client-fetch';
 import { OrySettingsCard, useOryFlow } from '@ory/elements-react';
 import { MethodActiveForm } from './two-step/state-method-active';

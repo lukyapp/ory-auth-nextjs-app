@@ -3,7 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { getNodeLabel } from '@ory/client-fetch';
 import { OryNodeButtonProps, uiTextToFormattedMessage } from '@ory/elements-react';
 import { cva } from 'class-variance-authority';

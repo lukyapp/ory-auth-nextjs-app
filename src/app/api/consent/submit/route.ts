@@ -1,4 +1,5 @@
 import { acceptConsentRequest } from '@/app/(app)/auth/consent/acceptConsentRequest';
+import { getConsentRequest } from '@/app/(app)/auth/consent/getConsentRequest';
 import { rejectConsentRequest } from '@/app/(app)/auth/consent/rejectConsentRequest';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -52,21 +53,22 @@ async function checkCsrfToken(body: WithCsrfToken) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse<{ redirect_to: string }>> {
   // TODO validate body
   const body = await getBody<ConsentBody>(req);
   await checkCsrfToken(body);
 
   if (body.action === 'accept') {
-    const consentRequest = { ...body, challenge: body.consent_challenge };
-    const { redirectTo } = await acceptConsentRequest(consentRequest);
-    // TODO do works, we have a browser OPTION request that fails
-    return NextResponse.redirect(redirectTo, 302);
+    const consentRequest = await getConsentRequest(body.consent_challenge);
+    const { redirectTo } = await acceptConsentRequest({
+      ...consentRequest,
+      remember: body.remember,
+    });
+    return NextResponse.json({ redirect_to: redirectTo });
   }
   if (body.action === 'reject') {
     const { redirectTo } = await rejectConsentRequest(body.consent_challenge);
-    // TODO do works, we have a browser OPTION request that fails
-    return NextResponse.redirect(redirectTo);
+    return NextResponse.json({ redirect_to: redirectTo });
   }
-  return NextResponse.redirect('/');
+  return NextResponse.json({ redirect_to: '/' });
 }

@@ -3,7 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { createContext, Dispatch, PropsWithChildren, useContext, useState } from 'react';
 import { OryFlowContainer } from '../util/flowContainer';
 import { FormState, FormStateAction, useFormStateReducer } from './form-state';

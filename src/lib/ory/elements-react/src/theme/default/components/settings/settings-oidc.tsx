@@ -3,7 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { OrySettingsSsoProps, UiNodeInput, useComponents } from '@ory/elements-react';
 import { useEffect } from 'react';
 import { useDebounceValue } from 'usehooks-ts';

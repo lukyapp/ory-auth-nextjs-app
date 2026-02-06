@@ -28,13 +28,11 @@ export function OryConsentCard() {
           <Card.Divider />
           <Form.Group>
             {flow.flow.ui.nodes.map((node) => {
-                let nodeId = getNodeId(node)
-                if (['grant_scope', 'action'].includes(nodeId) && node.attributes.value) {
-                    nodeId += `-${node.attributes.value}`
-                }
-                return (
-                    <Node key={nodeId} node={node} />
-                )
+              let nodeId = getNodeId(node);
+              if (['grant_scope', 'action'].includes(nodeId) && node.attributes.value) {
+                nodeId += `-${node.attributes.value}`;
+              }
+              return <Node key={nodeId} node={node} />;
             })}
           </Form.Group>
           <Card.Divider />
