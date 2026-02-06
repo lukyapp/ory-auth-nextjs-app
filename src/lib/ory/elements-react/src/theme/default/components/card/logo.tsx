@@ -1,8 +1,11 @@
 /* eslint-disable */
+'use client';
+
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-import { useOryConfiguration } from '@ory/elements-react';
+import { FlowType } from '@ory/client-fetch';
+import { useOryConfiguration, useOryFlow } from '@ory/elements-react';
+import { useIntl } from 'react-intl';
 
 /**
  * The DefaultCardLogo component renders the logo from the {@link @ory/elements-react!OryProvider} or falls back to the project name.
@@ -14,7 +17,18 @@ import { useOryConfiguration } from '@ory/elements-react';
  * @see {@link @ory/elements-react!OryElementsConfiguration}
  */
 export function DefaultCardLogo() {
+  const intl = useIntl();
   const config = useOryConfiguration();
+  const { flow, flowType } = useOryFlow();
+
+  const title =
+    flowType === FlowType.Login
+      ? (flow.oauth2_login_request?.client?.client_name ??
+        flow.oauth2_login_request?.client?.client_id)
+      : flowType === FlowType.Registration
+        ? (flow.oauth2_login_request?.client?.client_name ??
+          flow.oauth2_login_request?.client?.client_id)
+        : config.project.name;
 
   if (config.project.logo_light_url) {
     return (
@@ -24,7 +38,7 @@ export function DefaultCardLogo() {
 
   return (
     <h1 className="text-interface-foreground-default-primary text-xl leading-normal font-semibold">
-      {config.project.name}
+      {intl.formatMessage({ id: 'auth.continue-to-app' }, { app: title })}
     </h1>
   );
 }

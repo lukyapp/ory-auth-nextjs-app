@@ -1,4 +1,5 @@
 {
+  "auth.continue-to-app": "Continue to {app}",
   "consent.action-accept": "Allow",
   "consent.action-reject": "Deny",
   "consent.description": "Only grant permissions if you trust this site or app. You do not need to accept all permissions.",
