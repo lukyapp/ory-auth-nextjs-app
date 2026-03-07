@@ -31,12 +31,22 @@ export default async function KratosErrorPage({
 }: PageProps<'/error'>) {
   const searchParams = await _searchParams;
   const errorId = getFirstSearchParam(searchParams['id']);
+  const errorCode = getFirstSearchParam(searchParams['error']); // could be invalid_request;
+  const errorDescription = getFirstSearchParam(searchParams['error_description']); // could be invalid_request;
 
-  if (!errorId) {
+  if (!errorId && !errorCode && !errorDescription) {
     notFound();
   }
 
-  const error = await getKratosError(errorId);
+  const error = errorId
+    ? await getKratosError(errorId)
+    : {
+        id: null,
+        error: {
+          message: errorDescription,
+          reason: errorCode,
+        },
+      };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -45,8 +55,9 @@ export default async function KratosErrorPage({
 
         {error?.error ? (
           <>
-            <p className="text-gray-700">{error.error.reason || error.error.message}</p>
-            <p className="text-xs text-gray-400">Error ID: {errorId}</p>
+            {error.id && <p className="text-xs text-gray-400">Error ID: {error.id}</p>}
+            <p className="text-gray-700">{error.error.reason}</p>
+            <p className="text-gray-700">{error.error.message}</p>
           </>
         ) : (
           <p className="text-gray-700">
