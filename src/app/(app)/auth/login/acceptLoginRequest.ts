@@ -1,26 +1,32 @@
 'use server';
 
+import { OAuth2LoginRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 
 const LOGIN_REMEMBER_FOR_SECONDS = 3600;
 
-export async function acceptLoginRequest(loginChallenge: string) {
-  const session = await getServerSession();
-  const subject = session?.identity?.id;
+type AcceptLoginRequestBody = {
+  remember?: boolean;
+} & OAuth2LoginRequest;
 
-  if (!subject) {
-    return null;
-  }
-
+export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
+  console.log('AcceptLoginRequestBody : ', body);
+  const { challenge, subject } = body;
   const hydra = await getOAuth2ApiFetchClient();
   const response = await hydra
     .acceptOAuth2LoginRequest({
-      loginChallenge,
+      loginChallenge: challenge,
       acceptOAuth2LoginRequest: {
         subject,
-        remember: true,
+        remember: body.remember ?? true,
         remember_for: LOGIN_REMEMBER_FOR_SECONDS,
+        // amr,
+        // acr,
+        // context,
+        // extend_session_lifespan,
+        // identity_provider_session_id,
+        // force_subject_identifier
       },
     })
     .catch((error: unknown) => {
@@ -29,5 +35,6 @@ export async function acceptLoginRequest(loginChallenge: string) {
       return null;
     });
 
-  return response?.redirect_to ?? null;
+  const redirectTo = response?.redirect_to ?? '/';
+  return { redirectTo };
 }

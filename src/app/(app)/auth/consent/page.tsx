@@ -9,7 +9,9 @@ export default async function ConsentPage(props: {
   searchParams: Promise<{ consent_challenge: string }>;
 }) {
   const searchParams = await props.searchParams;
-  const consentChallenge = searchParams.consent_challenge ?? undefined;
+  const consentChallenge = Array.isArray(searchParams.consent_challenge)
+    ? searchParams.consent_challenge[0]
+    : searchParams.consent_challenge;
   if (!consentChallenge) {
     return;
   }

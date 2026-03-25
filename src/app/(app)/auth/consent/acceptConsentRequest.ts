@@ -1,29 +1,28 @@
 'use server';
 
-import { AcceptOAuth2ConsentRequestSession } from '@ory/client-fetch';
+import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 
+const LOGIN_REMEMBER_FOR_SECONDS = 3600;
+
 type AcceptConsentRequestBody = {
-  challenge: string;
   remember: boolean;
-  grant_access_token_audience?: string[];
-  requested_scope?: string[];
-};
+} & OAuth2ConsentRequest;
 
 export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
-  const { requested_scope, remember, grant_access_token_audience, challenge } = body;
+  console.log('AcceptConsentRequestBody : ', body);
+  const { requested_scope, remember, challenge, requested_access_token_audience } = body;
   const hydra = await getOAuth2ApiFetchClient();
-  const resolvedGrantScope = requested_scope ?? [];
-  const session = await extractSession(resolvedGrantScope);
+  const session = await extractSession(requested_scope ?? []);
   const response = await hydra
     .acceptOAuth2ConsentRequest({
       consentChallenge: challenge,
       acceptOAuth2ConsentRequest: {
-        grant_scope: resolvedGrantScope,
+        grant_scope: requested_scope,
         remember,
-        remember_for: 3600,
-        grant_access_token_audience,
+        remember_for: LOGIN_REMEMBER_FOR_SECONDS,
+        grant_access_token_audience: requested_access_token_audience,
         session,
       },
     })
