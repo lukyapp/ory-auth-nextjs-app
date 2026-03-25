@@ -1,7 +1,6 @@
 'use server';
 
 import { OAuth2LoginRequest } from '@ory/client-fetch';
-import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 
 const LOGIN_REMEMBER_FOR_SECONDS = 3600;
@@ -34,6 +33,6 @@ export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
       return null;
     });
 
-  const redirectTo = response?.redirect_to ?? '/';
+  const redirectTo = response?.redirect_to;
   return { redirectTo };
 }
