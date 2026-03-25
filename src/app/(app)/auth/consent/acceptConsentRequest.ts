@@ -11,7 +11,6 @@ type AcceptConsentRequestBody = {
 } & OAuth2ConsentRequest;
 
 export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
-  console.log('AcceptConsentRequestBody : ', body);
   const { requested_scope, remember, challenge, requested_access_token_audience } = body;
   const hydra = await getOAuth2ApiFetchClient();
   const session = await extractSession(requested_scope ?? []);

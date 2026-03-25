@@ -11,7 +11,6 @@ type AcceptLoginRequestBody = {
 } & OAuth2LoginRequest;
 
 export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
-  console.log('AcceptLoginRequestBody : ', body);
   const { challenge, subject } = body;
   const hydra = await getOAuth2ApiFetchClient();
   const response = await hydra
