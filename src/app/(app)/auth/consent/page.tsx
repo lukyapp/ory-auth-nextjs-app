@@ -1,3 +1,5 @@
+import { createOryConfig } from '@/lib/ory/ory.config';
+import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import { OAuth2ConsentRequest } from '@ory/client-fetch';
 import { redirect } from 'next/navigation';
 import React from 'react';
@@ -16,11 +18,13 @@ export default async function ConsentPage(props: {
     return;
   }
   const consentRequest = await getConsentRequest(consentChallenge);
+  const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
+  const oryConfig = createOryConfig(locale);
   if (shouldSkipConsent(consentRequest)) {
     const { redirectTo } = await acceptConsentRequest({ ...consentRequest, remember: false });
     redirect(redirectTo);
   }
-  return <ConsentUi consentRequest={consentRequest} />;
+  return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />;
 }
 
 function shouldSkipConsent(consentRequest: OAuth2ConsentRequest) {

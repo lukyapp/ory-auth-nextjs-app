@@ -10,14 +10,14 @@ type AcceptLoginRequestBody = {
 } & OAuth2LoginRequest;
 
 export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
-  const { challenge, subject } = body;
+  const { challenge, subject, remember } = body;
   const hydra = await getOAuth2ApiFetchClient();
   const response = await hydra
     .acceptOAuth2LoginRequest({
       loginChallenge: challenge,
       acceptOAuth2LoginRequest: {
         subject,
-        remember: body.remember ?? true,
+        remember: remember ?? true,
         remember_for: LOGIN_REMEMBER_FOR_SECONDS,
         // amr,
         // acr,

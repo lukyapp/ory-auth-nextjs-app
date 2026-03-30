@@ -1,13 +1,19 @@
 'use client';
 
-import { oryConfig } from '@/lib/ory/ory.config';
 import { type OAuth2ConsentRequest } from '@ory/client-fetch';
+import type { OryClientConfiguration } from '@ory/elements-react';
 import { useSession } from '@ory/elements-react/client';
 import { Consent } from '@ory/elements-react/theme';
 import React from 'react';
 import { useCsrfToken } from './useCsrfToken';
 
-export const ConsentUi = ({ consentRequest }: { consentRequest: OAuth2ConsentRequest }) => {
+export const ConsentUi = ({
+  consentRequest,
+  oryConfig,
+}: {
+  consentRequest: OAuth2ConsentRequest;
+  oryConfig: OryClientConfiguration;
+}) => {
   const session = useSession();
   const csrfToken = useCsrfToken();
 
