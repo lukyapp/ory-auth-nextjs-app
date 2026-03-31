@@ -21,7 +21,7 @@ export default async function ConsentPage(props: {
   const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
   const oryConfig = createOryConfig(locale);
   if (shouldSkipConsent(consentRequest)) {
-    const { redirectTo } = await acceptConsentRequest({ ...consentRequest, remember: false });
+    const { redirectTo } = await acceptConsentRequest({ ...consentRequest });
     redirect(redirectTo);
   }
   return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />;

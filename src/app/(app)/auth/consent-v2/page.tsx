@@ -16,7 +16,7 @@ export default async function ConsentV2Page(props: {
 
   const consentRequest = await getConsentRequest(consentChallenge);
   if (shouldSkipConsent(consentRequest)) {
-    const { redirectTo } = await acceptConsentRequest({ ...consentRequest, remember: false });
+    const { redirectTo } = await acceptConsentRequest({ ...consentRequest });
     redirect(redirectTo);
   }
 

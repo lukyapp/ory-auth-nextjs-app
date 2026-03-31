@@ -7,7 +7,7 @@ import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 const LOGIN_REMEMBER_FOR_SECONDS = 3600;
 
 type AcceptConsentRequestBody = {
-  remember: boolean;
+  remember?: boolean;
 } & OAuth2ConsentRequest;
 
 export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
@@ -19,7 +19,7 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
       consentChallenge: challenge,
       acceptOAuth2ConsentRequest: {
         grant_scope: requested_scope,
-        remember,
+        remember: remember ?? true,
         remember_for: LOGIN_REMEMBER_FOR_SECONDS,
         grant_access_token_audience: requested_access_token_audience,
         session,
