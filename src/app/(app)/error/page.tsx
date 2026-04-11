@@ -26,6 +26,93 @@ async function getKratosError(errorId: string) {
   return (await res.json()) as KratosErrorResponse;
 }
 
+type ErrorPresentation = {
+  description: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref: string;
+  secondaryLabel: string;
+  title: string;
+};
+
+function getErrorPresentation(params: {
+  errorCode: string;
+  errorDescription: string;
+  errorId: string;
+  kratosReason?: string;
+  kratosMessage?: string;
+}): ErrorPresentation {
+  const normalizedCode = params.errorCode.toLowerCase();
+  const normalizedReason = (params.kratosReason ?? '').toLowerCase();
+  const description =
+    params.errorDescription ||
+    params.kratosMessage ||
+    'This authentication flow expired, was interrupted, or could not be completed.';
+
+  if (
+    normalizedCode === 'session_expired' ||
+    normalizedReason.includes('session') ||
+    normalizedReason.includes('expired session')
+  ) {
+    return {
+      title: 'Your session expired',
+      description:
+        params.errorDescription ||
+        'Your authenticated session is no longer active. Please sign in again to continue.',
+      primaryHref: '/auth/login',
+      primaryLabel: 'Sign in again',
+      secondaryHref: '/',
+      secondaryLabel: 'Back to portal',
+    };
+  }
+
+  if (
+    normalizedCode.includes('consent') ||
+    normalizedReason.includes('consent') ||
+    normalizedReason.includes('interaction expired')
+  ) {
+    return {
+      title: 'Consent flow unavailable',
+      description,
+      primaryHref: '/',
+      primaryLabel: 'Back to portal',
+      secondaryHref: '/auth/login',
+      secondaryLabel: 'Start over',
+    };
+  }
+
+  if (normalizedCode.includes('login') || normalizedReason.includes('login')) {
+    return {
+      title: 'Login flow unavailable',
+      description,
+      primaryHref: '/auth/login',
+      primaryLabel: 'Back to sign in',
+      secondaryHref: '/',
+      secondaryLabel: 'Back to portal',
+    };
+  }
+
+  if (params.errorId || normalizedReason.includes('expired')) {
+    return {
+      title: 'Flow expired',
+      description,
+      primaryHref: '/auth/login',
+      primaryLabel: 'Start again',
+      secondaryHref: '/',
+      secondaryLabel: 'Back to portal',
+    };
+  }
+
+  return {
+    title: 'Something went wrong',
+    description,
+    primaryHref: '/auth/login',
+    primaryLabel: 'Back to sign in',
+    secondaryHref: '/',
+    secondaryLabel: 'Back to portal',
+  };
+}
+
 export default async function KratosErrorPage({
   searchParams: _searchParams,
 }: PageProps<'/error'>) {
@@ -47,38 +134,54 @@ export default async function KratosErrorPage({
           reason: errorCode,
         },
       };
+  const presentation = getErrorPresentation({
+    errorCode,
+    errorDescription,
+    errorId,
+    kratosMessage: error?.error?.message,
+    kratosReason: error?.error?.reason,
+  });
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-6 shadow">
-        <h1 className="text-xl font-semibold text-gray-900">Something went wrong</h1>
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+      <div className="w-full max-w-xl space-y-5 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="space-y-2">
+          <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
+            Authentication Error
+          </p>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            {presentation.title}
+          </h1>
+        </div>
 
         {error?.error ? (
-          <>
-            {error.id && <p className="text-xs text-gray-400">Error ID: {error.id}</p>}
-            <p className="text-gray-700">{error.error.reason}</p>
-            <p className="text-gray-700">{error.error.message}</p>
-          </>
+          <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm leading-6 text-slate-700">{presentation.description}</p>
+            {error.error.reason ? (
+              <p className="text-sm text-slate-500">Reason: {error.error.reason}</p>
+            ) : null}
+            {error.id ? <p className="text-xs text-slate-400">Error ID: {error.id}</p> : null}
+          </div>
         ) : (
-          <p className="text-gray-700">
-            This login or registration flow expired or was interrupted.
-          </p>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <p className="text-sm leading-6 text-slate-700">{presentation.description}</p>
+          </div>
         )}
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row">
           <Link
-            href="/auth/login"
-            className="flex-1 rounded-md bg-black py-2 text-center text-sm font-medium text-white hover:bg-gray-800"
+            href={presentation.primaryHref}
+            className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-slate-800"
           >
-            Back to login
+            {presentation.primaryLabel}
           </Link>
 
-          <a
-            href="/"
-            className="flex-1 rounded-md border border-gray-300 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-100"
+          <Link
+            href={presentation.secondaryHref}
+            className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
-            Home
-          </a>
+            {presentation.secondaryLabel}
+          </Link>
         </div>
       </div>
     </div>
