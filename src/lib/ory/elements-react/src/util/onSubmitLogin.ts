@@ -12,6 +12,7 @@ import {
 import { OryElementsConfiguration } from '../context';
 import { frontendClient } from './client';
 import { LoginFlowContainer } from './flowContainer';
+import { flowHasErrors } from './flowHasErrors';
 import { replaceWindowFlowId } from './internal';
 import { handleFlowError } from './sdk-helpers';
 import { OnSubmitHandlerProps } from './submitHandler';
@@ -28,11 +29,20 @@ import { OnSubmitHandlerProps } from './submitHandler';
 export async function onSubmitLogin(
   { flow }: LoginFlowContainer,
   config: OryElementsConfiguration,
-  { setFlowContainer, body, onRedirect }: OnSubmitHandlerProps<UpdateLoginFlowBody>,
+  {
+    setFlowContainer,
+    body,
+    onRedirect,
+    onSuccess,
+    onValidationError,
+    onError,
+  }: OnSubmitHandlerProps<UpdateLoginFlowBody>,
 ) {
   if (!config.sdk.url) {
     throw new Error(`Please supply your Ory Network SDK url to the Ory Elements configuration.`);
   }
+
+  const method = String(body.method);
 
   await frontendClient(config.sdk.url, config.sdk.options ?? {})
     .updateLoginFlowRaw({
@@ -41,6 +51,13 @@ export async function onSubmitLogin(
     })
     .then(async (res) => {
       const body = await res.value();
+
+      await onSuccess?.({
+        flowType: FlowType.Login,
+        method,
+        session: body.session,
+        flow,
+      });
 
       const didContinueWith = handleContinueWith(body.continue_with, {
         onRedirect,
@@ -63,7 +80,13 @@ export async function onSubmitLogin(
             onRedirect(loginUrl(config), true);
           }
         },
-        onValidationError: (body: LoginFlow) => {
+        onValidationError: async (body: LoginFlow) => {
+          if (flowHasErrors(body.ui)) {
+            await onValidationError?.({
+              flowType: FlowType.Login,
+              flow: body,
+            });
+          }
           setFlowContainer({
             flow: body,
             flowType: FlowType.Login,
@@ -71,6 +94,8 @@ export async function onSubmitLogin(
         },
         onRedirect,
         config,
+        flowType: FlowType.Login,
+        onError,
       }),
     );
 }

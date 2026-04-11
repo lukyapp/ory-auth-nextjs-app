@@ -31,6 +31,7 @@ export function useInputProps(
   };
   return {
     ...controller.field,
+    id: attributes.name,
     type: attributes.type,
     onClick: handleClick,
     maxLength: attributes.maxlength,

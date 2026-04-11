@@ -6,8 +6,10 @@ import { FlowType, OAuth2ConsentRequest, Session } from '@ory/client-fetch';
 import {
   OryClientConfiguration,
   OryConsentCard,
+  OryErrorHandler,
   OryFlowComponentOverrides,
   OryProvider,
+  OrySuccessHandler,
 } from '@ory/elements-react';
 import { getOryComponents } from '../components';
 import { translateConsentChallengeToUiNodes } from '../utils/oauth2';
@@ -68,6 +70,20 @@ export type ConsentFlowProps = {
    * If not provided, the default OryConsentCard will be rendered.
    */
   children?: React.ReactNode;
+
+  /**
+   * Optional callback invoked on successful consent submission.
+   *
+   * @see {@link OrySuccessHandler}
+   */
+  onSuccess?: OrySuccessHandler;
+
+  /**
+   * Optional callback invoked on consent errors.
+   *
+   * @see {@link OryErrorHandler}
+   */
+  onError?: OryErrorHandler;
 };
 /**
  * The Consent component allows you to render the consent flow for Ory OAuth2.
@@ -89,6 +105,8 @@ export function Consent({
   children,
   csrfToken,
   formActionUrl,
+  onSuccess,
+  onError,
 }: ConsentFlowProps) {
   const components = getOryComponents(Passed);
 
@@ -105,6 +123,8 @@ export function Consent({
       flow={flow}
       flowType={FlowType.OAuth2Consent}
       components={components}
+      onSuccess={onSuccess}
+      onError={onError}
     >
       {children ?? <OryConsentCard />}
     </OryProvider>

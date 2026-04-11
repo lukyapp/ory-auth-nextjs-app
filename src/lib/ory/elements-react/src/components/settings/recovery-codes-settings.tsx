@@ -7,6 +7,7 @@ import { UiNode } from '@ory/client-fetch';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
 import { useComponents } from '../../context';
+import { settingsCardDescriptions, settingsCardTitles } from '../../util/i18n/settingsCardMessages';
 import {
   isUiNodeInput,
   isUiNodeText,
@@ -93,10 +94,8 @@ export function OrySettingsRecoveryCodes({ nodes }: HeadlessSettingsRecoveryCode
   return (
     <>
       <Card.SettingsSectionContent
-        title={intl.formatMessage({ id: 'settings.lookup_secret.title' })}
-        description={intl.formatMessage({
-          id: 'settings.lookup_secret.description',
-        })}
+        title={intl.formatMessage(settingsCardTitles.lookup_secret)}
+        description={intl.formatMessage(settingsCardDescriptions.lookup_secret)}
       >
         <Form.RecoveryCodesSettings
           codes={secrets}

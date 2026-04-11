@@ -154,7 +154,10 @@ export function Error({ error, components: Components, config, session }: ErrorF
               </div>
               <div className="flex flex-col gap-2">
                 <h2 className="text-interface-foreground-default-primary text-lg leading-normal font-semibold">
-                  <FormattedMessage id="error.title.what-happened" />
+                  <FormattedMessage
+                    id="error.title.what-happened"
+                    defaultMessage="What happened?"
+                  />
                 </h2>
                 <p className="text-interface-foreground-default-secondary leading-normal">
                   {parsed.message ?? description}
@@ -170,10 +173,13 @@ export function Error({ error, components: Components, config, session }: ErrorF
 
             <div className="flex flex-col gap-2">
               <h2 className="text-interface-foreground-default-primary text-lg leading-normal font-semibold">
-                <FormattedMessage id="error.title.what-can-i-do" />
+                <FormattedMessage id="error.title.what-can-i-do" defaultMessage="What can I do?" />
               </h2>
               <p className="text-interface-foreground-default-secondary leading-normal">
-                <FormattedMessage id="error.instructions" />
+                <FormattedMessage
+                  id="error.instructions"
+                  defaultMessage="Please try again in a few minutes or contact the website operator."
+                />
               </p>
               <div>{session ? <LoggedInActions /> : <GoBackButton />}</div>
             </div>
@@ -181,7 +187,10 @@ export function Error({ error, components: Components, config, session }: ErrorF
             <Divider />
             <div className="flex flex-col gap-2 leading-normal font-normal antialiased">
               <span className="text-interface-foreground-default-primary text-sm">
-                <FormattedMessage id="error.footer.text" />
+                <FormattedMessage
+                  id="error.footer.text"
+                  defaultMessage="When reporting this error, please include the following information:"
+                />
               </span>
 
               {parsed.id && (
@@ -215,7 +224,7 @@ ${error.correlationId ? `Correlation ID: ${error.correlationId}` : ''}
                     void navigator.clipboard.writeText(text);
                   }}
                 >
-                  <FormattedMessage id="error.footer.copy" />
+                  <FormattedMessage id="error.footer.copy" defaultMessage="Copy" />
                 </button>
               </div>
             </div>
@@ -235,7 +244,7 @@ function LoggedInActions() {
       href={logoutFlow?.logout_url}
       className="text-interface-foreground-default-primary underline"
     >
-      <FormattedMessage id="login.logout-button" />
+      <FormattedMessage id="login.logout-button" defaultMessage="Logout" />
     </a>
   );
 }
@@ -248,7 +257,7 @@ function GoBackButton() {
         className="text-interface-foreground-default-primary underline"
         href={config.project.default_redirect_url}
       >
-        <FormattedMessage id="error.action.go-back" />
+        <FormattedMessage id="error.action.go-back" defaultMessage="Go back" />
       </a>
     );
   }

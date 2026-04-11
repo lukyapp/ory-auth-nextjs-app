@@ -14,6 +14,7 @@ import {
 } from '@ory/elements-react';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { kratosMessages } from '../../../../util/i18n/generated/kratosMessages';
 import { resolveLabel } from '../../../../util/nodes';
 import { initFlowUrl } from '../../utils/url';
 
@@ -44,7 +45,7 @@ export function DefaultLabel({ node, children, attributes, fieldError }: OryNode
               onClick={resendCode}
               className="text-button-link-brand-brand hover:text-button-link-brand-brand-hover cursor-pointer underline transition-colors"
             >
-              {intl.formatMessage({ id: 'identities.messages.1070008' })}
+              {intl.formatMessage(kratosMessages[1070008])}
             </button>
           )}
         </span>
@@ -68,8 +69,8 @@ function LabelAction({ attributes }: LabelActionProps) {
   const config = useOryConfiguration();
 
   const action = useMemo(() => {
-    if (flowType === FlowType.Login && config.project.recovery_enabled) {
-      if (formState.current === 'provide_identifier' && !flow.refresh) {
+    if (flowType === FlowType.Login && config.project.recovery_enabled && !flow.refresh) {
+      if (formState.current === 'provide_identifier') {
         if (attributes.name === 'identifier') {
           return {
             message: intl.formatMessage({
@@ -84,7 +85,7 @@ function LabelAction({ attributes }: LabelActionProps) {
         return {
           message: intl.formatMessage({
             id: 'forms.label.forgot-password',
-            defaultMessage: 'Forgot password?',
+            defaultMessage: 'Forgot Password?',
           }),
           href: initFlowUrl(config.sdk.url, 'recovery', flow),
           testId: 'forgot-password',

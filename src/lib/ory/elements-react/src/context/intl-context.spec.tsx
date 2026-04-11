@@ -15,7 +15,7 @@ describe('intl-context', () => {
   test('uses default messages', () => {
     const { container } = render(
       <IntlProvider locale="en">
-        <Render messageId="settings.navigation.title" />
+        <Render messageId="settings.title" />
       </IntlProvider>,
     );
     expect(container).toMatchSnapshot();
@@ -26,11 +26,11 @@ describe('intl-context', () => {
         locale="en"
         customTranslations={{
           en: {
-            'settings.navigation.title': 'custom navigation title',
+            'settings.title': 'custom title',
           },
         }}
       >
-        <Render messageId="settings.navigation.title" />
+        <Render messageId="settings.title" />
       </IntlProvider>,
     );
     expect(container).toMatchSnapshot();
@@ -39,7 +39,7 @@ describe('intl-context', () => {
   test('uses default messages in different language', () => {
     const { container } = render(
       <IntlProvider locale="de">
-        <Render messageId="settings.navigation.title" />
+        <Render messageId="settings.title" />
       </IntlProvider>,
     );
     expect(container).toMatchSnapshot();
@@ -50,11 +50,11 @@ describe('intl-context', () => {
       <OriginalIntlProvider
         locale="de"
         messages={{
-          'settings.navigation.title': 'original navigation title',
+          'settings.title': 'original title',
         }}
       >
         <IntlProvider locale="en">
-          <Render messageId="settings.navigation.title" />
+          <Render messageId="settings.title" />
         </IntlProvider>
       </OriginalIntlProvider>,
     );

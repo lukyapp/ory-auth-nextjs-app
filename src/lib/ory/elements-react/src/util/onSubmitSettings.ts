@@ -13,6 +13,7 @@ import {
 } from '@ory/client-fetch';
 import { OryElementsConfiguration } from '../context';
 import { OryFlowContainer } from './flowContainer';
+import { flowHasErrors } from './flowHasErrors';
 import { replaceWindowFlowId } from './internal';
 import { handleFlowError } from './sdk-helpers';
 import { OnSubmitHandlerProps } from './submitHandler';
@@ -29,8 +30,17 @@ import { OnSubmitHandlerProps } from './submitHandler';
 export async function onSubmitSettings(
   { flow }: OryFlowContainer,
   config: OryElementsConfiguration,
-  { setFlowContainer, body, onRedirect }: OnSubmitHandlerProps<UpdateSettingsFlowBody>,
+  {
+    setFlowContainer,
+    body,
+    onRedirect,
+    onSuccess,
+    onValidationError,
+    onError,
+  }: OnSubmitHandlerProps<UpdateSettingsFlowBody>,
 ) {
+  const method = String(body.method);
+
   await config.sdk.frontend
     .updateSettingsFlowRaw({
       flow: flow.id,
@@ -38,6 +48,12 @@ export async function onSubmitSettings(
     })
     .then(async (res) => {
       const body = await res.value();
+
+      await onSuccess?.({
+        flowType: FlowType.Settings,
+        method,
+        flow: body,
+      });
 
       const didContinueWith = handleContinueWith(body.continue_with, {
         onRedirect,
@@ -62,7 +78,13 @@ export async function onSubmitSettings(
             onRedirect(settingsUrl(config), true);
           }
         },
-        onValidationError: (body: SettingsFlow) => {
+        onValidationError: async (body: SettingsFlow) => {
+          if (flowHasErrors(body.ui)) {
+            await onValidationError?.({
+              flowType: FlowType.Settings,
+              flow: body,
+            });
+          }
           setFlowContainer({
             flow: body,
             flowType: FlowType.Settings,
@@ -70,6 +92,8 @@ export async function onSubmitSettings(
         },
         onRedirect,
         config,
+        flowType: FlowType.Settings,
+        onError,
       }),
     )
     .catch((err) => {

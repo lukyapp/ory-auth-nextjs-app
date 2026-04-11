@@ -8,12 +8,13 @@ import { OryNodeButtonProps, uiTextToFormattedMessage } from '@ory/elements-reac
 import { cva } from 'class-variance-authority';
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
+import { cn } from '../../utils/cn';
 import { Spinner } from './spinner';
 
-const buttonStyles = cva(
+export const buttonStyles = cva(
   [
-    'relative flex cursor-pointer justify-center gap-3 overflow-hidden rounded-buttons leading-none font-medium ring-1 ring-inset',
-    'disabled:cursor-not-allowed loading:cursor-wait loading:before:pointer-events-none',
+    'group relative flex cursor-pointer justify-center gap-3 overflow-hidden rounded-buttons leading-none font-medium ring-1 ring-inset',
+    'disabled:cursor-not-allowed loading:pointer-events-none loading:cursor-wait',
     'transition-colors duration-100 ease-linear',
     'max-w-[488px] p-4',
   ],
@@ -25,15 +26,18 @@ const buttonStyles = cva(
           'hover:bg-button-primary-background-hover hover:text-button-primary-foreground-hover hover:ring-button-primary-border-hover',
           'disabled:bg-button-primary-background-disabled disabled:text-button-primary-foreground-disabled disabled:ring-button-primary-border-disabled',
           'loading:bg-button-primary-background-default loading:text-button-primary-foreground-default loading:ring-button-primary-border-default',
-          "loading:before:absolute loading:before:inset-0 loading:before:bg-button-primary-background-default loading:before:opacity-80 loading:before:content-['']",
-          'disabled:bg-button-primary-background-disabled disabled:text-button-primary-foreground-disabled disabled:ring-button-primary-border-disabled',
         ],
         secondary: [
           'bg-button-secondary-background-default text-button-secondary-foreground-default ring-button-secondary-border-default',
           'hover:bg-button-secondary-background-hover hover:text-button-secondary-foreground-hover hover:ring-button-secondary-border-hover',
           'disabled:bg-button-secondary-background-disabled disabled:text-button-secondary-foreground-disabled disabled:ring-button-secondary-border-disabled',
           'loading:bg-button-secondary-background-default loading:text-button-secondary-foreground-default loading:ring-button-secondary-border-default',
-          "loading:before:absolute loading:before:inset-0 loading:before:bg-button-secondary-background-default loading:before:opacity-80 loading:before:content-['']",
+        ],
+        social: [
+          'bg-button-social-background-default text-button-social-foreground-default ring-button-social-border-default',
+          'hover:bg-button-social-background-hover hover:text-button-social-foreground-hover hover:ring-button-social-border-hover',
+          'disabled:bg-button-social-background-disabled disabled:text-button-social-foreground-disabled disabled:ring-button-social-border-disabled',
+          'loading:bg-button-social-background-default loading:text-button-social-foreground-default loading:ring-button-social-border-default',
         ],
       },
     },
@@ -63,8 +67,18 @@ export const DefaultButton = ({ node, buttonProps, isSubmitting }: OryNodeButton
         intent: isPrimary ? 'primary' : 'secondary',
       })}
     >
-      {isSubmitting ? <Spinner /> : null}
-      {label ? <span>{uiTextToFormattedMessage(label, intl)}</span> : ''}
+      {isSubmitting && (
+        <Spinner
+          className={cn(
+            isPrimary
+              ? 'stroke-button-primary-foreground-default'
+              : 'stroke-button-secondary-foreground-default',
+          )}
+        />
+      )}
+      {label && (
+        <span className="group-loading:opacity-20">{uiTextToFormattedMessage(label, intl)}</span>
+      )}
     </button>
   );
 };

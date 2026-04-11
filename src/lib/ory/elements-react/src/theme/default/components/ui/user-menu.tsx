@@ -4,7 +4,6 @@
 
 import { LogoutFlow, Session } from '@ory/client-fetch';
 import { useOryConfiguration } from '@ory/elements-react';
-import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
 import IconLogout from '../../assets/icons/logout.svg';
 import IconSettings from '../../assets/icons/settings.svg';
 import { useClientLogout } from '../../utils/logout';
@@ -13,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from './dropdown-menu';
 import { UserAvatar } from './user-avater';

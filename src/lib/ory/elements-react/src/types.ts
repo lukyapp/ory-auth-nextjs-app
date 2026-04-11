@@ -88,7 +88,6 @@ export type OryFormGroupProps = PropsWithChildren;
 export type OryCardAuthMethodListItemProps = {
   onClick: () => void;
   group: string;
-  title?: { id: string; values?: Record<string, string> };
   disabled?: boolean;
 };
 
@@ -132,6 +131,7 @@ export type OryNodeCheckboxProps = {
 };
 
 export type OryNodeInputInputProps = {
+  id: string;
   name: string;
   value: string | number | readonly string[] | undefined;
   onClick: MouseEventHandler;

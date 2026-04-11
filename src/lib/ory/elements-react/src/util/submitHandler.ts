@@ -10,6 +10,7 @@ import {
   UpdateSettingsFlowBody,
   UpdateVerificationFlowBody,
 } from '@ory/client-fetch';
+import { OryErrorHandler, OrySuccessHandler, OryValidationErrorHandler } from './events';
 import { OryFlowContainer } from './flowContainer';
 
 /**
@@ -37,4 +38,22 @@ export type OnSubmitHandlerProps<
    * This method is used to redirect the user to a different page.
    */
   onRedirect: OnRedirectHandler;
+
+  /**
+   * Optional callback invoked after a successful submission, before the default
+   * behavior (redirect, flow update). Awaited if it returns a Promise.
+   */
+  onSuccess?: OrySuccessHandler;
+
+  /**
+   * Optional callback invoked when the server returns validation errors.
+   * Awaited if it returns a Promise.
+   */
+  onValidationError?: OryValidationErrorHandler;
+
+  /**
+   * Optional callback invoked on infrastructure or flow-level errors (expired
+   * flow, CSRF, not found, replaced). Awaited if it returns a Promise.
+   */
+  onError?: OryErrorHandler;
 };

@@ -23,6 +23,18 @@ export function MethodActiveForm({ formState }: { formState: FormStateMethodActi
   const groupsToShow = useNodeGroupsWithVisibleNodes(ui.nodes);
   const finalNodes = getFinalNodes(groupsToShow, formState.method);
 
+  const allNodes = [
+    ...new Set([
+      ...ui.nodes.filter(
+        (n) =>
+          isUiNodeScriptAttributes(n.attributes) ||
+          n.group === UiNodeGroupEnum.Default ||
+          n.group === UiNodeGroupEnum.Profile,
+      ),
+      ...finalNodes,
+    ]),
+  ].sort(sortNodes);
+
   return (
     <OryCard>
       <OryCardHeader />
@@ -30,17 +42,7 @@ export function MethodActiveForm({ formState }: { formState: FormStateMethodActi
         <OryCardValidationMessages />
         <OryForm onAfterSubmit={handleAfterFormSubmit(dispatchFormState)}>
           <Form.Group>
-            {ui.nodes
-              .filter(
-                (n) =>
-                  isUiNodeScriptAttributes(n.attributes) ||
-                  n.group === UiNodeGroupEnum.Default ||
-                  n.group === UiNodeGroupEnum.Profile,
-              )
-              .map((node, k) => (
-                <Node node={node} key={k} />
-              ))}
-            {finalNodes.sort(sortNodes).map((node, k) => (
+            {allNodes.map((node, k) => (
               <Node node={node} key={k} />
             ))}
           </Form.Group>

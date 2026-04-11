@@ -7,6 +7,7 @@ import { UiNode } from '@ory/client-fetch';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
 import { useComponents } from '../../context';
+import { settingsCardDescriptions, settingsCardTitles } from '../../util/i18n/settingsCardMessages';
 import {
   isUiNodeImage,
   isUiNodeInput,
@@ -72,8 +73,8 @@ export function OrySettingsTotp({ nodes }: HeadlessSettingsTotpProps) {
   return (
     <>
       <Card.SettingsSectionContent
-        title={intl.formatMessage({ id: 'settings.totp.title' })}
-        description={intl.formatMessage({ id: 'settings.totp.description' })}
+        title={intl.formatMessage(settingsCardTitles.totp)}
+        description={intl.formatMessage(settingsCardDescriptions.totp)}
       >
         {qrNode && secretNode && totpCodeNode && !totpUnlink ? (
           <TotpSettingsLink totpImage={qrNode} totpSecret={secretNode} totpInput={totpCodeNode} />
@@ -91,8 +92,15 @@ export function OrySettingsTotp({ nodes }: HeadlessSettingsTotpProps) {
       <Card.SettingsSectionFooter
         text={
           totpUnlink
-            ? intl.formatMessage({ id: 'settings.totp.info.linked' })
-            : intl.formatMessage({ id: 'settings.totp.info.not-linked' })
+            ? intl.formatMessage({
+                id: 'settings.totp.info.linked',
+                defaultMessage: 'You currently have an authenticator app connected.',
+              })
+            : intl.formatMessage({
+                id: 'settings.totp.info.not-linked',
+                defaultMessage:
+                  'To enable scan the QR code with your authenticator and enter the code.',
+              })
         }
       >
         {totpLinkButton && <Node node={totpLinkButton} />}

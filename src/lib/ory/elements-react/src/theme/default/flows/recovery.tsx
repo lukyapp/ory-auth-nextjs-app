@@ -7,9 +7,13 @@
 import { FlowType, RecoveryFlow } from '@ory/client-fetch';
 import {
   OryClientConfiguration,
+  OryErrorHandler,
   OryFlowComponentOverrides,
   OryProvider,
   OrySelfServiceFlowCard,
+  OrySuccessHandler,
+  OryTransientPayload,
+  OryValidationErrorHandler,
 } from '@ory/elements-react';
 import { getOryComponents } from '../components';
 
@@ -42,6 +46,37 @@ export type RecoveryFlowContextProps = {
    * If not provided, the default OrySelfServiceFlowCard will be rendered.
    */
   children?: React.ReactNode;
+
+  /**
+   * Optional callback invoked on successful flow completion.
+   *
+   * @see {@link OrySuccessHandler}
+   */
+  onSuccess?: OrySuccessHandler;
+
+  /**
+   * Optional callback invoked when the flow returns validation errors.
+   *
+   * @see {@link OryValidationErrorHandler}
+   */
+  onValidationError?: OryValidationErrorHandler;
+
+  /**
+   * Optional callback invoked on flow-level errors.
+   *
+   * @see {@link OryErrorHandler}
+   */
+  onError?: OryErrorHandler;
+
+  /**
+   * Optional transient payload to include in flow submissions.
+   *
+   * Accepts a static object or a function that receives form values at
+   * submission time and returns the payload.
+   *
+   * @see {@link OryTransientPayload}
+   */
+  transientPayload?: OryTransientPayload;
 };
 
 /**
@@ -57,10 +92,23 @@ export function Recovery({
   config,
   children,
   components: flowOverrideComponents,
+  onSuccess,
+  onValidationError,
+  onError,
+  transientPayload,
 }: RecoveryFlowContextProps) {
   const components = getOryComponents(flowOverrideComponents);
   return (
-    <OryProvider config={config} flow={flow} flowType={FlowType.Recovery} components={components}>
+    <OryProvider
+      config={config}
+      flow={flow}
+      flowType={FlowType.Recovery}
+      components={components}
+      onSuccess={onSuccess}
+      onValidationError={onValidationError}
+      onError={onError}
+      transientPayload={transientPayload}
+    >
       {children ?? <OrySelfServiceFlowCard />}
     </OryProvider>
   );

@@ -19,17 +19,30 @@ const DropdownMenuContent = forwardRef<
   ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
 >(({ className, sideOffset = 16, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
-    <DropdownMenuPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
-      align="end"
-      className={cn(
-        'animate-drop-down-in data-[state=closed]:animate-drop-down-out z-50 min-w-76 origin-top-right overflow-hidden will-change-[opacity,transform]',
-        'rounded-cards border-interface-border-default-primary bg-interface-background-default-primary border',
-        className,
-      )}
-      {...props}
-    />
+    {/*
+     * The `ory-elements` class re-establishes the scope that `postcss-scope`
+     * applies to all utility classes. Without it, the portaled content lives
+     * outside any `.ory-elements` ancestor and none of the Tailwind utilities
+     * match. The inner `contents` wrapper is required because the scoped
+     * `.ory-elements .contents` selector only matches descendants, and it
+     * keeps the wrapped content out of the layout tree so Radix's popper
+     * positioning is unaffected.
+     */}
+    <div className="ory-elements">
+      <div className="contents">
+        <DropdownMenuPrimitive.Content
+          ref={ref}
+          sideOffset={sideOffset}
+          align="end"
+          className={cn(
+            'animate-drop-down-in data-[state=closed]:animate-drop-down-out z-50 min-w-76 origin-top-right overflow-hidden will-change-[opacity,transform]',
+            'rounded-cards border-interface-border-default-primary bg-interface-background-default-primary border',
+            className,
+          )}
+          {...props}
+        />
+      </div>
+    </div>
   </DropdownMenuPrimitive.Portal>
 ));
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;

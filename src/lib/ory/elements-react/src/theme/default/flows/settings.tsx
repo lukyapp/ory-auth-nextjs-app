@@ -7,10 +7,14 @@
 import { FlowType, SettingsFlow } from '@ory/client-fetch';
 import {
   OryClientConfiguration,
+  OryErrorHandler,
   OryFlowComponentOverrides,
   OryPageHeader,
   OryProvider,
   OrySettingsCard,
+  OrySuccessHandler,
+  OryTransientPayload,
+  OryValidationErrorHandler,
 } from '@ory/elements-react';
 import { ComponentPropsWithoutRef } from 'react';
 import { getOryComponents } from '../components';
@@ -45,7 +49,38 @@ export type SettingsFlowContextProps = {
    * If not provided, the default OrySettingsCard will be rendered.
    */
   children?: React.ReactNode;
-} & ComponentPropsWithoutRef<'div'>;
+
+  /**
+   * Optional callback invoked on successful flow completion.
+   *
+   * @see {@link OrySuccessHandler}
+   */
+  onSuccess?: OrySuccessHandler;
+
+  /**
+   * Optional callback invoked when the flow returns validation errors.
+   *
+   * @see {@link OryValidationErrorHandler}
+   */
+  onValidationError?: OryValidationErrorHandler;
+
+  /**
+   * Optional callback invoked on flow-level errors.
+   *
+   * @see {@link OryErrorHandler}
+   */
+  onError?: OryErrorHandler;
+
+  /**
+   * Optional transient payload to include in flow submissions.
+   *
+   * Accepts a static object or a function that receives form values at
+   * submission time and returns the payload.
+   *
+   * @see {@link OryTransientPayload}
+   */
+  transientPayload?: OryTransientPayload;
+} & Omit<ComponentPropsWithoutRef<'div'>, 'onError'>;
 
 /**
  * The `Settings` component is used to render the settings flow in Ory Elements.
@@ -62,12 +97,25 @@ export function Settings({
   children,
   components: flowOverrideComponents,
   className,
+  onSuccess,
+  onValidationError,
+  onError,
+  transientPayload,
   ...rest
 }: SettingsFlowContextProps) {
   const components = getOryComponents(flowOverrideComponents);
 
   return (
-    <OryProvider config={config} flow={flow} flowType={FlowType.Settings} components={components}>
+    <OryProvider
+      config={config}
+      flow={flow}
+      flowType={FlowType.Settings}
+      components={components}
+      onSuccess={onSuccess}
+      onValidationError={onValidationError}
+      onError={onError}
+      transientPayload={transientPayload}
+    >
       {children ?? (
         <div className={cn('ory-elements', className)} {...rest}>
           <div className="font-sans-default flex flex-col items-center justify-start gap-8 pb-12">

@@ -33,7 +33,11 @@ export function CheckboxRenderer({ node }: CheckboxRendererProps) {
     <Node.Label
       // The label is rendered in the checkbox component
       attributes={{ ...attributes, label: undefined }}
-      node={{ ...node, meta: { ...node.meta, label: undefined } }}
+      node={{
+        ...node,
+        meta: { ...node.meta, label: undefined },
+        messages: [],
+      }}
       fieldError={controller.fieldState.error}
     >
       <Node.Checkbox

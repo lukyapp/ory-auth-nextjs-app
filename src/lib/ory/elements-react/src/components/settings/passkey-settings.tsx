@@ -7,6 +7,7 @@ import { UiNode, UiNodeInputAttributes } from '@ory/client-fetch';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
 import { useComponents } from '../../context';
+import { settingsCardDescriptions, settingsCardTitles } from '../../util/i18n/settingsCardMessages';
 import { triggerToWindowCall } from '../../util/ui';
 import { isUiNodeInput, UiNodeInput } from '../../util/utilFixSDKTypesHelper';
 import { Node } from '../form/nodes/node';
@@ -68,10 +69,8 @@ export function OrySettingsPasskey({ nodes }: HeadlessSettingsPasskeyProps) {
   return (
     <>
       <Card.SettingsSectionContent
-        title={intl.formatMessage({ id: 'settings.passkey.title' })}
-        description={intl.formatMessage({
-          id: 'settings.passkey.description',
-        })}
+        title={intl.formatMessage(settingsCardTitles.passkey)}
+        description={intl.formatMessage(settingsCardDescriptions.passkey)}
       >
         {settingsNodes.map((node, i) => (
           <Node key={`passkey-settings-nodes-${i}`} node={node} />
@@ -107,7 +106,10 @@ export function OrySettingsPasskey({ nodes }: HeadlessSettingsPasskeyProps) {
         />
       </Card.SettingsSectionContent>
       <Card.SettingsSectionFooter
-        text={intl.formatMessage({ id: 'settings.passkey.info' })}
+        text={intl.formatMessage({
+          id: 'settings.passkey.info',
+          defaultMessage: 'Manage your passkey settings',
+        })}
       ></Card.SettingsSectionFooter>
     </>
   );

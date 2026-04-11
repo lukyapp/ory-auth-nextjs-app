@@ -15,6 +15,7 @@ import {
 } from '@ory/client-fetch';
 import { OryElementsConfiguration } from '../context';
 import { OryFlowContainer } from './flowContainer';
+import { flowHasErrors } from './flowHasErrors';
 import { replaceWindowFlowId } from './internal';
 import { handleFlowError } from './sdk-helpers';
 import { OnSubmitHandlerProps } from './submitHandler';
@@ -31,8 +32,17 @@ import { OnSubmitHandlerProps } from './submitHandler';
 export async function onSubmitRecovery(
   { flow }: OryFlowContainer,
   config: OryElementsConfiguration,
-  { setFlowContainer, body, onRedirect }: OnSubmitHandlerProps<UpdateRecoveryFlowBody>,
+  {
+    setFlowContainer,
+    body,
+    onRedirect,
+    onSuccess,
+    onValidationError,
+    onError,
+  }: OnSubmitHandlerProps<UpdateRecoveryFlowBody>,
 ) {
+  const method = String(body.method);
+
   await config.sdk.frontend
     .updateRecoveryFlowRaw({
       flow: flow.id,
@@ -40,6 +50,12 @@ export async function onSubmitRecovery(
     })
     .then(async (res) => {
       const flow = await res.value();
+
+      await onSuccess?.({
+        flowType: FlowType.Recovery,
+        method,
+        flow,
+      });
 
       const didContinueWith = handleContinueWith(flow.continue_with, {
         onRedirect,
@@ -64,11 +80,17 @@ export async function onSubmitRecovery(
             onRedirect(recoveryUrl(config), true);
           }
         },
-        onValidationError: (body: RecoveryFlow | { error: GenericError }) => {
+        onValidationError: async (body: RecoveryFlow | { error: GenericError }) => {
           if ('error' in body) {
             handleContinueWithRecoveryUIError(body.error, config, onRedirect);
             return;
           } else {
+            if (flowHasErrors(body.ui)) {
+              await onValidationError?.({
+                flowType: FlowType.Recovery,
+                flow: body,
+              });
+            }
             setFlowContainer({
               flow: body,
               flowType: FlowType.Recovery,
@@ -77,6 +99,8 @@ export async function onSubmitRecovery(
         },
         onRedirect,
         config,
+        flowType: FlowType.Recovery,
+        onError,
       }),
     );
 }

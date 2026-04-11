@@ -4,7 +4,9 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 import { createContext, Dispatch, PropsWithChildren, useContext, useState } from 'react';
+import { OryErrorHandler, OrySuccessHandler, OryValidationErrorHandler } from '../util/events';
 import { OryFlowContainer } from '../util/flowContainer';
+import { OryTransientPayload } from '../util/transientPayload';
 import { FormState, FormStateAction, useFormStateReducer } from './form-state';
 
 /**
@@ -47,6 +49,26 @@ export type FlowContextValue = OryFlowContainer & {
    * Dispatch function to update the form state.
    */
   dispatchFormState: Dispatch<FormStateAction>;
+
+  /**
+   * Optional callback invoked on successful flow completion.
+   */
+  onSuccess?: OrySuccessHandler;
+
+  /**
+   * Optional callback invoked when the flow returns validation errors.
+   */
+  onValidationError?: OryValidationErrorHandler;
+
+  /**
+   * Optional callback invoked when a flow error occurs.
+   */
+  onError?: OryErrorHandler;
+
+  /**
+   * Optional transient payload to include in flow submissions.
+   */
+  transientPayload?: OryTransientPayload;
 };
 
 // This is fine, because we don't export the context itself and guard from it being null in useOryFlow
@@ -58,14 +80,28 @@ const OryFlowContext = createContext<FlowContextValue>(null!);
  * @hidden
  * @inline
  */
-export type OryFlowProviderProps = PropsWithChildren<OryFlowContainer>;
+export type OryFlowProviderProps = PropsWithChildren<
+  OryFlowContainer & {
+    onSuccess?: OrySuccessHandler;
+    onValidationError?: OryValidationErrorHandler;
+    onError?: OryErrorHandler;
+    transientPayload?: OryTransientPayload;
+  }
+>;
 
 /**
  *
  * @param props - The properties for the OryFlowProvider component.
  * @returns
  */
-export function OryFlowProvider({ children, ...container }: OryFlowProviderProps) {
+export function OryFlowProvider({
+  children,
+  onSuccess,
+  onValidationError,
+  onError,
+  transientPayload,
+  ...container
+}: OryFlowProviderProps) {
   const [flowContainer, setFlowContainer] = useState(container);
   const [formState, dispatchFormState] = useFormStateReducer(container);
 
@@ -83,6 +119,10 @@ export function OryFlowProvider({ children, ...container }: OryFlowProviderProps
           },
           formState,
           dispatchFormState,
+          onSuccess,
+          onValidationError,
+          onError,
+          transientPayload,
         } as FlowContextValue
       }
     >

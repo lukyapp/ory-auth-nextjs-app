@@ -1,10 +1,12 @@
 /* eslint-disable */
+'use client';
+
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { UiText } from '@ory/client-fetch';
-import { IntlShape, useIntl } from 'react-intl';
+import { defineMessages, IntlShape, useIntl } from 'react-intl';
 import { isDynamicText } from '../nodes';
+import { isKratosMessageId, kratosMessages } from './generated/kratosMessages';
 
 /**
  * Converts a UiText to a FormattedMessage.
@@ -76,19 +78,23 @@ export const uiTextToFormattedMessage = (
             0,
           ),
           [key + '_until']: intl.formatDateTimeRange(new Date(), new Date(value)),
-          [key + '_until_minutes']: Math.ceil((new Date().getTime() / 1000 - value) / 60).toFixed(
+          [key + '_until_minutes']: Math.ceil((value - new Date().getTime() / 1000) / 60).toFixed(
             0,
           ),
         };
       }
     } else if (key === 'property') {
-      return {
-        ...accumulator,
-        [key]: intl.formatMessage({
-          id: `property.${value}`,
-          defaultMessage: value,
-        }),
-      };
+      if (isKnownPropertyKey(value)) {
+        return {
+          ...accumulator,
+          [key]: intl.formatMessage(propertyMessages[value]),
+        };
+      } else {
+        return {
+          ...accumulator,
+          [key]: value,
+        };
+      }
     }
     return {
       ...accumulator,
@@ -96,13 +102,17 @@ export const uiTextToFormattedMessage = (
     };
   }, {});
 
-  return intl.formatMessage(
-    {
-      id: `identities.messages.${id}`,
-      defaultMessage: text,
-    },
-    contextInjectedMessage,
-  );
+  if (isKratosMessageId(id)) {
+    const hasEmptyArrayContext = Object.values(context).some(
+      (v) => Array.isArray(v) && v.length === 0,
+    );
+    if (hasEmptyArrayContext) {
+      return text;
+    }
+    return intl.formatMessage(kratosMessages[id], contextInjectedMessage);
+  }
+
+  return text;
 };
 
 export function resolvePlaceholder(text: UiText, intl: ReturnType<typeof useIntl>) {
@@ -117,10 +127,43 @@ export function resolvePlaceholder(text: UiText, intl: ReturnType<typeof useIntl
   );
   if (isDynamicText(text)) {
     const field = text.context.name;
-    return intl.formatMessage({
+    const msg = {
       id: `forms.input.placeholder.${field}`,
       defaultMessage: fallback,
-    });
+    };
+    return intl.formatMessage(msg);
   }
   return fallback;
 }
+
+const KNOWN_PROPERTIES = [
+  'password',
+  'email',
+  'phone',
+  'username',
+  'identifier',
+  'code',
+  'recovery_address',
+];
+
+type PropertyKey = (typeof KNOWN_PROPERTIES)[number];
+
+function isKnownPropertyKey(key: unknown): key is PropertyKey {
+  return typeof key === 'string' && KNOWN_PROPERTIES.includes(key);
+}
+
+const propertyMessages = defineMessages<PropertyKey>({
+  password: { id: 'property.password', defaultMessage: 'password' },
+  email: { id: 'property.email', defaultMessage: 'email' },
+  phone: { id: 'property.phone', defaultMessage: 'phone' },
+  username: { id: 'property.username', defaultMessage: 'username' },
+  identifier: {
+    id: 'property.identifier',
+    defaultMessage: 'identifier',
+  },
+  code: { id: 'property.code', defaultMessage: 'code' },
+  recovery_address: {
+    id: 'property.recovery_address',
+    defaultMessage: 'recovery address',
+  },
+});
