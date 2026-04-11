@@ -1,5 +1,5 @@
-import { logError } from '@/app-utils/server-log';
 import { z } from 'zod';
+import { logError } from './app-utils/server-log';
 
 const envSchema = z.object({
   NEXT_PUBLIC_ORY_SDK_URL: z.url().min(1, 'NEXT_PUBLIC_ORY_SDK_URL is required'),
