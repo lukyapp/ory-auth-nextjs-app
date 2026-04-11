@@ -1,3 +1,5 @@
+import { logError } from '@/app-utils/server-log';
+
 type HydraFlowErrorOptions = {
   cause?: unknown;
   code: string;
@@ -31,7 +33,7 @@ export function createHydraFlowError(
     cause: error,
   });
 
-  console.error(`[hydra] ${context}`, {
+  logError(`hydra.${context}`, {
     code: hydraError.code,
     description: hydraError.description,
     error,

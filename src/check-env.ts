@@ -1,3 +1,4 @@
+import { logError } from '@/app-utils/server-log';
 import { z } from 'zod';
 
 const envSchema = z.object({
@@ -10,8 +11,8 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Invalid environment variables for ory-auth-nextjs-app:');
-  console.error(z.treeifyError(parsed.error));
+  logError('env.invalid', {
+    error: z.treeifyError(parsed.error),
+  });
   throw new Error('Invalid environment variables');
 }
-console.log('✅ Valid environment variables');

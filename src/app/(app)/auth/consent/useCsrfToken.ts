@@ -10,7 +10,10 @@ export const useCsrfToken = (consentChallenge: string) => {
     generateCsrfCookie(consentChallenge)
       .then((csrfToken) => setToken(csrfToken))
       .catch((error: unknown) => {
-        console.error('Unable to generate consent CSRF token.', error);
+        console.error('[ory-auth-app] consent.csrf.generate_failed', {
+          consentChallenge,
+          error,
+        });
       });
   }, [consentChallenge]);
 

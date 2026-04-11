@@ -1,7 +1,9 @@
+import { logInfo } from '@/app-utils/server-log';
+
 type AuthFlowLogMeta = Record<string, unknown>;
 
 export function logAuthFlow(event: string, meta: AuthFlowLogMeta = {}) {
-  console.info(`[auth-flow] ${event}`, sanitizeMeta(meta));
+  logInfo(`auth-flow.${event}`, sanitizeMeta(meta));
 }
 
 function sanitizeMeta(meta: AuthFlowLogMeta) {

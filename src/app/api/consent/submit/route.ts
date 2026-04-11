@@ -1,3 +1,4 @@
+import { logError, logWarn } from '@/app-utils/server-log';
 import { acceptConsentRequest } from '@/app/(app)/auth/consent/acceptConsentRequest';
 import {
   clearConsentCsrfCookie,
@@ -59,7 +60,9 @@ export async function POST(
     const rawBody = await getBody(req);
     const parseResult = ConsentBodySchema.safeParse(rawBody);
     if (!parseResult.success) {
-      console.error('Invalid consent submit payload', z.treeifyError(parseResult.error));
+      logWarn('consent.submit.invalid_payload', {
+        error: z.treeifyError(parseResult.error),
+      });
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
     const body = parseResult.data;
@@ -97,6 +100,7 @@ export async function POST(
 
     return NextResponse.json({ redirect_to: '/' });
   } catch (error: unknown) {
+    logError('consent.submit.failed', { error });
     const response = toErrorResponse(error, 'Internal server error');
     return NextResponse.json(response.body, { status: response.status });
   }
