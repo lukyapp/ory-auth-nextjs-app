@@ -15,7 +15,7 @@ export const ConsentUi = ({
   oryConfig: OryClientConfiguration;
 }) => {
   const session = useSession();
-  const csrfToken = useCsrfToken();
+  const csrfToken = useCsrfToken(consentRequest.challenge);
 
   if (!session || !csrfToken) {
     return null;

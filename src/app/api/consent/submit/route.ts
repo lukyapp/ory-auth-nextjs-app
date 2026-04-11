@@ -1,9 +1,12 @@
 import { acceptConsentRequest } from '@/app/(app)/auth/consent/acceptConsentRequest';
+import {
+  clearConsentCsrfCookie,
+  readConsentCsrfCookie,
+} from '@/app/(app)/auth/consent/csrf-server-tools';
 import { getConsentRequest } from '@/app/(app)/auth/consent/getConsentRequest';
 import { rejectConsentRequest } from '@/app/(app)/auth/consent/rejectConsentRequest';
 import { toErrorResponse } from '@/app/(app)/auth/hydra-flow-error';
 import { getServerSession } from '@ory/nextjs/app';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -36,9 +39,8 @@ const getBody = async (req: Request): Promise<unknown> => {
   throw new Error(`Unsupported content type: ${contentType}`);
 };
 
-async function isCsrfTokenValid(csrfToken: string): Promise<boolean> {
-  const cookieStore = await cookies();
-  const storedCsrfToken = cookieStore.get('csrf_token')?.value;
+async function isCsrfTokenValid(consentChallenge: string, csrfToken: string): Promise<boolean> {
+  const storedCsrfToken = await readConsentCsrfCookie(consentChallenge);
 
   return !(!storedCsrfToken || csrfToken !== storedCsrfToken);
 }
@@ -63,10 +65,12 @@ export async function POST(
     const body = parseResult.data;
 
     // 3. Validate CSRF token
-    const isValid = await isCsrfTokenValid(body.csrf_token);
+    const isValid = await isCsrfTokenValid(body.consent_challenge, body.csrf_token);
     if (!isValid) {
+      await clearConsentCsrfCookie(body.consent_challenge);
       return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
     }
+    await clearConsentCsrfCookie(body.consent_challenge);
 
     // 4. Fetch consent request and verify it belongs to the authenticated user
     const consentRequest = await getConsentRequest(body.consent_challenge);
