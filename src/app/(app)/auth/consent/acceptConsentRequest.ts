@@ -3,6 +3,7 @@
 import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
+import { createHydraFlowError } from '../hydra-flow-error';
 
 const TWELVE_HOURS = 12 * 60 * 60;
 const LOGIN_REMEMBER_FOR_SECONDS = TWELVE_HOURS;
@@ -15,8 +16,8 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
   const { requested_scope, remember, challenge, requested_access_token_audience } = body;
   const hydra = await getOAuth2ApiFetchClient();
   const session = await extractSession(requested_scope ?? []);
-  const response = await hydra
-    .acceptOAuth2ConsentRequest({
+  try {
+    const response = await hydra.acceptOAuth2ConsentRequest({
       consentChallenge: challenge,
       acceptOAuth2ConsentRequest: {
         grant_scope: requested_scope,
@@ -25,14 +26,15 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
         grant_access_token_audience: requested_access_token_audience,
         session,
       },
-    })
-    .catch((error: unknown) => {
-      console.log('Something unexpected went wrong.');
-      console.log('error : ', error);
     });
 
-  const redirectTo = response?.redirect_to ?? '/';
-  return { redirectTo };
+    return { redirectTo: response.redirect_to ?? '/' };
+  } catch (error: unknown) {
+    throw createHydraFlowError('accept consent request failed', error, {
+      code: 'hydra_consent_accept_failed',
+      description: 'Unable to continue the consent flow right now.',
+    });
+  }
 }
 
 async function extractSession(grantScope: string[]): Promise<AcceptOAuth2ConsentRequestSession> {

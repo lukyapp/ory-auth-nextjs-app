@@ -1,6 +1,7 @@
 import { acceptConsentRequest } from '@/app/(app)/auth/consent/acceptConsentRequest';
 import { getConsentRequest } from '@/app/(app)/auth/consent/getConsentRequest';
 import { rejectConsentRequest } from '@/app/(app)/auth/consent/rejectConsentRequest';
+import { toErrorResponse } from '@/app/(app)/auth/hydra-flow-error';
 import { getServerSession } from '@ory/nextjs/app';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -44,7 +45,7 @@ async function isCsrfTokenValid(csrfToken: string): Promise<boolean> {
 
 export async function POST(
   req: Request,
-): Promise<NextResponse<{ redirect_to: string } | { error: string }>> {
+): Promise<NextResponse<{ redirect_to: string } | { code?: string; error: string }>> {
   try {
     // 1. Verify user is authenticated
     const session = await getServerSession();
@@ -56,7 +57,7 @@ export async function POST(
     const rawBody = await getBody(req);
     const parseResult = ConsentBodySchema.safeParse(rawBody);
     if (!parseResult.success) {
-      console.log(parseResult.error);
+      console.error('Invalid consent submit payload', z.treeifyError(parseResult.error));
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
     const body = parseResult.data;
@@ -92,7 +93,7 @@ export async function POST(
 
     return NextResponse.json({ redirect_to: '/' });
   } catch (error: unknown) {
-    console.error('Consent submit error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    const response = toErrorResponse(error, 'Internal server error');
+    return NextResponse.json(response.body, { status: response.status });
   }
 }

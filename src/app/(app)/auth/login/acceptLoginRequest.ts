@@ -2,6 +2,7 @@
 
 import { OAuth2LoginRequest } from '@ory/client-fetch';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
+import { createHydraFlowError } from '../hydra-flow-error';
 
 const TWELVE_HOURS = 12 * 60 * 60;
 const LOGIN_REMEMBER_FOR_SECONDS = TWELVE_HOURS;
@@ -13,8 +14,8 @@ type AcceptLoginRequestBody = {
 export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
   const { challenge, subject, remember } = body;
   const hydra = await getOAuth2ApiFetchClient();
-  const response = await hydra
-    .acceptOAuth2LoginRequest({
+  try {
+    const response = await hydra.acceptOAuth2LoginRequest({
       loginChallenge: challenge,
       acceptOAuth2LoginRequest: {
         subject,
@@ -27,13 +28,13 @@ export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
         // identity_provider_session_id,
         // force_subject_identifier
       },
-    })
-    .catch((error: unknown) => {
-      console.log('Something unexpected went wrong.');
-      console.log('error : ', error);
-      return null;
     });
 
-  const redirectTo = response?.redirect_to;
-  return { redirectTo };
+    return { redirectTo: response.redirect_to };
+  } catch (error: unknown) {
+    throw createHydraFlowError('accept login request failed', error, {
+      code: 'hydra_login_accept_failed',
+      description: 'Unable to continue the login flow right now.',
+    });
+  }
 }
