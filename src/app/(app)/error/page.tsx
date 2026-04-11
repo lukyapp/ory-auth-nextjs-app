@@ -57,8 +57,7 @@ function getErrorPresentation(params: {
     return {
       title: 'Your session expired',
       description:
-        params.errorDescription ||
-        'Your authenticated session is no longer active. Please sign in again to continue.',
+        params.errorDescription || 'Your session is no longer active. Sign in again to continue.',
       primaryHref: '/auth/login',
       primaryLabel: 'Sign in again',
       secondaryHref: '/',
@@ -77,7 +76,7 @@ function getErrorPresentation(params: {
       primaryHref: '/',
       primaryLabel: 'Back to portal',
       secondaryHref: '/auth/login',
-      secondaryLabel: 'Start over',
+      secondaryLabel: 'Sign in again',
     };
   }
 
@@ -86,7 +85,7 @@ function getErrorPresentation(params: {
       title: 'Login flow unavailable',
       description,
       primaryHref: '/auth/login',
-      primaryLabel: 'Back to sign in',
+      primaryLabel: 'Sign in again',
       secondaryHref: '/',
       secondaryLabel: 'Back to portal',
     };
@@ -107,7 +106,7 @@ function getErrorPresentation(params: {
     title: 'Something went wrong',
     description,
     primaryHref: '/auth/login',
-    primaryLabel: 'Back to sign in',
+    primaryLabel: 'Sign in again',
     secondaryHref: '/',
     secondaryLabel: 'Back to portal',
   };
@@ -147,7 +146,7 @@ export default async function KratosErrorPage({
       <div className="w-full max-w-xl space-y-5 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="space-y-2">
           <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">
-            Authentication Error
+            Authentication issue
           </p>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
             {presentation.title}
@@ -158,9 +157,9 @@ export default async function KratosErrorPage({
           <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
             <p className="text-sm leading-6 text-slate-700">{presentation.description}</p>
             {error.error.reason ? (
-              <p className="text-sm text-slate-500">Reason: {error.error.reason}</p>
+              <p className="text-sm text-slate-500">Technical reason: {error.error.reason}</p>
             ) : null}
-            {error.id ? <p className="text-xs text-slate-400">Error ID: {error.id}</p> : null}
+            {error.id ? <p className="text-xs text-slate-400">Reference ID: {error.id}</p> : null}
           </div>
         ) : (
           <div className="rounded-2xl bg-slate-50 p-4">

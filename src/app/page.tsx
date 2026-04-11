@@ -28,12 +28,12 @@ export default async function HomePage() {
           <div className="rounded-3xl bg-slate-900 px-8 py-10 text-white shadow-sm">
             <p className="text-sm tracking-[0.2em] text-slate-300 uppercase">Identity Portal</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-              {session ? 'Account overview' : 'Sign in to continue'}
+              {session ? 'Your account' : 'Access your account'}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
               {session
-                ? `You are signed in as ${displayName}. Manage your account, security settings, and connected authentication flows from one place.`
-                : 'Use this portal to sign in, create an account, recover access, and complete verification flows for connected applications.'}
+                ? `You are signed in as ${displayName}. Review your profile, security settings, and authentication options in one place.`
+                : 'Use this portal to sign in, create your account, recover access, or complete verification for connected applications.'}
             </p>
           </div>
 
@@ -51,26 +51,30 @@ export default async function HomePage() {
 function SignedOutCard() {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Authentication</h2>
+      <h2 className="text-lg font-semibold text-slate-900">Get started</h2>
       <p className="mt-2 text-sm leading-6 text-slate-600">
-        Start a self-service flow or continue managing your access.
+        Choose the flow you need to access or recover your account.
       </p>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <PortalLink href="/auth/login" title="Sign in" description="Access your account." />
+        <PortalLink
+          href="/auth/login"
+          title="Sign in"
+          description="Access your account securely."
+        />
         <PortalLink
           href="/auth/registration"
           title="Create account"
-          description="Start a new identity registration flow."
+          description="Set up a new account and sign-in method."
         />
         <PortalLink
           href="/auth/recovery"
           title="Recover access"
-          description="Regain access to your account."
+          description="Reset access if you can no longer sign in."
         />
         <PortalLink
           href="/auth/verification"
           title="Verify account"
-          description="Complete email verification."
+          description="Confirm your email address and activate access."
         />
       </div>
     </section>
@@ -93,7 +97,7 @@ function SignedInCard({ displayName, picture }: { displayName: string; picture: 
         <PortalLink
           href="/settings"
           title="Account settings"
-          description="Manage profile, methods, and recovery options."
+          description="Manage your profile, sign-in methods, and recovery details."
         />
         <LogoutLink />
       </div>
@@ -152,7 +156,7 @@ async function LogoutLink() {
     >
       <div className="text-sm font-medium text-slate-900">Sign out</div>
       <div className="mt-1 text-sm leading-6 text-slate-600">
-        Review and end the current browser session.
+        Review the current session and sign out from this browser.
       </div>
     </Link>
   );

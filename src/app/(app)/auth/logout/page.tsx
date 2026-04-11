@@ -9,12 +9,16 @@ export default async function LogoutPage() {
     redirect('/');
   }
 
-  const traits = session.identity.traits as {
-    email?: string;
-    username?: string;
-    phone?: string;
-  };
-  const displayName = traits.email ?? traits.username ?? traits.phone ?? 'your account';
+  const traits =
+    session.identity.traits && typeof session.identity.traits === 'object'
+      ? (session.identity.traits as Record<string, unknown>)
+      : {};
+  const displayName =
+    resolveOptionalString(traits.name) ||
+    resolveOptionalString(traits.email) ||
+    resolveOptionalString(traits.username) ||
+    resolveOptionalString(traits.phone) ||
+    'your account';
   const flow = await getLogoutFlow({ returnTo: '/' });
 
   return (
@@ -22,17 +26,17 @@ export default async function LogoutPage() {
       <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <p className="text-xs font-medium tracking-[0.2em] text-slate-400 uppercase">Sign out</p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900">
-          End this browser session?
+          End your current session?
         </h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           You are currently signed in as{' '}
           <span className="font-medium text-slate-900">{displayName}</span>. Signing out will end
-          the current Ory browser session for this device.
+          the active browser session for this device.
         </p>
 
         <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-          Use this if you are on a shared device or want the next access to require authentication
-          again.
+          Use this if you are on a shared device, or if you want the next visit to require a fresh
+          sign-in.
         </div>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -52,4 +56,8 @@ export default async function LogoutPage() {
       </div>
     </main>
   );
+}
+
+function resolveOptionalString(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }

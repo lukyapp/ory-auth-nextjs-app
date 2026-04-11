@@ -33,18 +33,18 @@ export default async function SettingsPage(props: OryPageParams) {
           </div>
           <SummaryCard
             label="Profile image"
-            value={account.picture ? 'Connected' : 'Not set'}
+            value={account.picture ? 'Available' : 'Not available'}
             tone="dark"
           />
         </div>
         <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-200">
-          Review your identity profile, authentication methods, verification status, and recovery
+          Review your profile details, sign-in methods, verification status, and recovery
           configuration.
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <SummaryCard label="Email" value={account.email} tone="dark" />
-          <SummaryCard label="Verification" value={account.verificationStatus} tone="dark" />
-          <SummaryCard label="Recovery" value={account.recoveryStatus} tone="dark" />
+          <SummaryCard label="Email verification" value={account.verificationStatus} tone="dark" />
+          <SummaryCard label="Recovery access" value={account.recoveryStatus} tone="dark" />
         </div>
       </section>
 
@@ -115,8 +115,8 @@ function getAccountSummary(session: Awaited<ReturnType<typeof getServerSession>>
     displayName,
     email,
     picture,
-    recoveryStatus: hasRecovery ? 'Configured' : 'Not configured',
-    verificationStatus: isVerified ? 'Verified' : 'Verification pending',
+    recoveryStatus: hasRecovery ? 'Ready' : 'Not configured',
+    verificationStatus: isVerified ? 'Verified' : 'Pending',
   };
 }
 
