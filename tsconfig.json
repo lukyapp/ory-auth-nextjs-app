@@ -29,7 +29,7 @@
       "@ory/nextjs/middleware": ["./src/lib/ory/nextjs/src/middleware/index.ts"],
       "@ory/nextjs/pages": ["./src/lib/ory/nextjs/src/pages/index.ts"],
       "@ory/nextjs/utils": ["./src/lib/ory/nextjs/src/utils/index.ts"],
-      "@ory/sdk/server": ["./src/lib/ory/sdk/server/index.ts"],
+      "@ory/sdk/server": ["./src/lib/ory/sdk/server/index.ts"]
     }
   },
   "include": [

@@ -4,7 +4,8 @@ import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/cl
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 
-const LOGIN_REMEMBER_FOR_SECONDS = 3600;
+const TWELVE_HOURS = 12 * 60 * 60;
+const LOGIN_REMEMBER_FOR_SECONDS = TWELVE_HOURS;
 
 type AcceptConsentRequestBody = {
   remember?: boolean;
