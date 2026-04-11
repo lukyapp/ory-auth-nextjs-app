@@ -10,7 +10,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error('❌ Invalid environment variables:');
+  console.error('❌ Invalid environment variables for ory-auth-nextjs-app:');
   console.error(z.treeifyError(parsed.error));
   throw new Error('Invalid environment variables');
 }

@@ -1,6 +1,9 @@
-# Modern Authentication with Ory and Next.js
+# Ory Auth Next.js App
 
-A secure authentication system built with Next.js and Ory Identity Platform, featuring modern UI components and best practices for user management.
+A Next.js authentication application that acts as both:
+
+- the account experience for Ory self-service flows
+- the login and consent UI for Hydra OAuth2/OIDC clients
 
 ## 🚀 Features
 
@@ -30,7 +33,8 @@ A secure authentication system built with Next.js and Ory Identity Platform, fea
 
 - Node.js 18+
 - pnpm
-- Ory Cloud account (or self-hosted Ory Network)
+- a running Ory Kratos instance
+- a running Ory Hydra instance
 
 ### Installation
 
@@ -51,9 +55,11 @@ A secure authentication system built with Next.js and Ory Identity Platform, fea
    cp .env.example .env.local
    ```
 
-4. Configure your Ory project:
-   - Create a new project at [Ory Console](https://console.ory.sh/)
-   - Update the Ory-related environment variables in `.env.local`
+4. Configure the local environment:
+   - set `NEXT_PUBLIC_ORY_SDK_URL` to the public Kratos/browser URL exposed to this app
+   - set `ORY_SDK_URL` to the server-side SDK URL used by Next.js server code
+   - set `ORY_HYDRA_ADMIN_URL` to the Hydra admin URL
+   - set `ORY_PROJECT_API_TOKEN` only if your setup requires it
 
 5. Run the development server:
    ```bash
@@ -92,11 +98,18 @@ src/
 
 ### Environment Variables
 
-For production deployment, make sure to set these required environment variables:
+The app currently validates these variables at startup:
 
+```bash
+NEXT_PUBLIC_ORY_SDK_URL=http://localhost:4433
+ORY_SDK_URL=http://kratos:4433
+ORY_HYDRA_ADMIN_URL=http://hydra:4445
+ORY_PROJECT_API_TOKEN=optional
 ```
-ORY_ACCESS_TOKEN=your_ory_access_token
-ORY_PROJECT_SLUG=your_ory_project_slug
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=your_app_url
-```
+
+Notes:
+
+- `NEXT_PUBLIC_ORY_SDK_URL` is used by browser-side Ory code
+- `ORY_SDK_URL` is used by server-side Next.js code
+- `ORY_HYDRA_ADMIN_URL` is used for Hydra login and consent challenge handling
+- `ORY_PROJECT_API_TOKEN` is optional in the current validator
