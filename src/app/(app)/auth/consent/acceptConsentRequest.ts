@@ -52,6 +52,7 @@ async function extractSession(grantScope: string[]): Promise<AcceptOAuth2Consent
   const traits = isIdentityTraitsRecord(identity.traits) ? identity.traits : {};
   const email = resolveEmail(identity, traits);
   const name = resolveName(traits);
+  const picture = resolveOptionalString(traits.picture);
   const preferredUsername = resolveOptionalString(traits.username);
 
   if (grantScope.includes('email')) {
@@ -77,6 +78,10 @@ async function extractSession(grantScope: string[]): Promise<AcceptOAuth2Consent
 
     if (name) {
       session.id_token.name = name;
+    }
+
+    if (picture) {
+      session.id_token.picture = picture;
     }
 
     if (identity.updated_at) {

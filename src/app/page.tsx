@@ -9,12 +9,17 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const session = await getServerSession();
-  const traits = session?.identity?.traits as {
-    email?: string;
-    username?: string;
-    phone?: string;
-  };
-  const displayName = traits?.email ?? traits?.username ?? traits?.phone ?? 'your account';
+  const traits =
+    session?.identity?.traits && typeof session.identity.traits === 'object'
+      ? (session.identity.traits as Record<string, unknown>)
+      : {};
+  const displayName =
+    resolveOptionalString(traits.name) ||
+    resolveOptionalString(traits.email) ||
+    resolveOptionalString(traits.username) ||
+    resolveOptionalString(traits.phone) ||
+    'your account';
+  const picture = resolveOptionalString(traits.picture);
 
   return (
     <SessionProvider session={session}>
@@ -32,7 +37,11 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {!session ? <SignedOutCard /> : <SignedInCard displayName={displayName} />}
+          {!session ? (
+            <SignedOutCard />
+          ) : (
+            <SignedInCard displayName={displayName} picture={picture} />
+          )}
         </div>
       </main>
     </SessionProvider>
@@ -68,13 +77,18 @@ function SignedOutCard() {
   );
 }
 
-function SignedInCard({ displayName }: { displayName: string }) {
+function SignedInCard({ displayName, picture }: { displayName: string; picture: string | null }) {
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Welcome back</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-600">
-        Signed in as <span className="font-medium text-slate-900">{displayName}</span>.
-      </p>
+      <div className="flex items-center gap-4">
+        <ProfileAvatar displayName={displayName} picture={picture} />
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Welcome back</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Signed in as <span className="font-medium text-slate-900">{displayName}</span>.
+          </p>
+        </div>
+      </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         <PortalLink
           href="/settings"
@@ -105,6 +119,29 @@ function PortalLink({
       <div className="mt-1 text-sm leading-6 text-slate-600">{description}</div>
     </Link>
   );
+}
+
+function ProfileAvatar({ displayName, picture }: { displayName: string; picture: string | null }) {
+  if (picture) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        alt={`${displayName} avatar`}
+        className="h-14 w-14 rounded-2xl object-cover"
+        src={picture}
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white uppercase">
+      {displayName.charAt(0)}
+    </div>
+  );
+}
+
+function resolveOptionalString(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
 async function LogoutLink() {

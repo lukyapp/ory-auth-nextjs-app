@@ -21,11 +21,23 @@ export default async function SettingsPage(props: OryPageParams) {
   return (
     <div className="mx-auto mb-8 flex w-full max-w-5xl flex-col gap-6 px-4">
       <section className="rounded-3xl bg-slate-900 px-8 py-8 text-white shadow-sm">
-        <p className="text-xs font-medium tracking-[0.2em] text-slate-300 uppercase">
-          Account Settings
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight">{account.displayName}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <ProfileAvatar displayName={account.displayName} picture={account.picture} />
+            <div>
+              <p className="text-xs font-medium tracking-[0.2em] text-slate-300 uppercase">
+                Account Settings
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold tracking-tight">{account.displayName}</h1>
+            </div>
+          </div>
+          <SummaryCard
+            label="Profile image"
+            value={account.picture ? 'Connected' : 'Not set'}
+            tone="dark"
+          />
+        </div>
+        <p className="mt-5 max-w-2xl text-sm leading-6 text-slate-200">
           Review your identity profile, authentication methods, verification status, and recovery
           configuration.
         </p>
@@ -89,6 +101,7 @@ function getAccountSummary(session: Awaited<ReturnType<typeof getServerSession>>
     session?.identity?.verifiable_addresses?.find((address) => address.via === 'email')?.value ??
     resolveOptionalString(traits.email) ??
     'No email available';
+  const picture = resolveOptionalString(traits.picture);
 
   const isVerified =
     session?.identity?.verifiable_addresses?.some(
@@ -101,9 +114,29 @@ function getAccountSummary(session: Awaited<ReturnType<typeof getServerSession>>
   return {
     displayName,
     email,
+    picture,
     recoveryStatus: hasRecovery ? 'Configured' : 'Not configured',
     verificationStatus: isVerified ? 'Verified' : 'Verification pending',
   };
+}
+
+function ProfileAvatar({ displayName, picture }: { displayName: string; picture: string | null }) {
+  if (picture) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        alt={`${displayName} avatar`}
+        className="h-16 w-16 rounded-2xl border border-white/10 object-cover"
+        src={picture}
+      />
+    );
+  }
+
+  return (
+    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold text-white uppercase">
+      {displayName.charAt(0)}
+    </div>
+  );
 }
 
 function resolveOptionalString(value: unknown) {
