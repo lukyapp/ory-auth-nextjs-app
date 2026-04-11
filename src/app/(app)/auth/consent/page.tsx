@@ -4,6 +4,7 @@ import { OAuth2ConsentRequest } from '@ory/client-fetch';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { toErrorPageHref } from '../hydra-flow-error';
+import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptConsentRequest } from './acceptConsentRequest';
 import { ConsentUi } from './consent-ui';
 import { getConsentRequest } from './getConsentRequest';
@@ -28,6 +29,10 @@ export default async function ConsentPage(props: {
     }
     return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />;
   } catch (error: unknown) {
+    if (isNextRedirectError(error)) {
+      throw error;
+    }
+
     redirect(toErrorPageHref(error));
   }
 }

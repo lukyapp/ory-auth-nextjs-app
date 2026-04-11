@@ -4,6 +4,7 @@ import { Login } from '@ory/elements-react/theme';
 import { getLoginFlow, getServerSession, OryPageParams } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
 import { toErrorPageHref } from '../hydra-flow-error';
+import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptLoginRequest } from './acceptLoginRequest';
 import { getLoginRequest } from './getLoginRequest';
 
@@ -45,6 +46,10 @@ export default async function LoginPage(props: OryPageParams) {
 
     return <Login flow={flow} config={oryConfig} components={{}} />;
   } catch (error: unknown) {
+    if (isNextRedirectError(error)) {
+      throw error;
+    }
+
     redirect(toErrorPageHref(error));
   }
 }

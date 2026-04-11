@@ -49,35 +49,34 @@ async function extractSession(grantScope: string[]): Promise<AcceptOAuth2Consent
     return session;
   }
 
+  const traits = isIdentityTraitsRecord(identity.traits) ? identity.traits : {};
+  const email = resolveEmail(identity, traits);
+  const name = resolveName(traits);
+  const preferredUsername = resolveOptionalString(traits.username);
+
   if (grantScope.includes('email')) {
-    const addresses = identity.verifiable_addresses || [];
-    if (addresses.length > 0) {
-      const address = addresses[0];
-      if (address.via === 'email') {
-        session.id_token.email = address.value;
-        session.id_token.email_verified = address.verified;
-      }
+    if (email) {
+      session.id_token.email = email;
     }
+
+    const verifiedEmailAddress = (identity.verifiable_addresses || []).find(
+      (address) => address.via === 'email',
+    );
+    session.id_token.email_verified = verifiedEmailAddress?.verified ?? false;
   }
 
   if (grantScope.includes('profile')) {
-    if (identity.traits.username) {
-      session.id_token.preferred_username = identity.traits.username;
+    if (preferredUsername) {
+      session.id_token.preferred_username = preferredUsername;
     }
 
-    if (identity.traits.website) {
-      session.id_token.website = identity.traits.website;
+    const website = resolveOptionalString(traits.website);
+    if (website) {
+      session.id_token.website = website;
     }
 
-    if (typeof identity.traits.name === 'object') {
-      if (identity.traits.name.first) {
-        session.id_token.given_name = identity.traits.name.first;
-      }
-      if (identity.traits.name.last) {
-        session.id_token.family_name = identity.traits.name.last;
-      }
-    } else if (typeof identity.traits.name === 'string') {
-      session.id_token.name = identity.traits.name;
+    if (name) {
+      session.id_token.name = name;
     }
 
     if (identity.updated_at) {
@@ -85,4 +84,45 @@ async function extractSession(grantScope: string[]): Promise<AcceptOAuth2Consent
     }
   }
   return session;
+}
+
+function isIdentityTraitsRecord(traits: unknown): traits is Record<string, unknown> {
+  return typeof traits === 'object' && traits !== null;
+}
+
+function resolveOptionalString(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function resolveEmail(
+  identity: NonNullable<Awaited<ReturnType<typeof getServerSession>>>['identity'],
+  traits: Record<string, unknown>,
+) {
+  const verifiedEmailAddress = (identity.verifiable_addresses || []).find(
+    (address) =>
+      address.via === 'email' && typeof address.value === 'string' && address.value.length > 0,
+  );
+
+  return verifiedEmailAddress?.value ?? resolveOptionalString(traits.email);
+}
+
+function resolveName(traits: Record<string, unknown>) {
+  const rawName = traits.name;
+
+  if (typeof rawName === 'string' && rawName.trim().length > 0) {
+    return rawName.trim();
+  }
+
+  if (typeof rawName === 'object' && rawName !== null) {
+    const first = resolveOptionalString((rawName as Record<string, unknown>).first);
+    const last = resolveOptionalString((rawName as Record<string, unknown>).last);
+
+    if (first && last) {
+      return `${first} ${last}`;
+    }
+
+    return first ?? last;
+  }
+
+  return null;
 }

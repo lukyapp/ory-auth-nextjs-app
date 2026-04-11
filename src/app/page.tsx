@@ -1,5 +1,5 @@
 import { SessionProvider } from '@ory/elements-react/client';
-import { getLogoutFlow, getServerSession } from '@ory/nextjs/app';
+import { getServerSession } from '@ory/nextjs/app';
 import { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -108,15 +108,15 @@ function PortalLink({
 }
 
 async function LogoutLink() {
-  const flow = await getLogoutFlow({});
-
   return (
     <Link
       className="rounded-2xl border border-slate-200 px-4 py-4 transition hover:border-slate-300 hover:bg-slate-50"
-      href={flow.logout_url}
+      href="/auth/logout"
     >
       <div className="text-sm font-medium text-slate-900">Sign out</div>
-      <div className="mt-1 text-sm leading-6 text-slate-600">End the current browser session.</div>
+      <div className="mt-1 text-sm leading-6 text-slate-600">
+        Review and end the current browser session.
+      </div>
     </Link>
   );
 }
