@@ -11,5 +11,6 @@ export { getSettingsFlow } from './settings';
 export { getLogoutFlow } from './logout';
 export { getServerSession } from './session';
 export { getFlowFactory } from './flow';
+export { getError } from './error';
 
 export type { OryPageParams } from './utils';

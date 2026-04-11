@@ -9,3 +9,4 @@ export { useRecoveryFlow } from './recovery';
 export { useLoginFlow } from './login';
 export { useSettingsFlow } from './settings';
 export { useLogoutFlow } from './logout';
+export { useError } from './error';

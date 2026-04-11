@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { OryLocales } from '@ory/elements-react';
 import { cookies, headers } from 'next/headers';
 

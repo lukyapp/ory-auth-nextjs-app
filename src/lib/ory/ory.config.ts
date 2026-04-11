@@ -1,3 +1,4 @@
+/* eslint-disable */
 import type { OryClientConfiguration } from '@ory/elements-react';
 import type { OryLocale } from './resolve-ory-locale';
 

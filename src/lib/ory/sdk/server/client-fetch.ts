@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Configuration, OAuth2Api } from '@ory/client-fetch';
 
 const oAuth2Api = new OAuth2Api(
