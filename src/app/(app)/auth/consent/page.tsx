@@ -3,6 +3,7 @@ import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import { OAuth2ConsentRequest } from '@ory/client-fetch';
 import { redirect } from 'next/navigation';
 import React from 'react';
+import { logAuthFlow } from '../auth-flow-log';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptConsentRequest } from './acceptConsentRequest';
@@ -21,18 +22,41 @@ export default async function ConsentPage(props: {
       return;
     }
     const consentRequest = await getConsentRequest(consentChallenge);
+    logAuthFlow('consent.page.loaded', {
+      clientId: consentRequest.client?.client_id ?? null,
+      consentChallenge,
+      subject: consentRequest.subject ?? null,
+    });
     const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
     const oryConfig = createOryConfig(locale);
     if (shouldSkipConsent(consentRequest)) {
+      logAuthFlow('consent.challenge.skipped', {
+        clientId: consentRequest.client?.client_id ?? null,
+        consentChallenge,
+        requestedScopes: consentRequest.requested_scope ?? [],
+      });
       const { redirectTo } = await acceptConsentRequest({ ...consentRequest });
+      logAuthFlow('consent.challenge.redirect', {
+        clientId: consentRequest.client?.client_id ?? null,
+        consentChallenge,
+        redirectTo,
+      });
       redirect(redirectTo);
     }
+    logAuthFlow('consent.flow.render', {
+      clientId: consentRequest.client?.client_id ?? null,
+      consentChallenge,
+      requestedScopes: consentRequest.requested_scope ?? [],
+    });
     return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />;
   } catch (error: unknown) {
     if (isNextRedirectError(error)) {
       throw error;
     }
 
+    logAuthFlow('consent.flow.error', {
+      error: error instanceof Error ? error.message : 'unknown',
+    });
     redirect(toErrorPageHref(error));
   }
 }

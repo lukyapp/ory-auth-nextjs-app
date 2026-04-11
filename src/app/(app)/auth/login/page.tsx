@@ -3,6 +3,7 @@ import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import { Login } from '@ory/elements-react/theme';
 import { getLoginFlow, getServerSession, OryPageParams } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
+import { logAuthFlow } from '../auth-flow-log';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptLoginRequest } from './acceptLoginRequest';
@@ -21,19 +22,47 @@ export default async function LoginPage(props: OryPageParams) {
       ? searchParams.max_age[0]
       : searchParams.max_age;
     const loginRequest = loginChallenge ? await getLoginRequest(loginChallenge) : null;
+    logAuthFlow('login.page.loaded', {
+      hasLoginChallenge: Boolean(loginChallenge),
+      loginChallenge,
+      maxAge: maxAge ?? null,
+      prompt: prompt ?? null,
+    });
     const locale = await resolveOryLocale({ flow: loginRequest, searchParams });
     const oryConfig = createOryConfig(locale);
 
     const session = loginRequest ? await getServerSession() : null;
     const subject = session?.identity?.id ?? loginRequest?.subject;
+    const skipLogin = loginRequest ? shouldSkipLogin({ loginRequest, prompt, maxAge }) : false;
 
-    if (loginRequest && shouldSkipLogin({ loginRequest, prompt, maxAge }) && subject) {
+    if (loginRequest) {
+      logAuthFlow('login.challenge.resolved', {
+        clientId: loginRequest.client?.client_id ?? null,
+        hasSession: Boolean(session),
+        loginRequestSkip: loginRequest.skip ?? false,
+        requestedSubject: loginRequest.subject ?? null,
+        resolvedSubject: subject ?? null,
+        skipLogin,
+      });
+    }
+
+    if (loginRequest && skipLogin && subject) {
+      logAuthFlow('login.challenge.skipped', {
+        clientId: loginRequest.client?.client_id ?? null,
+        loginChallenge,
+        subject,
+      });
       const { redirectTo } = await acceptLoginRequest({
         ...loginRequest,
         subject,
       });
 
       if (redirectTo) {
+        logAuthFlow('login.challenge.redirect', {
+          clientId: loginRequest.client?.client_id ?? null,
+          loginChallenge,
+          redirectTo,
+        });
         redirect(redirectTo);
       }
     }
@@ -41,15 +70,26 @@ export default async function LoginPage(props: OryPageParams) {
     const flow = await getLoginFlow(oryConfig, props.searchParams);
 
     if (!flow) {
+      logAuthFlow('login.flow.empty', {
+        loginChallenge,
+      });
       return null;
     }
 
+    logAuthFlow('login.flow.render', {
+      flowId: flow.id,
+      loginChallenge,
+      uiAction: flow.ui.action,
+    });
     return <Login flow={flow} config={oryConfig} components={{}} />;
   } catch (error: unknown) {
     if (isNextRedirectError(error)) {
       throw error;
     }
 
+    logAuthFlow('login.flow.error', {
+      error: error instanceof Error ? error.message : 'unknown',
+    });
     redirect(toErrorPageHref(error));
   }
 }
