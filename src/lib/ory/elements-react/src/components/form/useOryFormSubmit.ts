@@ -274,7 +274,7 @@ export function useOryFormSubmit(
         methods.setValue('totp_code', '');
       }
       onAfterSubmit?.(data.method);
-    } catch (error) {
+    } catch (error: unknown) {
       // Fail safe, ensure that the submit state is ended
       // But in practice none of the above methods should throw
       flowContainer.dispatchFormState({ type: 'form_submit_end' });

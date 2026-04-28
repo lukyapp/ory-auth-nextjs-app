@@ -12,7 +12,7 @@ export function guessCookieDomain(url: string) {
   let parsedUrl: string;
   try {
     parsedUrl = new URL(url).hostname;
-  } catch (_) {
+  } catch (_: unknown) {
     parsedUrl = url;
   }
 

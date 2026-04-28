@@ -58,7 +58,7 @@ export async function getFlowFactory<T extends object>(
     return await rawResponse
       .value()
       .then((v: T): T => (options.disableRewrite ? v : rewriteJsonResponse(v, baseUrl)));
-  } catch (error) {
+  } catch (error: unknown) {
     const errorHandler = handleFlowError({
       onValidationError,
       onRestartFlow,

@@ -119,7 +119,7 @@ export function SessionProvider({
         session,
         state: session.active ? 'authenticated' : 'unauthenticated',
       });
-    } catch (error) {
+    } catch (error: unknown) {
       setSessionState({ state: 'error', error: error as Error });
     } finally {
       setLoading(false);

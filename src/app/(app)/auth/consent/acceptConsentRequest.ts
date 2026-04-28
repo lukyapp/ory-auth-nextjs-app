@@ -5,8 +5,9 @@ import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 import { createHydraFlowError } from '../hydra-flow-error';
 
-const TWELVE_HOURS = 12 * 60 * 60;
-const LOGIN_REMEMBER_FOR_SECONDS = TWELVE_HOURS;
+const TWELVE_HOURS = 43200;
+const THIRTY_DAYS = 2592000;
+const LOGIN_REMEMBER_FOR_SECONDS = THIRTY_DAYS;
 
 type AcceptConsentRequestBody = {
   remember?: boolean;

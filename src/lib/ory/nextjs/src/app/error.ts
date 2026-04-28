@@ -58,7 +58,7 @@ export async function getError(
 
   try {
     return await serverSideFrontendClient().getFlowError({ id });
-  } catch (error) {
+  } catch (error: unknown) {
     return {
       error: 'unknown_error',
       error_description: error instanceof Error ? error.message : 'An unknown error occurred.',
