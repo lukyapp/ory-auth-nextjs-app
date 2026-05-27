@@ -3,7 +3,7 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-import { getNodeId, isUiNodeScriptAttributes, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
+import { isUiNodeScriptAttributes, UiNode, UiNodeGroupEnum } from '@ory/client-fetch';
 import { useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { Toaster } from 'sonner';
@@ -12,6 +12,7 @@ import {
   settingsCardDescriptionMessage,
   settingsCardTitleMessage,
 } from '../../util/i18n/settingsCardMessages';
+import { getNodeId } from '../../util/sdk-helpers/ui';
 import { showToast } from '../../util/showToast';
 import { useNodesGroups } from '../../util/ui';
 import { Node } from '../form/nodes/node';

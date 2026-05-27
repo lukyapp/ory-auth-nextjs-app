@@ -15,7 +15,13 @@ import {
   MouseEventHandler,
   PropsWithChildren,
 } from 'react';
-import { UiNodeImage, UiNodeInput, UiNodeText } from './util/utilFixSDKTypesHelper';
+import {
+  UiNodeImage,
+  UiNodeInput,
+  UiNodeInputAttributesOption,
+  UiNodeInputAttributesWithOptions,
+  UiNodeText,
+} from './util/utilFixSDKTypesHelper';
 
 export type OryNodeButtonButtonProps = {
   type: 'button' | 'submit' | 'reset';
@@ -155,6 +161,23 @@ export type OryNodeInputProps = {
   /** @deprecated - use inputProps.onClick */
   onClick?: MouseEventHandler;
   inputProps: OryNodeInputInputProps;
+};
+
+// `<select>` elements do not accept the same DOM attributes as `<input>`.
+// Drop input-only props so custom Node.Select implementations can spread
+// `inputProps` onto a native `<select>` without React warnings about
+// unknown attributes.
+export type OryNodeSelectInputProps = Omit<
+  OryNodeInputInputProps,
+  'onClick' | 'maxLength' | 'autoComplete' | 'type'
+>;
+
+export type OryNodeSelectProps = {
+  /** @deprecated - use node.attributes */
+  attributes: UiNodeInputAttributesWithOptions;
+  node: UiNodeInput;
+  inputProps: OryNodeSelectInputProps;
+  options: UiNodeInputAttributesOption[];
 };
 
 export type OryNodeConsentScopeCheckboxProps = {

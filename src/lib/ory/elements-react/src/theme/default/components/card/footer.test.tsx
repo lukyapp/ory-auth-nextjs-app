@@ -34,6 +34,7 @@ interface MockOptions {
   requestedAal?: AuthenticatorAssuranceLevel | undefined;
   formState?: FormState;
   registrationEnabled?: boolean;
+  hideRegistrationLink?: boolean;
   authMethods?: string[];
   returnTo?: string;
   hasLogout?: boolean;
@@ -84,6 +85,7 @@ describe('DefaultCardFooter', () => {
           current: 'provide_identifier',
         } as FormStateProvideIdentifier,
         registrationEnabled = true,
+        hideRegistrationLink = false,
         authMethods = [],
         returnTo = 'https://example.com',
         hasLogout = false,
@@ -94,6 +96,7 @@ describe('DefaultCardFooter', () => {
         project: {
           ...defaultConfiguration.project,
           registration_enabled: registrationEnabled,
+          hide_registration_link: hideRegistrationLink,
         },
         sdk: {
           url: 'https://example.com',
@@ -155,6 +158,24 @@ describe('DefaultCardFooter', () => {
       });
       renderWithIntl(<DefaultCardFooter />);
       expect(screen.queryByTestId('ory/screen/login/action/register')).not.toBeInTheDocument();
+    });
+
+    it('does not render registration link when hide_registration_link is true', () => {
+      setupMocks({
+        registrationEnabled: true,
+        hideRegistrationLink: true,
+      });
+      renderWithIntl(<DefaultCardFooter />);
+      expect(screen.queryByTestId('ory/screen/login/action/register')).not.toBeInTheDocument();
+    });
+
+    it('renders registration link when hide_registration_link is undefined (default false)', () => {
+      setupMocks({
+        registrationEnabled: true,
+        // hideRegistrationLink intentionally omitted — defaults to false (show)
+      });
+      renderWithIntl(<DefaultCardFooter />);
+      expect(screen.getByTestId('ory/screen/login/action/register')).toBeInTheDocument();
     });
 
     it('renders logout link when flow.refresh is true', () => {

@@ -29,6 +29,7 @@ import {
   DefaultFormSectionContent,
   DefaultFormSectionFooter,
 } from './form/section';
+import { DefaultSelect } from './form/select';
 import { DefaultButtonSocial, DefaultSocialButtonContainer } from './form/sso';
 import { DefaultText } from './form/text';
 import { DefaultPageHeader } from './generic/page-header';
@@ -71,6 +72,7 @@ export function getOryComponents(overrides?: OryFlowComponentOverrides): OryFlow
       Button: overrides?.Node?.Button ?? DefaultButton,
       SsoButton: overrides?.Node?.SsoButton ?? DefaultButtonSocial,
       Input: overrides?.Node?.Input ?? DefaultInput,
+      Select: overrides?.Node?.Select ?? DefaultSelect,
       CodeInput: overrides?.Node?.CodeInput ?? DefaultPinCodeInput,
       Image: overrides?.Node?.Image ?? DefaultImage,
       Label: overrides?.Node?.Label ?? DefaultLabel,

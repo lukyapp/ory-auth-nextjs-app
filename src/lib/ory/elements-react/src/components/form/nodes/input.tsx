@@ -10,6 +10,7 @@ import {
 } from '@ory/client-fetch';
 import { ReactNode, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useComponents } from '../../../context';
 import { triggerToWindowCall } from '../../../util/ui';
 import { UiNodeInput } from '../../../util/utilFixSDKTypesHelper';
 import { NodeButton } from './node-button';
@@ -17,6 +18,7 @@ import { CheckboxRenderer } from './renderer/checkbox-renderer';
 import { ConsentCheckboxRenderer } from './renderer/consent-checkbox-renderer';
 import { HiddenInputRenderer } from './renderer/hidden-input-renderer';
 import { InputRenderer } from './renderer/input-renderer';
+import { SelectRenderer } from './renderer/select-renderer';
 
 export const NodeInput = ({
   node,
@@ -26,6 +28,7 @@ export const NodeInput = ({
   attributes: UiNodeInputAttributes;
 }): ReactNode => {
   const { setValue } = useFormContext();
+  const { Node } = useComponents();
 
   const {
     onloadTrigger,
@@ -80,7 +83,16 @@ export const NodeInput = ({
       return <CheckboxRenderer node={node} />;
     case UiNodeInputAttributesTypeEnum.Hidden:
       return <HiddenInputRenderer node={node} />;
-    default:
+    default: {
+      // Render as a select only when (a) the input declares enum options and
+      // (b) the consumer's component contract actually provides a Select
+      // implementation. Falling back to InputRenderer keeps older custom
+      // component sets that pre-date Node.Select working.
+      const options = node.attributes.options;
+      if (Array.isArray(options) && options.length > 0 && Node.Select) {
+        return <SelectRenderer node={node} />;
+      }
       return <InputRenderer node={node} />;
+    }
   }
 };

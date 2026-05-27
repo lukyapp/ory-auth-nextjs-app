@@ -1,7 +1,8 @@
 /* eslint-disable */
+'use client';
+
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
 import { UiText } from '@ory/client-fetch';
 import { useIntl } from 'react-intl';
 import { uiTextToFormattedMessage } from '../index';

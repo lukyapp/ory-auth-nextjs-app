@@ -2,8 +2,8 @@
 // Copyright © 2025 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
-import { getNodeId } from '@ory/client-fetch';
 import { useComponents, useOryFlow } from '../../context';
+import { getNodeId } from '../../util/sdk-helpers/ui';
 import { OryForm } from '../form';
 import { Node } from '../form/nodes/node';
 import { OryCard } from './card';

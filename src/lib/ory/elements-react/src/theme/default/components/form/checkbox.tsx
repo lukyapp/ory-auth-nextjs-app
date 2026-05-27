@@ -3,9 +3,6 @@
 
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
-
-'use client';
-
 import { getNodeLabel } from '@ory/client-fetch';
 import { messageTestId, OryNodeCheckboxProps, uiTextToFormattedMessage } from '@ory/elements-react';
 import { useIntl } from 'react-intl';

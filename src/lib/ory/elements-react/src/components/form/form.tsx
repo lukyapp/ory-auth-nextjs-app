@@ -30,6 +30,7 @@ import {
   OryNodeImageProps,
   OryNodeInputProps,
   OryNodeLabelProps,
+  OryNodeSelectProps,
   OryNodeSsoButtonProps,
   OryNodeTextProps,
 } from '../../types';
@@ -74,6 +75,15 @@ export type OryFlowComponents = {
      * The Input component is rendered whenever a "input" node is encountered.
      */
     Input: ComponentType<OryNodeInputProps>;
+    /**
+     * The Select component is rendered whenever an "input" node declares a
+     * non-empty `options` list, typically the result of an `enum` constraint
+     * in the identity schema. Optional for backward compatibility: when not
+     * provided, the dispatch falls back to the regular `Input` renderer so
+     * older consumers that constructed `OryFlowComponents` by hand keep
+     * compiling and rendering.
+     */
+    Select?: ComponentType<OryNodeSelectProps>;
     /**
      * Special version of the Input component for OTP codes.
      */

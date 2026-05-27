@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prettier": "prettier --check .",
-    "ory:fix": "find src/lib/ory -name \"*.ts\" -exec sed -i '' '1{/^\\/\\* eslint-disable \\*\\/$/!s/^/\\/\\* eslint-disable \\*\\/\\n/;}' {} +"
+    "ory:fix": "find src/lib/ory -name \"*.ts\" -exec sed -i '' '1{/^\\/\\* eslint-disable \\*\\/$/!s/^/\\/\\* eslint-disable \\*\\/\\n/;}' {} +",
+    "ory:fix:tsx": "find src/lib/ory -name \"*.tsx\" -exec sed -i '' '1{/^\\/\\* eslint-disable \\*\\/$/!s/^/\\/\\* eslint-disable \\*\\/\\n/;}' {} +"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

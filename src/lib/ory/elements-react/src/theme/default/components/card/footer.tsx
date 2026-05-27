@@ -97,24 +97,26 @@ function LoginCardFooter({ flow }: LoginCardFooterProps) {
 
   return (
     <>
-      {formState.current === 'provide_identifier' && config.project.registration_enabled && (
-        <span className="text-interface-foreground-default-primary leading-normal font-normal antialiased">
-          {intl.formatMessage({
-            id: 'login.registration-label',
-            defaultMessage: "Don't have an account?",
-          })}{' '}
-          <a
-            className="text-button-link-brand-brand hover:text-button-link-brand-brand-hover underline transition-colors"
-            href={initFlowUrl(config.sdk.url, 'registration', flow)}
-            data-testid={'ory/screen/login/action/register'}
-          >
+      {formState.current === 'provide_identifier' &&
+        config.project.registration_enabled &&
+        !config.project.hide_registration_link && (
+          <span className="text-interface-foreground-default-primary leading-normal font-normal antialiased">
             {intl.formatMessage({
-              id: 'login.registration-button',
-              defaultMessage: 'Sign up',
-            })}
-          </a>
-        </span>
-      )}
+              id: 'login.registration-label',
+              defaultMessage: "Don't have an account?",
+            })}{' '}
+            <a
+              className="text-button-link-brand-brand hover:text-button-link-brand-brand-hover underline transition-colors"
+              href={initFlowUrl(config.sdk.url, 'registration', flow)}
+              data-testid={'ory/screen/login/action/register'}
+            >
+              {intl.formatMessage({
+                id: 'login.registration-button',
+                defaultMessage: 'Sign up',
+              })}
+            </a>
+          </span>
+        )}
       {authMethods.length > 1 && formState.current === 'method_active' && (
         <span className="text-interface-foreground-default-primary leading-normal font-normal antialiased">
           <button
