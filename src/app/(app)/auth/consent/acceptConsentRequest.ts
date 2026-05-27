@@ -3,7 +3,7 @@
 import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
-import { createHydraFlowError } from '../hydra-flow-error';
+import { createHydraFlowError, HydraFlowError } from '../hydra-flow-error';
 
 const TWELVE_HOURS = 43200;
 const THIRTY_DAYS = 2592000;
@@ -14,19 +14,19 @@ type AcceptConsentRequestBody = {
 } & OAuth2ConsentRequest;
 
 export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
-  const { requested_scope, remember, challenge, requested_access_token_audience } = body;
+  const { challenge, remember, requested_access_token_audience, requested_scope, subject } = body;
   const hydra = await getOAuth2ApiFetchClient();
-  const session = await extractSession(requested_scope ?? []);
+  const session = await extractSession(requested_scope ?? [], subject);
   try {
     const response = await hydra.acceptOAuth2ConsentRequest({
-      consentChallenge: challenge,
       acceptOAuth2ConsentRequest: {
+        grant_access_token_audience: requested_access_token_audience,
         grant_scope: requested_scope,
         remember: remember ?? true,
         remember_for: LOGIN_REMEMBER_FOR_SECONDS,
-        grant_access_token_audience: requested_access_token_audience,
         session,
       },
+      consentChallenge: challenge,
     });
 
     return { redirectTo: response.redirect_to ?? '/' };
@@ -38,7 +38,10 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
   }
 }
 
-async function extractSession(grantScope: string[]): Promise<AcceptOAuth2ConsentRequestSession> {
+async function extractSession(
+  grantScope: string[],
+  consentSubject?: string | null,
+): Promise<AcceptOAuth2ConsentRequestSession> {
   const serverSession = await getServerSession();
   const session: AcceptOAuth2ConsentRequestSession = {
     access_token: {},
@@ -47,7 +50,19 @@ async function extractSession(grantScope: string[]): Promise<AcceptOAuth2Consent
 
   const identity = serverSession?.identity;
   if (!identity) {
-    return session;
+    throw new HydraFlowError('Consent requires an active authenticated session.', {
+      code: 'hydra_consent_session_missing',
+      description: 'Your authentication session expired. Sign in again to continue.',
+      status: 401,
+    });
+  }
+
+  if (consentSubject && identity.id !== consentSubject) {
+    throw new HydraFlowError('Consent subject does not match the authenticated session.', {
+      code: 'hydra_consent_subject_mismatch',
+      description: 'The consent request does not match the current authenticated session.',
+      status: 403,
+    });
   }
 
   const traits = isIdentityTraitsRecord(identity.traits) ? identity.traits : {};
@@ -101,7 +116,7 @@ function resolveOptionalString(value: unknown) {
 }
 
 function resolveEmail(
-  identity: NonNullable<Awaited<ReturnType<typeof getServerSession>>>['identity'],
+  identity: NonNullable<NonNullable<Awaited<ReturnType<typeof getServerSession>>>['identity']>,
   traits: Record<string, unknown>,
 ) {
   const verifiedEmailAddress = (identity.verifiable_addresses || []).find(

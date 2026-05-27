@@ -34,8 +34,12 @@ export default async function LoginPage(props: OryPageParams) {
     const oryConfig = createOryConfig(locale);
 
     const session = loginRequest ? await getServerSession() : null;
-    const subject = session?.identity?.id ?? loginRequest?.subject;
-    const skipLogin = loginRequest ? shouldSkipLogin({ loginRequest, prompt, maxAge }) : false;
+    const sessionSubject = session?.identity?.id;
+    const subject = sessionSubject ?? loginRequest?.subject;
+    const sessionMatchesRequest =
+      Boolean(sessionSubject) &&
+      (!loginRequest?.subject || loginRequest.subject === sessionSubject);
+    const skipLogin = loginRequest ? shouldSkipLogin({ loginRequest, maxAge, prompt }) : false;
 
     if (loginRequest) {
       logAuthFlow('login.challenge.resolved', {
@@ -44,19 +48,20 @@ export default async function LoginPage(props: OryPageParams) {
         loginRequestSkip: loginRequest.skip ?? false,
         requestedSubject: loginRequest.subject ?? null,
         resolvedSubject: subject ?? null,
+        sessionMatchesRequest,
         skipLogin,
       });
     }
 
-    if (loginRequest && skipLogin && subject) {
+    if (loginRequest && skipLogin && sessionSubject && sessionMatchesRequest) {
       logAuthFlow('login.challenge.skipped', {
         clientId: loginRequest.client?.client_id ?? null,
         loginChallenge,
-        subject,
+        subject: sessionSubject,
       });
       const { redirectTo } = await acceptLoginRequest({
         ...loginRequest,
-        subject,
+        subject: sessionSubject,
       });
 
       if (redirectTo) {
@@ -124,17 +129,17 @@ type LoginRequest = NonNullable<Awaited<ReturnType<typeof getLoginRequest>>>;
 
 function shouldSkipLogin({
   loginRequest,
-  prompt,
   maxAge,
+  prompt,
 }: {
   loginRequest: LoginRequest;
-  prompt?: string;
   maxAge?: string;
+  prompt?: string;
 }): boolean {
-  return !requiresFreshLogin({ prompt, maxAge }) || loginRequest.skip;
+  return !requiresFreshLogin({ maxAge, prompt }) || loginRequest.skip;
 }
 
-function requiresFreshLogin({ prompt, maxAge }: { prompt?: string; maxAge?: string }): boolean {
+function requiresFreshLogin({ maxAge, prompt }: { maxAge?: string; prompt?: string }): boolean {
   try {
     const promptValues = prompt?.split(' ').filter(Boolean) ?? [];
     return !!(promptValues.includes('login') || maxAge);
