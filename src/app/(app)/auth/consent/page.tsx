@@ -1,6 +1,7 @@
 import { createOryConfig } from '@/lib/ory/ory.config';
 import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
-import { OAuth2ConsentRequest } from '@ory/client-fetch';
+import type { OAuth2ConsentRequest } from '@ory/client-fetch';
+import { getServerSession } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { logAuthFlow } from '../auth-flow-log';
@@ -34,6 +35,7 @@ export default async function ConsentPage(props: {
     });
     const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
     const oryConfig = createOryConfig(locale);
+    const session = await getServerSession();
     if (shouldSkipConsent(consentRequest)) {
       logAuthFlow('consent.challenge.skipped', {
         clientId: consentRequest.client?.client_id ?? null,
@@ -51,10 +53,11 @@ export default async function ConsentPage(props: {
     logAuthFlow('consent.flow.render', {
       clientId: consentRequest.client?.client_id ?? null,
       consentChallenge,
+      locale,
       requestedScopes: consentRequest.requested_scope ?? [],
     });
     if (!showDiagnostics) {
-      return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />;
+      return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} session={session} />;
     }
 
     return (
@@ -63,18 +66,18 @@ export default async function ConsentPage(props: {
           title="Consent Flow"
           description="This panel shows the current Hydra consent request, requested scopes, and whether consent can be skipped."
           values={{
+            'Client skips consent': consentRequest.client?.skip_consent ?? false,
             'Consent challenge': consentChallenge,
+            'Final skip decision': shouldSkipConsent(consentRequest),
+            'Granted scopes': consentRequest.granted_scope ?? [],
             'Hydra client id': consentRequest.client?.client_id ?? null,
             'Hydra client name': consentRequest.client?.client_name ?? null,
-            Subject: consentRequest.subject ?? null,
             'Requested scopes': consentRequest.requested_scope ?? [],
-            'Granted scopes': consentRequest.granted_scope ?? [],
             'Skip requested by Hydra': consentRequest.skip ?? false,
-            'Client skips consent': consentRequest.client?.skip_consent ?? false,
-            'Final skip decision': shouldSkipConsent(consentRequest),
+            Subject: consentRequest.subject ?? null,
           }}
         />
-        <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} />
+        <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} session={session} />
       </div>
     );
   } catch (error: unknown) {
