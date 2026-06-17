@@ -23,15 +23,31 @@ export default async function LoginPage(props: OryPageParams) {
       ? searchParams.max_age[0]
       : searchParams.max_age;
     const showDiagnostics = shouldShowAuthDiagnostics(searchParams);
-    const loginRequest = loginChallenge ? await getLoginRequest(loginChallenge) : null;
     logAuthFlow('login.page.loaded', {
       hasLoginChallenge: Boolean(loginChallenge),
       loginChallenge,
       maxAge: maxAge ?? null,
       prompt: prompt ?? null,
     });
-    const locale = await resolveOryLocale({ flow: loginRequest, searchParams });
-    const oryConfig = createOryConfig(locale);
+
+    const initialLocale = await resolveOryLocale({ searchParams });
+    const initialOryConfig = createOryConfig(initialLocale);
+    const flow = await getLoginFlow(initialOryConfig, props.searchParams);
+
+    if (!flow) {
+      logAuthFlow('login.flow.empty', {
+        loginChallenge,
+      });
+      return null;
+    }
+
+    const flowLoginChallenge = flow.oauth2_login_challenge?.trim() || undefined;
+    const resolvedLoginChallenge = loginChallenge ?? flowLoginChallenge;
+    const loginRequest = resolvedLoginChallenge
+      ? await getLoginRequest(resolvedLoginChallenge)
+      : null;
+    const locale = await resolveOryLocale({ flow: loginRequest ?? flow, searchParams });
+    const oryConfig = locale === initialLocale ? initialOryConfig : createOryConfig(locale);
 
     const session = loginRequest ? await getServerSession() : null;
     const sessionSubject = session?.identity?.id;
@@ -44,9 +60,12 @@ export default async function LoginPage(props: OryPageParams) {
     if (loginRequest) {
       logAuthFlow('login.challenge.resolved', {
         clientId: loginRequest.client?.client_id ?? null,
+        clientName: loginRequest.client?.client_name ?? null,
+        flowLoginChallenge: flowLoginChallenge ?? null,
         hasSession: Boolean(session),
         loginRequestSkip: loginRequest.skip ?? false,
         requestedSubject: loginRequest.subject ?? null,
+        resolvedLoginChallenge,
         resolvedSubject: subject ?? null,
         sessionMatchesRequest,
         skipLogin,
@@ -74,18 +93,10 @@ export default async function LoginPage(props: OryPageParams) {
       }
     }
 
-    const flow = await getLoginFlow(oryConfig, props.searchParams);
-
-    if (!flow) {
-      logAuthFlow('login.flow.empty', {
-        loginChallenge,
-      });
-      return null;
-    }
-
     logAuthFlow('login.flow.render', {
       flowId: flow.id,
       loginChallenge,
+      resolvedLoginChallenge,
       uiAction: flow.ui.action,
     });
     if (!showDiagnostics) {
@@ -108,9 +119,11 @@ export default async function LoginPage(props: OryPageParams) {
             'Flow id': flow.id,
             'Fresh login required': requiresFreshLogin({ maxAge, prompt }),
             'Hydra client id': loginRequest?.client?.client_id ?? null,
+            'Hydra client name': loginRequest?.client?.client_name ?? null,
             'Login challenge': loginChallenge ?? null,
             'Max age': maxAge ?? null,
             Prompt: prompt ?? null,
+            'Resolved login challenge': resolvedLoginChallenge ?? null,
             'Resolved subject': subject ?? null,
             'Session present': Boolean(session),
             'Skip requested by Hydra': loginRequest?.skip ?? false,
