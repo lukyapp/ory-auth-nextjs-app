@@ -8,6 +8,7 @@ import {
   type UiText,
 } from '@ory/client-fetch';
 import {
+  OryLocales,
   uiTextToFormattedMessage,
   useComponents,
   useOryConfiguration,
@@ -21,7 +22,7 @@ import {
   type OryNodeSsoButtonProps,
 } from '@ory/elements-react';
 import { Login } from '@ory/elements-react/theme';
-import { KeyRound, Loader2 } from 'lucide-react';
+import { ChevronDown, KeyRound, Loader2 } from 'lucide-react';
 import { createContext, useContext } from 'react';
 import type { PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
@@ -81,7 +82,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
           </div>
 
           <div className="flex flex-col gap-5 text-base font-semibold text-[#1f5ed8]">
-            <span>{getCurrentLanguageName(intl.locale)}</span>
+            <LanguageSelect locale={intl.locale} />
           </div>
         </aside>
 
@@ -92,6 +93,32 @@ function SquareCardRoot({ children }: PropsWithChildren) {
         </main>
       </div>
     </div>
+  );
+}
+
+function LanguageSelect({ locale }: { locale: string }) {
+  const languageOptions = getLanguageOptions(locale);
+
+  return (
+    <label className="relative w-fit">
+      <span className="sr-only">Language</span>
+      <select
+        aria-label="Language"
+        className="max-w-52 appearance-none bg-transparent py-1 pr-6 text-base font-semibold text-[#1f5ed8] transition hover:text-[#1749aa] focus:ring-0 focus:outline-none"
+        onChange={(event) => changeLocale(event.currentTarget.value)}
+        value={locale}
+      >
+        {languageOptions.map((option) => (
+          <option key={option.code} value={option.code}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-0 h-4 w-4 -translate-y-1/2 text-[#1f5ed8]"
+      />
+    </label>
   );
 }
 
@@ -309,10 +336,25 @@ function useLoginClientName() {
   return useContext(LoginClientNameContext);
 }
 
-function getCurrentLanguageName(locale: string) {
+function changeLocale(locale: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('locale', locale);
+  window.location.assign(url.toString());
+}
+
+function getLanguageOptions(locale: string) {
+  return Object.keys(OryLocales)
+    .map((code) => ({
+      code,
+      name: getCurrentLanguageName(code, locale),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
+}
+
+function getCurrentLanguageName(locale: string, displayLocale = locale) {
   try {
     const language = locale.split('-')[0] || locale;
-    return new Intl.DisplayNames([locale], { type: 'language' }).of(language) ?? locale;
+    return new Intl.DisplayNames([displayLocale], { type: 'language' }).of(language) ?? locale;
   } catch {
     return locale;
   }
