@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "repo-i18n": {
+      "source": "lukyapp/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/repo-i18n/SKILL.md",
+      "computedHash": "b83146ae61dab45bfd275211babaab24649556a789ff4e01607b709348121cb4"
+    }
+  }
+}
