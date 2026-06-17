@@ -1,17 +1,24 @@
 'use client';
 
-import { OryFormProvider } from '@/lib/ory/elements-react/src/components/form/form-provider';
 import {
   isUiNodeInputAttributes,
   type OAuth2ConsentRequest,
   type Session,
   type UiNode,
 } from '@ory/client-fetch';
-import { Node, OryForm, useOryFlow } from '@ory/elements-react';
-import type { OryClientConfiguration } from '@ory/elements-react';
+import { Node, OryLocales, useOryFlow } from '@ory/elements-react';
+import type {
+  OryClientConfiguration,
+  OryFlowComponentOverrides,
+  OryFormRootProps,
+  OryNodeButtonProps,
+  OryNodeConsentScopeCheckboxProps,
+  OryNodeInputProps,
+} from '@ory/elements-react';
 import { Consent } from '@ory/elements-react/theme';
-import { AlertCircle, Loader2, Settings } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, Loader2, Settings } from 'lucide-react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
+import type { PropsWithChildren } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
 import { useCsrfToken } from './useCsrfToken';
@@ -34,7 +41,6 @@ type ConsentCopy = {
   currentAccount: string;
   deny: string;
   denying: string;
-  languageName: string;
   loadingConsentRequest: string;
   privacyPolicy: string;
   thisApplication: string;
@@ -49,7 +55,6 @@ const consentCopies: Record<'en' | 'fr', ConsentCopy> = {
     currentAccount: 'Current account',
     deny: 'Deny',
     denying: 'Denying',
-    languageName: 'English',
     loadingConsentRequest: 'Loading consent request',
     privacyPolicy: 'Privacy Policy',
     thisApplication: 'This application',
@@ -62,7 +67,6 @@ const consentCopies: Record<'en' | 'fr', ConsentCopy> = {
     currentAccount: 'Compte actuel',
     deny: 'Refuser',
     denying: 'Refus en cours',
-    languageName: 'Français',
     loadingConsentRequest: 'Chargement de la demande de consentement',
     privacyPolicy: 'Politique de confidentialité',
     thisApplication: 'Cette application',
@@ -98,99 +102,37 @@ export const ConsentUi = ({
   }
 
   return (
-    <Consent
-      config={oryConfig}
-      session={session}
-      consentChallenge={consentRequest}
-      formActionUrl="/api/consent/submit"
-      csrfToken={csrfToken}
+    <ConsentContext.Provider
+      value={{
+        accountName,
+        clientName,
+        policyUri: consentRequest.client?.policy_uri,
+      }}
     >
-      <OryFormProvider>
-        <SquareConsentCard
-          accountName={accountName}
-          clientName={clientName}
-          policyUri={consentRequest.client?.policy_uri}
-        />
-      </OryFormProvider>
-    </Consent>
+      <Consent
+        config={oryConfig}
+        session={session}
+        consentChallenge={consentRequest}
+        formActionUrl="/api/consent/submit"
+        csrfToken={csrfToken}
+        components={squareConsentComponents}
+      />
+    </ConsentContext.Provider>
   );
 };
 
-function SquareConsentCard({
-  accountName,
-  clientName,
-  policyUri,
-}: {
+type ConsentContextValue = {
   accountName: string;
   clientName: string;
   policyUri?: string;
-}) {
-  const flow = useOryFlow();
-  const nodes = flow.flow.ui.nodes;
-  const actionNodes = useMemo(() => nodes.filter(isActionNode), [nodes]);
-  const hiddenNodes = useMemo(() => nodes.filter(isHiddenNode), [nodes]);
-  const scopeItems = useMemo(() => nodesToScopeItems(nodes), [nodes]);
-  const scopeValues = useMemo(() => scopeItems.map((scope) => scope.key), [scopeItems]);
+};
 
-  return (
-    <OryForm>
-      <SquareConsentFields scopeValues={scopeValues} />
-      <div className="hidden" aria-hidden="true">
-        {hiddenNodes.map((node) => (
-          <Node key={getNodeKey(node)} node={node} />
-        ))}
-      </div>
-      <SquareConsentShell
-        acceptValue={resolveActionValue(actionNodes, 'accept')}
-        accountName={accountName}
-        clientName={clientName}
-        policyUri={policyUri}
-        rejectValue={resolveActionValue(actionNodes, 'reject')}
-        scopeItems={scopeItems}
-      />
-    </OryForm>
-  );
-}
+const ConsentContext = createContext<ConsentContextValue | null>(null);
 
-function SquareConsentFields({ scopeValues }: { scopeValues: string[] }) {
-  const { setValue } = useFormContext();
-
-  useEffect(() => {
-    setValue('grant_scope', scopeValues);
-    setValue('remember', true);
-  }, [scopeValues, setValue]);
-
-  return null;
-}
-
-function SquareConsentShell({
-  acceptValue,
-  accountName,
-  clientName,
-  policyUri,
-  rejectValue,
-  scopeItems,
-}: {
-  acceptValue: string;
-  accountName: string;
-  clientName: string;
-  policyUri?: string;
-  rejectValue: string;
-  scopeItems: ScopeItem[];
-}) {
-  const [pendingAction, setPendingAction] = useState<ConsentAction | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const { formState, setValue } = useFormContext();
+function SquareCardRoot({ children }: PropsWithChildren) {
   const intl = useIntl();
   const copy = getConsentCopy(intl.locale);
-  const isSubmitting = formState.isSubmitting;
-  const isDisabled = isSubmitting || !formState.isReady;
-
-  const submitWithAction = (action: ConsentAction, value: string) => {
-    setError(null);
-    setPendingAction(action);
-    setValue('action', value);
-  };
+  const { accountName, clientName, policyUri } = useConsentContext();
 
   return (
     <div className="fixed inset-0 min-h-screen overflow-y-auto overscroll-contain bg-white text-[#1f1f1f]">
@@ -219,81 +161,194 @@ function SquareConsentShell({
                 {copy.privacyPolicy}
               </a>
             ) : null}
-            <span>{copy.languageName}</span>
+            <LanguageSelect locale={intl.locale} />
           </div>
         </aside>
 
-        <main className="flex items-center justify-center px-8 py-14 sm:px-12 lg:px-20">
-          <section className="w-full max-w-[44.5rem]" aria-labelledby="consent-permissions-title">
-            <h2
-              id="consent-permissions-title"
-              className="text-lg leading-6 font-bold text-[#242424]"
-            >
-              {copy.thisWillAllow(clientName)}
-            </h2>
-
-            <div className="mt-5 border-y border-[#e5e5e5]">
-              {scopeItems.map((scope) => (
-                <div className="border-b border-[#e5e5e5] py-5 last:border-b-0" key={scope.key}>
-                  <p className="text-xl leading-7 text-[#2a2a2a]">
-                    {intl.formatMessage({
-                      defaultMessage: humanizeScope(scope.key),
-                      id: `consent.scope.${scope.key}.title`,
-                    })}
-                  </p>
-                  <p className="mt-1 max-w-[36rem] text-sm leading-5 text-[#737373]">
-                    {intl.formatMessage({
-                      defaultMessage: scope.key,
-                      id: `consent.scope.${scope.key}.description`,
-                    })}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {error ? (
-              <div className="mt-6 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                <p>{error}</p>
-              </div>
-            ) : null}
-
-            <div className="mt-12 flex items-center justify-between gap-4">
-              <button
-                className="inline-flex h-12 min-w-24 items-center justify-center rounded-md bg-[#f0f1f2] px-7 text-base font-semibold text-[#1f5ed8] transition hover:bg-[#e6e8eb] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={isDisabled}
-                name="action"
-                onClick={() => submitWithAction('reject', rejectValue)}
-                type="submit"
-                value={rejectValue}
-              >
-                {pendingAction === 'reject' && isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-label={copy.denying} />
-                ) : (
-                  copy.deny
-                )}
-              </button>
-              <button
-                className="inline-flex h-12 min-w-24 items-center justify-center rounded-md bg-[#2157c8] px-7 text-base font-semibold text-white transition hover:bg-[#1b49aa] disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={isDisabled}
-                name="action"
-                onClick={() => submitWithAction('accept', acceptValue)}
-                type="submit"
-                value={acceptValue}
-              >
-                {pendingAction === 'accept' && isSubmitting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-label={copy.allowing} />
-                ) : (
-                  copy.allow
-                )}
-              </button>
-            </div>
-          </section>
-        </main>
+        {children}
       </div>
     </div>
   );
 }
+
+function SquareCardHeader() {
+  return null;
+}
+
+function SquareCardContent({ children }: PropsWithChildren) {
+  return (
+    <main className="flex items-center justify-center px-8 py-14 sm:px-12 lg:px-20">
+      <section className="w-full max-w-[44.5rem]" aria-labelledby="consent-permissions-title">
+        {children}
+      </section>
+    </main>
+  );
+}
+
+function SquareCardFooter() {
+  return null;
+}
+
+function SquareDivider() {
+  return null;
+}
+
+function SquareFormRoot({ className: _className, ...props }: OryFormRootProps) {
+  return <form {...props} className="w-full" />;
+}
+
+function SquareFormGroup() {
+  const flow = useOryFlow();
+  const nodes = flow.flow.ui.nodes;
+  const actionNodes = useMemo(() => nodes.filter(isActionNode), [nodes]);
+  const grantScopeNodes = useMemo(() => nodes.filter(isGrantScopeNode), [nodes]);
+  const hiddenNodes = useMemo(() => nodes.filter(isHiddenNode), [nodes]);
+  const scopeItems = useMemo(() => nodesToScopeItems(nodes), [nodes]);
+  const scopeValues = useMemo(() => scopeItems.map((scope) => scope.key), [scopeItems]);
+  const { setValue } = useFormContext();
+  const { clientName } = useConsentContext();
+  const intl = useIntl();
+  const copy = getConsentCopy(intl.locale);
+
+  useEffect(() => {
+    setValue('grant_scope', scopeValues);
+    setValue('remember', true);
+  }, [scopeValues, setValue]);
+
+  return (
+    <>
+      <div className="hidden" aria-hidden="true">
+        {hiddenNodes.map((node) => (
+          <Node key={getNodeKey(node)} node={node} />
+        ))}
+      </div>
+
+      <h2 id="consent-permissions-title" className="text-lg leading-6 font-bold text-[#242424]">
+        {copy.thisWillAllow(clientName)}
+      </h2>
+
+      <div className="mt-5 border-y border-[#e5e5e5]">
+        {grantScopeNodes.length
+          ? grantScopeNodes.map((node) => <Node key={getNodeKey(node)} node={node} />)
+          : scopeItems.map((scope) => <ScopeItemRow key={scope.key} scope={scope.key} />)}
+      </div>
+
+      <div className="mt-12 flex items-center justify-between gap-4">
+        {sortActionNodes(actionNodes).map((node) => (
+          <Node key={getNodeKey(node)} node={node} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SquareConsentScopeCheckbox({ inputProps }: OryNodeConsentScopeCheckboxProps) {
+  return <ScopeItemRow scope={inputProps.value} />;
+}
+
+function ScopeItemRow({ scope }: { scope: string }) {
+  const intl = useIntl();
+
+  return (
+    <div className="border-b border-[#e5e5e5] py-5 last:border-b-0">
+      <p className="text-xl leading-7 text-[#2a2a2a]">
+        {intl.formatMessage({
+          defaultMessage: humanizeScope(scope),
+          id: `consent.scope.${scope}.title`,
+        })}
+      </p>
+      <p className="mt-1 max-w-[36rem] text-sm leading-5 text-[#737373]">
+        {intl.formatMessage({
+          defaultMessage: scope,
+          id: `consent.scope.${scope}.description`,
+        })}
+      </p>
+    </div>
+  );
+}
+
+function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
+  const intl = useIntl();
+  const copy = getConsentCopy(intl.locale);
+  const action = getConsentAction(node);
+  const isAccept = action === 'accept';
+
+  return (
+    <button
+      {...buttonProps}
+      className={
+        isAccept
+          ? 'inline-flex h-12 min-w-24 items-center justify-center rounded-md bg-[#2157c8] px-7 text-base font-semibold text-white transition hover:bg-[#1b49aa] disabled:cursor-not-allowed disabled:opacity-70'
+          : 'inline-flex h-12 min-w-24 items-center justify-center rounded-md bg-[#f0f1f2] px-7 text-base font-semibold text-[#1f5ed8] transition hover:bg-[#e6e8eb] disabled:cursor-not-allowed disabled:opacity-70'
+      }
+      data-loading={isSubmitting}
+    >
+      {isSubmitting ? (
+        <Loader2
+          className="h-4 w-4 animate-spin"
+          aria-label={isAccept ? copy.allowing : copy.denying}
+        />
+      ) : isAccept ? (
+        copy.allow
+      ) : (
+        copy.deny
+      )}
+    </button>
+  );
+}
+
+function SquareInput({ inputProps }: OryNodeInputProps) {
+  if (inputProps.type === 'hidden') {
+    return <input data-testid={`ory/form/node/input/${inputProps.name}`} {...inputProps} />;
+  }
+
+  return null;
+}
+
+function LanguageSelect({ locale }: { locale: string }) {
+  const languageOptions = getLanguageOptions(locale);
+
+  return (
+    <label className="relative w-fit">
+      <span className="sr-only">Language</span>
+      <select
+        aria-label="Language"
+        className="max-w-52 appearance-none bg-transparent py-1 pr-6 text-base font-semibold text-[#1f5ed8] transition hover:text-[#1749aa] focus:ring-0 focus:outline-none"
+        onChange={(event) => changeLocale(event.currentTarget.value)}
+        value={locale}
+      >
+        {languageOptions.map((option) => (
+          <option key={option.code} value={option.code}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-0 h-4 w-4 -translate-y-1/2 text-[#1f5ed8]"
+      />
+    </label>
+  );
+}
+
+const squareConsentComponents: OryFlowComponentOverrides = {
+  Card: {
+    Content: SquareCardContent,
+    Divider: SquareDivider,
+    Footer: SquareCardFooter,
+    Header: SquareCardHeader,
+    Root: SquareCardRoot,
+  },
+  Form: {
+    Group: SquareFormGroup,
+    Root: SquareFormRoot,
+  },
+  Node: {
+    Button: SquareButton,
+    ConsentScopeCheckbox: SquareConsentScopeCheckbox,
+    Input: SquareInput,
+  },
+};
 
 function resolveClientName(consentRequest: OAuth2ConsentRequest, fallback: string) {
   return (
@@ -365,17 +420,20 @@ function humanizeScope(scope: string) {
     .join(' ');
 }
 
-function resolveActionValue(nodes: UiNode[], action: ConsentAction) {
-  const node = nodes.find((node) => {
-    const attributes = node.attributes;
-    return isUiNodeInputAttributes(attributes) && attributes.value === action;
-  });
-
-  if (!node || !isUiNodeInputAttributes(node.attributes)) {
-    return action;
+function getConsentAction(node: UiNode): ConsentAction {
+  if (!isUiNodeInputAttributes(node.attributes)) {
+    return 'reject';
   }
 
-  return String(node.attributes.value);
+  return node.attributes.value === 'accept' ? 'accept' : 'reject';
+}
+
+function sortActionNodes(nodes: UiNode[]) {
+  return [...nodes].sort((left, right) => {
+    const order = { reject: 0, accept: 1 };
+
+    return order[getConsentAction(left)] - order[getConsentAction(right)];
+  });
 }
 
 function isGrantScopeNode(node: UiNode) {
@@ -408,4 +466,38 @@ function getNodeKey(node: UiNode) {
 
 function getConsentCopy(locale?: string): ConsentCopy {
   return locale?.toLowerCase().startsWith('fr') ? consentCopies.fr : consentCopies.en;
+}
+
+function useConsentContext() {
+  const context = useContext(ConsentContext);
+
+  if (!context) {
+    throw new Error('Consent context is missing');
+  }
+
+  return context;
+}
+
+function changeLocale(locale: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('locale', locale);
+  window.location.assign(url.toString());
+}
+
+function getLanguageOptions(locale: string) {
+  return Object.keys(OryLocales)
+    .map((code) => ({
+      code,
+      name: getCurrentLanguageName(code, locale),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
+}
+
+function getCurrentLanguageName(locale: string, displayLocale = locale) {
+  try {
+    const language = locale.split('-')[0] || locale;
+    return new Intl.DisplayNames([displayLocale], { type: 'language' }).of(language) ?? locale;
+  } catch {
+    return locale;
+  }
 }
