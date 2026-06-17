@@ -1,12 +1,13 @@
 'use client';
 
 import {
+  getNodeLabel,
   isUiNodeInputAttributes,
   type OAuth2ConsentRequest,
   type Session,
   type UiNode,
 } from '@ory/client-fetch';
-import { Node, OryLocales, useOryFlow } from '@ory/elements-react';
+import { Node, OryLocales, uiTextToFormattedMessage, useOryFlow } from '@ory/elements-react';
 import type {
   OryClientConfiguration,
   OryFlowComponentOverrides,
@@ -35,46 +36,6 @@ type ScopeItem = {
   key: string;
 };
 
-type ConsentCopy = {
-  allow: string;
-  allowing: string;
-  currentAccount: string;
-  deny: string;
-  denying: string;
-  loadingConsentRequest: string;
-  privacyPolicy: string;
-  thisApplication: string;
-  thisWillAllow: (clientName: string) => string;
-  wantsAccess: (clientName: string) => string;
-};
-
-const consentCopies: Record<'en' | 'fr', ConsentCopy> = {
-  en: {
-    allow: 'Allow',
-    allowing: 'Allowing',
-    currentAccount: 'Current account',
-    deny: 'Deny',
-    denying: 'Denying',
-    loadingConsentRequest: 'Loading consent request',
-    privacyPolicy: 'Privacy Policy',
-    thisApplication: 'This application',
-    thisWillAllow: (clientName) => `This will allow ${clientName} to...`,
-    wantsAccess: (clientName) => `${clientName} wants access to your account`,
-  },
-  fr: {
-    allow: 'Autoriser',
-    allowing: 'Autorisation en cours',
-    currentAccount: 'Compte actuel',
-    deny: 'Refuser',
-    denying: 'Refus en cours',
-    loadingConsentRequest: 'Chargement de la demande de consentement',
-    privacyPolicy: 'Politique de confidentialité',
-    thisApplication: 'Cette application',
-    thisWillAllow: (clientName) => `Cela permettra à ${clientName} de...`,
-    wantsAccess: (clientName) => `${clientName} demande l'accès à votre compte`,
-  },
-};
-
 export const ConsentUi = ({
   consentRequest,
   oryConfig,
@@ -85,18 +46,25 @@ export const ConsentUi = ({
   session: Session | null;
 }) => {
   const csrfToken = useCsrfToken(consentRequest.challenge);
-  const copy = getConsentCopy(oryConfig.intl?.locale);
+  const locale = oryConfig.intl?.locale;
+  const currentAccount = getLocaleMessage(locale, 'consent.current_account', 'Current account');
 
-  const clientName = resolveClientName(consentRequest, copy.thisApplication);
+  const clientName = resolveClientName(
+    consentRequest,
+    getLocaleMessage(locale, 'consent.this_application', 'This application'),
+  );
   const accountName = useMemo(
-    () => resolveAccountName(session?.identity?.traits, copy.currentAccount),
-    [copy.currentAccount, session],
+    () => resolveAccountName(session?.identity?.traits, currentAccount),
+    [currentAccount, session],
   );
 
   if (!session || !csrfToken) {
     return (
       <div className="fixed inset-0 grid min-h-screen place-items-center bg-white text-neutral-500">
-        <Loader2 className="h-6 w-6 animate-spin" aria-label={copy.loadingConsentRequest} />
+        <Loader2
+          className="h-6 w-6 animate-spin"
+          aria-label={getLocaleMessage(locale, 'consent.loading', 'Loading consent request')}
+        />
       </div>
     );
   }
@@ -131,7 +99,6 @@ const ConsentContext = createContext<ConsentContextValue | null>(null);
 
 function SquareCardRoot({ children }: PropsWithChildren) {
   const intl = useIntl();
-  const copy = getConsentCopy(intl.locale);
   const { accountName, clientName, policyUri } = useConsentContext();
 
   return (
@@ -150,15 +117,33 @@ function SquareCardRoot({ children }: PropsWithChildren) {
               <Settings className="h-12 w-12 stroke-[2.5]" aria-hidden="true" />
             </div>
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
-              {copy.wantsAccess(clientName)}
+              {intl.formatMessage(
+                {
+                  id: 'consent.title',
+                  defaultMessage: 'Authorize {party}',
+                },
+                { party: clientName },
+              )}
             </h1>
-            <p className="mt-7 text-lg font-semibold text-[#777]">{accountName}</p>
+            <p className="mt-7 text-lg font-semibold text-[#777]">
+              {intl.formatMessage(
+                {
+                  id: 'consent.subtitle',
+                  defaultMessage:
+                    'A third party application wants to access information associated with your account {identifier}.',
+                },
+                { identifier: accountName },
+              )}
+            </p>
           </div>
 
           <div className="flex flex-col gap-5 text-base font-semibold text-[#1f5ed8]">
             {policyUri ? (
               <a href={policyUri} rel="noreferrer" target="_blank">
-                {copy.privacyPolicy}
+                {intl.formatMessage({
+                  id: 'consent.privacy_policy',
+                  defaultMessage: 'Privacy Policy',
+                })}
               </a>
             ) : null}
             <LanguageSelect locale={intl.locale} />
@@ -208,7 +193,6 @@ function SquareFormGroup() {
   const { setValue } = useFormContext();
   const { clientName } = useConsentContext();
   const intl = useIntl();
-  const copy = getConsentCopy(intl.locale);
 
   useEffect(() => {
     setValue('grant_scope', scopeValues);
@@ -224,7 +208,13 @@ function SquareFormGroup() {
       </div>
 
       <h2 id="consent-permissions-title" className="text-lg leading-6 font-bold text-[#242424]">
-        {copy.thisWillAllow(clientName)}
+        {intl.formatMessage(
+          {
+            id: 'consent.permissions.title',
+            defaultMessage: 'This will allow {party} to...',
+          },
+          { party: clientName },
+        )}
       </h2>
 
       <div className="mt-5 border-y border-[#e5e5e5]">
@@ -269,9 +259,13 @@ function ScopeItemRow({ scope }: { scope: string }) {
 
 function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
   const intl = useIntl();
-  const copy = getConsentCopy(intl.locale);
   const action = getConsentAction(node);
   const isAccept = action === 'accept';
+  const label = getNodeLabel(node);
+  const loadingLabel = intl.formatMessage({
+    id: isAccept ? 'consent.action.accepting' : 'consent.action.rejecting',
+    defaultMessage: isAccept ? 'Allowing' : 'Denying',
+  });
 
   return (
     <button
@@ -284,14 +278,16 @@ function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
       data-loading={isSubmitting}
     >
       {isSubmitting ? (
-        <Loader2
-          className="h-4 w-4 animate-spin"
-          aria-label={isAccept ? copy.allowing : copy.denying}
-        />
-      ) : isAccept ? (
-        copy.allow
+        <Loader2 className="h-4 w-4 animate-spin" aria-label={loadingLabel} />
       ) : (
-        copy.deny
+        <span>
+          {label
+            ? uiTextToFormattedMessage(label, intl)
+            : intl.formatMessage({
+                id: isAccept ? 'consent.action.accept' : 'consent.action.reject',
+                defaultMessage: isAccept ? 'Allow' : 'Deny',
+              })}
+        </span>
       )}
     </button>
   );
@@ -464,10 +460,6 @@ function getNodeKey(node: UiNode) {
   return `${node.attributes.name}-${String(node.attributes.value ?? '')}`;
 }
 
-function getConsentCopy(locale?: string): ConsentCopy {
-  return locale?.toLowerCase().startsWith('fr') ? consentCopies.fr : consentCopies.en;
-}
-
 function useConsentContext() {
   const context = useContext(ConsentContext);
 
@@ -500,4 +492,16 @@ function getCurrentLanguageName(locale: string, displayLocale = locale) {
   } catch {
     return locale;
   }
+}
+
+function getLocaleMessage(locale: string | undefined, id: string, defaultMessage: string) {
+  const localeCode = locale ?? 'en';
+  const language = localeCode.split('-')[0] || localeCode;
+
+  return (
+    OryLocales[localeCode]?.[id] ??
+    OryLocales[language]?.[id] ??
+    OryLocales.en?.[id] ??
+    defaultMessage
+  );
 }
