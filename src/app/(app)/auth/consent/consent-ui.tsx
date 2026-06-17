@@ -6,6 +6,7 @@ import {
   type OAuth2ConsentRequest,
   type Session,
   type UiNode,
+  type UiNodeInputAttributes,
 } from '@ory/client-fetch';
 import { Node, OryLocales, uiTextToFormattedMessage, useOryFlow } from '@ory/elements-react';
 import type {
@@ -18,7 +19,7 @@ import type {
 } from '@ory/elements-react';
 import { Consent } from '@ory/elements-react/theme';
 import { ChevronDown, Loader2, Settings } from 'lucide-react';
-import { createContext, useContext, useEffect, useMemo } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
@@ -34,6 +35,10 @@ type IdentityTraits = {
 
 type ScopeItem = {
   key: string;
+};
+
+type InputUiNode = UiNode & {
+  attributes: UiNodeInputAttributes;
 };
 
 export const ConsentUi = ({
@@ -225,10 +230,40 @@ function SquareFormGroup() {
 
       <div className="mt-12 flex items-center justify-between gap-4">
         {sortActionNodes(actionNodes).map((node) => (
-          <Node key={getNodeKey(node)} node={node} />
+          <ConsentActionButton key={getNodeKey(node)} node={node} />
         ))}
       </div>
     </>
+  );
+}
+
+function ConsentActionButton({ node }: { node: InputUiNode }) {
+  const { formState, setValue } = useFormContext();
+  const { formState: oryFormState } = useOryFlow();
+
+  const handleClick = useCallback(() => {
+    setValue(node.attributes.name, node.attributes.value);
+  }, [node, setValue]);
+
+  const buttonProps = {
+    disabled:
+      node.attributes.disabled ||
+      !formState.isReady ||
+      !oryFormState.isReady ||
+      oryFormState.isSubmitting,
+    name: node.attributes.name,
+    onClick: handleClick,
+    type: node.attributes.type === 'submit' ? 'submit' : 'button',
+    value: node.attributes.value,
+  } satisfies OryNodeButtonProps['buttonProps'];
+
+  return (
+    <SquareButton
+      attributes={node.attributes}
+      buttonProps={buttonProps}
+      isSubmitting={oryFormState.isSubmitting}
+      node={node as OryNodeButtonProps['node']}
+    />
   );
 }
 
@@ -424,7 +459,7 @@ function getConsentAction(node: UiNode): ConsentAction {
   return node.attributes.value === 'accept' ? 'accept' : 'reject';
 }
 
-function sortActionNodes(nodes: UiNode[]) {
+function sortActionNodes(nodes: InputUiNode[]) {
   return [...nodes].sort((left, right) => {
     const order = { reject: 0, accept: 1 };
 
@@ -440,7 +475,7 @@ function isGrantScopeNode(node: UiNode) {
   );
 }
 
-function isActionNode(node: UiNode) {
+function isActionNode(node: UiNode): node is InputUiNode {
   return (
     isUiNodeInputAttributes(node.attributes) &&
     node.attributes.name === 'action' &&
