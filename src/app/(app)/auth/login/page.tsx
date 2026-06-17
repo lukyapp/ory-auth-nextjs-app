@@ -1,6 +1,5 @@
 import { createOryConfig } from '@/lib/ory/ory.config';
 import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
-import { Login } from '@ory/elements-react/theme';
 import { getLoginFlow, getServerSession, OryPageParams } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
 import { logAuthFlow } from '../auth-flow-log';
@@ -9,6 +8,7 @@ import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptLoginRequest } from './acceptLoginRequest';
 import { getLoginRequest } from './getLoginRequest';
+import { LoginUi } from './login-ui';
 
 export default async function LoginPage(props: OryPageParams) {
   try {
@@ -89,7 +89,13 @@ export default async function LoginPage(props: OryPageParams) {
       uiAction: flow.ui.action,
     });
     if (!showDiagnostics) {
-      return <Login flow={flow} config={oryConfig} components={{}} />;
+      return (
+        <LoginUi
+          flow={flow}
+          config={oryConfig}
+          clientName={loginRequest?.client?.client_name ?? loginRequest?.client?.client_id}
+        />
+      );
     }
 
     return (
@@ -98,19 +104,23 @@ export default async function LoginPage(props: OryPageParams) {
           title="Login Flow"
           description="This panel shows how the auth app resolved the current Hydra login challenge and session state."
           values={{
-            'Login challenge': loginChallenge ?? null,
-            Prompt: prompt ?? null,
-            'Max age': maxAge ?? null,
+            'Final skip decision': skipLogin,
+            'Flow id': flow.id,
+            'Fresh login required': requiresFreshLogin({ maxAge, prompt }),
             'Hydra client id': loginRequest?.client?.client_id ?? null,
+            'Login challenge': loginChallenge ?? null,
+            'Max age': maxAge ?? null,
+            Prompt: prompt ?? null,
+            'Resolved subject': subject ?? null,
             'Session present': Boolean(session),
             'Skip requested by Hydra': loginRequest?.skip ?? false,
-            'Fresh login required': requiresFreshLogin({ prompt, maxAge }),
-            'Final skip decision': skipLogin,
-            'Resolved subject': subject ?? null,
-            'Flow id': flow.id,
           }}
         />
-        <Login flow={flow} config={oryConfig} components={{}} />
+        <LoginUi
+          flow={flow}
+          config={oryConfig}
+          clientName={loginRequest?.client?.client_name ?? loginRequest?.client?.client_id}
+        />
       </div>
     );
   } catch (error: unknown) {
