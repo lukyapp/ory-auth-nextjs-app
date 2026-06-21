@@ -168,6 +168,7 @@
   "recovery.subtitle": "Saisissez l'identifiant associée à votre compte pour recevoir un code d'accès unique",
   "registration.login-button": "Se connecter",
   "registration.login-label": "Vous avez déjà un compte ?",
+  "registration.hero.title": "Créer un compte sur {clientName}",
   "registration.title": "Créer un compte",
   "registration.subtitle": "S'inscrire avec {parts}",
   "settings.navigation-back-button": "Revenir en arrière",

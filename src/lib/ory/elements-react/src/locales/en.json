@@ -168,6 +168,7 @@
   "recovery.subtitle": "Enter the identifier associated with your account to receive a one-time access code",
   "registration.login-button": "Sign in",
   "registration.login-label": "Already have an account?",
+  "registration.hero.title": "Create an account for {clientName}",
   "registration.title": "Register an account",
   "registration.subtitle": "Sign up with {parts}",
   "settings.navigation-back-button": "Back",

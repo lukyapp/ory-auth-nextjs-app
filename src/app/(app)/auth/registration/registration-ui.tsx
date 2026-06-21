@@ -16,20 +16,32 @@ import {
 } from '@ory/elements-react';
 import { Registration } from '@ory/elements-react/theme';
 import { ChevronDown, Loader2, UserPlus } from 'lucide-react';
-import { type PropsWithChildren } from 'react';
+import { createContext, useContext, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
 type RegistrationUiProps = {
+  clientName?: string | null;
   config: OryClientConfiguration;
   flow: RegistrationFlow;
 };
 
-export function RegistrationUi({ config, flow }: RegistrationUiProps) {
-  return <Registration flow={flow} config={config} components={squareRegistrationComponents} />;
+export function RegistrationUi({ clientName, config, flow }: RegistrationUiProps) {
+  return (
+    <RegistrationClientNameContext.Provider value={clientName?.trim() || null}>
+      <Registration flow={flow} config={config} components={squareRegistrationComponents} />
+    </RegistrationClientNameContext.Provider>
+  );
 }
+
+const RegistrationClientNameContext = createContext<string | null>(null);
 
 function SquareCardRoot({ children }: PropsWithChildren) {
   const intl = useIntl();
+  const clientName =
+    useRegistrationClientName() ??
+    intl.formatMessage({
+      id: 'login.clientFallback',
+    });
 
   return (
     <div className="fixed inset-0 min-h-screen overflow-y-auto overscroll-contain bg-white text-[#1f1f1f]">
@@ -39,9 +51,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             <span className="grid h-6 w-6 place-items-center rounded-[4px] bg-[#1f1f1f]">
               <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />
             </span>
-            {intl.formatMessage({
-              id: 'login.clientFallback',
-            })}
+            {clientName}
           </div>
 
           <div className="flex flex-1 flex-col justify-center py-12 lg:py-0">
@@ -49,9 +59,12 @@ function SquareCardRoot({ children }: PropsWithChildren) {
               <UserPlus className="h-12 w-12 stroke-[2.5]" aria-hidden="true" />
             </div>
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
-              {intl.formatMessage({
-                id: 'registration.title',
-              })}
+              {intl.formatMessage(
+                {
+                  id: 'registration.hero.title',
+                },
+                { clientName },
+              )}
             </h1>
             <p className="mt-7 max-w-[24rem] text-lg leading-7 font-semibold text-[#777]">
               {intl.formatMessage({
@@ -256,6 +269,10 @@ function SquareMessageContent({ message }: { message: UiText }) {
 
 function SquareDivider() {
   return <div className="h-px w-full bg-[#e5e5e5]" />;
+}
+
+function useRegistrationClientName() {
+  return useContext(RegistrationClientNameContext);
 }
 
 const squareRegistrationComponents: OryFlowComponentOverrides = {
