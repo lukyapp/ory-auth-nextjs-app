@@ -1,5 +1,5 @@
 ---
-name: repo-i18n
+name: lukyapp-repo-i18n
 description: Use when changing UI copy, translations, locale JSON files, next-intl usage, or repository-specific i18n architecture. Enforces repo-configured i18n patterns, source-locale-first edits, and translating only keys changed in the git diff.
 ---
 
