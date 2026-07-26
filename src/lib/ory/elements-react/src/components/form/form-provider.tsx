@@ -9,7 +9,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useOryFlow } from '../../context';
 import { isUiNodeInput } from '../../util';
 import { isNodeVisible } from '../../util/ui';
-import { computeDefaultValues } from './form-helpers';
+import { computeDefaultValues, resolveLoginHint } from './form-helpers';
 import { useOryFormResolver } from './form-resolver';
 
 function pickAutofocusField(nodes: UiNode[]) {
@@ -36,12 +36,20 @@ export function OryFormProvider({ children, nodes }: PropsWithChildren & { nodes
     : flowContainer.flow.ui.nodes;
   const lastAutofocusField = useRef<string | null>(null);
 
+  // The login_hint pre-fills the identifier field as a UI convenience. It is
+  // resolved entirely from the flow (request_url, oidc_context), so it works
+  // the same during SSR and on the client.
+  const loginHint = resolveLoginHint(flowContainer);
+
   const methods = useForm({
     // TODO: Generify this, so we have typesafety in the submit handler.
-    defaultValues: computeDefaultValues({
-      active: flowContainer.flow.active,
-      ui: { nodes: defaultNodes },
-    }),
+    defaultValues: computeDefaultValues(
+      {
+        active: flowContainer.flow.active,
+        ui: { nodes: defaultNodes },
+      },
+      loginHint,
+    ),
     resolver: useOryFormResolver(),
   });
 

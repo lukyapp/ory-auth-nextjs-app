@@ -41,7 +41,10 @@ function PasswordInput({ className, ...rest }: ComponentProps<typeof PasswordTog
             className,
           )}
         ></PasswordToggleField.Input>
-        <PasswordToggleField.Toggle className="cursor-pointer bg-transparent px-2 py-[13px]">
+        <PasswordToggleField.Toggle
+          id={undefined}
+          className="cursor-pointer bg-transparent px-2 py-[13px]"
+        >
           <PasswordToggleField.Icon visible={<EyeOff />} hidden={<Eye />} />
         </PasswordToggleField.Toggle>
       </div>

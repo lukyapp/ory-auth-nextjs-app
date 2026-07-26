@@ -41,6 +41,7 @@ import { OryCardContentProps } from '../card/content';
 import { OryPageHeaderProps } from '../generic';
 import { OryCardDividerProps } from '../generic/divider';
 import {
+  OrySettingsDeviceauthnProps,
   OrySettingsPasskeyProps,
   OrySettingsRecoveryCodesProps,
   OrySettingsSsoProps,
@@ -200,6 +201,11 @@ export type OryFlowComponents = {
      * The section on the settings page, rendering the Webauthn settings
      */
     WebauthnSettings: ComponentType<OrySettingsWebauthnProps>;
+
+    /**
+     * The section on the settings page, rendering the DeviceAuthn settings.
+     */
+    DeviceauthnSettings: ComponentType<OrySettingsDeviceauthnProps>;
 
     /**
      * The section on the settings page, rendering the Passkey settings

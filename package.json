@@ -17,9 +17,9 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@marsidev/react-turnstile": "^1.1.0",
-    "@ory/client": "^1.22.3",
-    "@ory/client-fetch": "^1.22.15",
-    "@ory/elements-react": "^1.1.0",
+    "@ory/client": "^1.22.65",
+    "@ory/client-fetch": "^1.22.65",
+    "@ory/elements-react": "^1.2.0",
     "@ory/nextjs": "1.0.0-rc.0",
     "@radix-ui/react-dropdown-menu": "2.1.14",
     "@radix-ui/react-password-toggle-field": "^0.1.3",

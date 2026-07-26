@@ -139,7 +139,7 @@ export async function getFlowFactory<T extends object>(
       }
     }
     return options.disableRewrite ? parsed : rewriteJsonResponse(parsed, baseUrl);
-  } catch (error) {
+  } catch (error: unknown) {
     const errorHandler = handleFlowError({
       onValidationError,
       onRestartFlow,

@@ -34,6 +34,7 @@ import { DefaultButtonSocial, DefaultSocialButtonContainer } from './form/sso';
 import { DefaultText } from './form/text';
 import { DefaultPageHeader } from './generic/page-header';
 import { DefaultToast } from './generic/toast';
+import { DefaultSettingsDeviceauthn } from './settings/settings-deviceauthn';
 import { DefaultSettingsOidc } from './settings/settings-oidc';
 import { DefaultSettingsPasskey } from './settings/settings-passkey';
 import { DefaultSettingsRecoveryCodes } from './settings/settings-recovery-codes';
@@ -91,6 +92,7 @@ export function getOryComponents(overrides?: OryFlowComponentOverrides): OryFlow
       SsoSettings: overrides?.Form?.SsoSettings ?? DefaultSettingsOidc,
       WebauthnSettings: overrides?.Form?.WebauthnSettings ?? DefaultSettingsWebauthn,
       PasskeySettings: overrides?.Form?.PasskeySettings ?? DefaultSettingsPasskey,
+      DeviceauthnSettings: overrides?.Form?.DeviceauthnSettings ?? DefaultSettingsDeviceauthn,
     },
     Message: {
       Root: overrides?.Message?.Root ?? DefaultMessageContainer,

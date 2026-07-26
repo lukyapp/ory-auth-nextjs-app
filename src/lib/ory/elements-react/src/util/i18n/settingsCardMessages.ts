@@ -34,6 +34,10 @@ export const settingsCardTitles = defineMessages<string>({
     id: 'settings.webauthn.title',
     defaultMessage: 'Manage Hardware Tokens',
   },
+  [UiNodeGroupEnum.Deviceauthn]: {
+    id: 'settings.deviceauthn.title',
+    defaultMessage: 'Manage Trusted Devices',
+  },
 });
 
 export function settingsCardTitleMessage(group: UiNodeGroupEnum) {
@@ -73,6 +77,10 @@ export const settingsCardDescriptions = defineMessages<string>({
   [UiNodeGroupEnum.Webauthn]: {
     id: 'settings.webauthn.description',
     defaultMessage: 'Manage your hardware token settings',
+  },
+  [UiNodeGroupEnum.Deviceauthn]: {
+    id: 'settings.deviceauthn.description',
+    defaultMessage: 'Manage your trusted devices settings',
   },
 });
 

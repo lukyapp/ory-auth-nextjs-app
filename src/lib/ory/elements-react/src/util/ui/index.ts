@@ -7,6 +7,7 @@ import {
   isUiNodeScriptAttributes,
   UiNode,
   UiNodeGroupEnum,
+  UiText,
 } from '@ory/client-fetch';
 import type {
   UiNodeAttributes,
@@ -305,7 +306,7 @@ export function isNodeVisible(node: UiNode): node is UiNodeInput {
 export type GroupedNodes = Partial<Record<UiNodeGroupEnum, UiNode[]>>;
 
 /**
- * Returns a record which have at least one visible or interactive element (button,
+ * Returns a record of node groups which have at least one visible or interactive element (button,
  * text field, image).
  *
  * Groups which have only hidden or otherwise non-interactive elements (e.g. scripts or
@@ -314,33 +315,76 @@ export type GroupedNodes = Partial<Record<UiNodeGroupEnum, UiNode[]>>;
  * @param nodes - Array of nodes to filter on.
  * @returns Record of groups with at least one visible element and their nodes.
  */
+export function nodeGroupsWithVisibleNodes(nodes: UiNode[]): GroupedNodes {
+  const groups: Partial<Record<UiNodeGroupEnum, UiNode[]>> = {};
+  const groupRetained: Partial<Record<UiNodeGroupEnum, number>> = {};
+
+  for (const node of nodes) {
+    const groupNodes = groups[node.group] ?? [];
+    const groupCount = groupRetained[node.group] ?? 0;
+
+    groupNodes.push(node);
+    groups[node.group] = groupNodes;
+    if (!isNodeVisible(node)) {
+      continue;
+    }
+
+    groupRetained[node.group] = groupCount + 1;
+  }
+
+  const finalGroups: Partial<Record<UiNodeGroupEnum, UiNode[]>> = {};
+  for (const [group, count] of Object.entries(groupRetained)) {
+    if (count > 0) {
+      finalGroups[group as UiNodeGroupEnum] = groups[group as UiNodeGroupEnum];
+    }
+  }
+
+  return finalGroups;
+}
+
+/**
+ * Memoized hook variant of {@link nodeGroupsWithVisibleNodes}.
+ *
+ * @param nodes - Array of nodes to filter on.
+ * @returns Record of groups with at least one visible element and their nodes.
+ */
 export function useNodeGroupsWithVisibleNodes(nodes: UiNode[]): GroupedNodes {
-  return useMemo(() => {
-    const groups: Partial<Record<UiNodeGroupEnum, UiNode[]>> = {};
-    const groupRetained: Partial<Record<UiNodeGroupEnum, number>> = {};
+  return useMemo(() => nodeGroupsWithVisibleNodes(nodes), [nodes]);
+}
 
-    for (const node of nodes) {
-      const groupNodes = groups[node.group] ?? [];
-      const groupCount = groupRetained[node.group] ?? 0;
+/**
+ * The groups that are never offered as selectable authentication methods: SSO groups
+ * (oidc, saml) render as separate buttons, and the remaining groups are functional
+ * (CSRF, identifier, profile, captcha) rather than authentication methods.
+ */
+const nonAuthMethodGroups: UiNodeGroupEnum[] = [
+  UiNodeGroupEnum.Oidc,
+  UiNodeGroupEnum.Saml,
+  UiNodeGroupEnum.Default,
+  UiNodeGroupEnum.IdentifierFirst,
+  UiNodeGroupEnum.Profile,
+  UiNodeGroupEnum.Captcha,
+];
 
-      groupNodes.push(node);
-      groups[node.group] = groupNodes;
-      if (!isNodeVisible(node)) {
-        continue;
-      }
-
-      groupRetained[node.group] = groupCount + 1;
-    }
-
-    const finalGroups: Partial<Record<UiNodeGroupEnum, UiNode[]>> = {};
-    for (const [group, count] of Object.entries(groupRetained)) {
-      if (count > 0) {
-        finalGroups[group as UiNodeGroupEnum] = groups[group as UiNodeGroupEnum];
-      }
-    }
-
-    return finalGroups;
-  }, [nodes]);
+/**
+ * Returns the authentication method groups that have at least one visible node.
+ *
+ * Groups whose nodes are all hidden (e.g. a passkey group that only carries the
+ * browser conditional-UI plumbing) are not returned, because the user cannot select them.
+ *
+ * This is the single source of truth for "how many auth methods can the user choose
+ * from" — the form state shortcut, the method picker, and the footer back-link must
+ * all agree on it. SSO groups are excluded because they render as separate buttons
+ * on the chooser screen; decisions about skipping or leaving that screen must check
+ * {@link hasSingleSignOnNodes} in addition to this count.
+ *
+ * @param nodes - The nodes to extract the visible auth method groups from.
+ */
+export function visibleAuthMethodGroups(nodes: UiNode[]): UiNodeGroupEnum[] {
+  const visibleGroups = nodeGroupsWithVisibleNodes(nodes);
+  return Object.values(UiNodeGroupEnum)
+    .filter((group) => visibleGroups[group]?.length)
+    .filter((group) => !nonAuthMethodGroups.includes(group));
 }
 
 /**
@@ -360,4 +404,93 @@ export function findCodeIdentifierNode(nodes: UiNode[]): UiNodeInput | undefined
       node_type: 'input',
       name: 'address',
     })) as UiNodeInput | undefined;
+}
+
+/** The delivery channel used to send a one-time code, either email or SMS. */
+export type CodeChannel = 'email' | 'sms';
+
+// Matches phone numbers in international format, including values that
+// Kratos masks with asterisks (e.g. "+4746****87").
+const phoneAddressPattern = /^\+[0-9*][0-9 *().-]{3,}$/;
+
+function channelFromLabel(label?: UiText): CodeChannel | undefined {
+  if (
+    label?.id === 1010023 &&
+    label.context &&
+    typeof label.context === 'object' &&
+    'channel' in label.context &&
+    (label.context.channel === 'email' || label.context.channel === 'sms')
+  ) {
+    return label.context.channel;
+  }
+  return undefined;
+}
+
+/**
+ * Classifies a raw address value as email or SMS based on its format.
+ *
+ * @param value - the address value to classify
+ */
+function channelFromAddressValue(value: unknown): CodeChannel | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  if (value.includes('@')) {
+    return 'email';
+  }
+  if (phoneAddressPattern.test(value.trim())) {
+    return 'sms';
+  }
+  return undefined;
+}
+
+/**
+ * Determines the delivery channel of the one-time code method, if it can be
+ * inferred from the flow's UI nodes.
+ *
+ * Kratos attaches the channel to the "Send code to {address}" node label
+ * (message 1010023) on second factor and refresh login flows. On
+ * identifier-first flows the channel is not part of the payload, so this
+ * falls back to the format of the identifier the user typed.
+ *
+ * @param nodes - the UI nodes of the current flow
+ * @returns the inferred delivery channel, or undefined if it cannot be determined
+ */
+export function findCodeChannel(nodes: UiNode[]): CodeChannel | undefined {
+  const identifierNode = findCodeIdentifierNode(nodes);
+
+  const fromIdentifierLabel = channelFromLabel(identifierNode?.meta?.label);
+  if (fromIdentifierLabel) {
+    return fromIdentifierLabel;
+  }
+
+  // After the code was sent, Kratos renames the address node to a hidden
+  // "identifier" input but keeps its label, so scan all node labels.
+  for (const node of nodes) {
+    const channel = channelFromLabel(node.meta?.label);
+    if (channel) {
+      return channel;
+    }
+  }
+
+  const fromIdentifierValue = channelFromAddressValue(identifierNode?.attributes.value);
+  if (fromIdentifierValue) {
+    return fromIdentifierValue;
+  }
+
+  // On verification flows, once a wrong code is submitted, Kratos clears the
+  // flow messages (including the 1010023 label above) and replaces them with
+  // an error. The only remaining signal is the resend submit node, which
+  // Kratos always names "email" (group "code") even when the address is a
+  // phone number, so classify its value the same way as the identifier node.
+  // Matching on type "submit" avoids picking up the recovery flow's email
+  // text input, which shares the same group and name but echoes raw user
+  // input.
+  const resendNode = findNode(nodes, {
+    node_type: 'input',
+    group: 'code',
+    name: 'email',
+    type: 'submit',
+  });
+  return channelFromAddressValue(resendNode?.attributes.value);
 }

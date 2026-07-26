@@ -72,6 +72,7 @@ const defaultGroupOrder: UiNodeGroupEnum[] = [
   UiNodeGroupEnum.Passkey,
   UiNodeGroupEnum.Webauthn,
   UiNodeGroupEnum.Totp,
+  UiNodeGroupEnum.Deviceauthn,
 ];
 
 function defaultGroupSorter(a: UiNodeGroupEnum, b: UiNodeGroupEnum): number {

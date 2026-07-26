@@ -52,3 +52,8 @@ export type OrySettingsPasskeyProps = {
   removeButtons: OryNodeSettingsButton[];
   isSubmitting: boolean;
 };
+
+export type OrySettingsDeviceauthnProps = {
+  removeButtons: OryNodeSettingsButton[];
+  isSubmitting: boolean;
+};

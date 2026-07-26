@@ -29,6 +29,9 @@ export async function toGetFlowParameter(params: Promise<QueryParams> | QueryPar
 export async function getPublicUrl() {
   const h = await headers();
   const host = h.get('host');
+  if (!host) {
+    return undefined;
+  }
   const protocol = h.get('x-forwarded-proto') || 'http';
   return `${protocol}://${host}`;
 }
