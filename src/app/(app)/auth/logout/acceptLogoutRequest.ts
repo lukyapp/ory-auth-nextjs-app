@@ -8,7 +8,7 @@ export async function acceptLogoutRequest(logoutChallenge: string) {
 
   try {
     const response = await hydra.acceptOAuth2LogoutRequest({
-      logoutChallenge
+      logoutChallenge,
     });
 
     return { redirectTo: response.redirect_to };

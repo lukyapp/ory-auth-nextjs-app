@@ -99,8 +99,6 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
 }
 
 function shouldSkipLogout(logoutRequest: OAuth2LogoutRequest) {
-    console.log('lala : ', logoutRequest.client?.skip_logout_consent)
-    console.log('lolo : ', Boolean(logoutRequest.client?.skip_logout_consent))
   return Boolean(logoutRequest.client?.skip_logout_consent);
 }
 
