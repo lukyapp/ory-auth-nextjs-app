@@ -62,8 +62,16 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
       const confirmLogoutUrl = `/auth/logout/accept?logout_challenge=${encodeURIComponent(
         logoutChallenge,
       )}`;
+      const cancelLogoutUrl = resolvePostLogoutRedirectUri(logoutRequest.request_url) ?? '/';
 
-      return <LogoutUi displayName={displayName} locale={locale} logoutUrl={confirmLogoutUrl} />;
+      return (
+        <LogoutUi
+          cancelUrl={cancelLogoutUrl}
+          displayName={displayName}
+          locale={locale}
+          logoutUrl={confirmLogoutUrl}
+        />
+      );
     }
 
     const session = await getServerSession();
@@ -85,7 +93,14 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
     const locale = await resolveOryLocale();
     const flow = await getLogoutFlow({ returnTo: '/' });
 
-    return <LogoutUi displayName={displayName} locale={locale} logoutUrl={flow.logout_url} />;
+    return (
+      <LogoutUi
+        cancelUrl="/"
+        displayName={displayName}
+        locale={locale}
+        logoutUrl={flow.logout_url}
+      />
+    );
   } catch (error: unknown) {
     if (isNextRedirectError(error)) {
       throw error;
@@ -119,4 +134,20 @@ function resolveOptionalString(value: unknown): string | null {
   }
 
   return null;
+}
+
+function resolvePostLogoutRedirectUri(requestUrl?: string | null) {
+  if (!requestUrl) {
+    return null;
+  }
+
+  try {
+    const postLogoutRedirectUri = new URL(requestUrl, 'http://localhost').searchParams.get(
+      'post_logout_redirect_uri',
+    );
+
+    return postLogoutRedirectUri?.trim() || null;
+  } catch {
+    return null;
+  }
 }
