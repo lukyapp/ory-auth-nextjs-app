@@ -2,23 +2,9 @@
 
 import { IntlProvider } from '@/lib/ory/elements-react/src/context/intl-context';
 import type { OryLocale } from '@/lib/ory/resolve-ory-locale';
-import { OryLocales } from '@ory/elements-react';
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useIntl } from 'react-intl';
-
-const LOGOUT_MESSAGE_IDS = [
-  'logout.action.cancel',
-  'logout.action.confirm',
-  'logout.brand',
-  'logout.form.description',
-  'logout.form.eyebrow',
-  'logout.form.notice',
-  'logout.form.title',
-  'logout.form.warning',
-  'logout.hero.description',
-  'logout.hero.title',
-] as const;
 
 type LogoutUiProps = {
   displayName: string;
@@ -28,7 +14,7 @@ type LogoutUiProps = {
 
 export function LogoutUi({ displayName, locale, logoutUrl }: LogoutUiProps) {
   return (
-    <IntlProvider locale={locale} customTranslations={getLogoutFallbackTranslations(locale)}>
+    <IntlProvider locale={locale}>
       <LogoutContent displayName={displayName} logoutUrl={logoutUrl} />
     </IntlProvider>
   );
@@ -49,6 +35,7 @@ function LogoutContent({
               <span className="h-2.5 w-2.5 rounded-[2px] bg-white" />
             </span>
             {intl.formatMessage({
+              defaultMessage: 'Ory Auth',
               id: 'logout.brand',
             })}
           </div>
@@ -59,11 +46,13 @@ function LogoutContent({
             </div>
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
               {intl.formatMessage({
+                defaultMessage: 'Ready to log out?',
                 id: 'logout.hero.title',
               })}
             </h1>
             <p className="mt-7 max-w-[24rem] text-lg leading-7 font-semibold text-[#777]">
               {intl.formatMessage({
+                defaultMessage: 'Confirm before ending your session.',
                 id: 'logout.hero.description',
               })}
             </p>
@@ -78,6 +67,7 @@ function LogoutContent({
             <header className="mb-8">
               <p className="text-sm leading-5 font-semibold text-[#777]">
                 {intl.formatMessage({
+                  defaultMessage: 'Session',
                   id: 'logout.form.eyebrow',
                 })}
               </p>
@@ -86,6 +76,7 @@ function LogoutContent({
                 className="mt-2 text-2xl leading-8 font-bold tracking-normal text-[#242424]"
               >
                 {intl.formatMessage({
+                  defaultMessage: 'Log out of your account?',
                   id: 'logout.form.title',
                 })}
               </h2>
@@ -94,11 +85,13 @@ function LogoutContent({
             <p className="text-base leading-7 font-semibold text-[#575757]">
               {intl.formatMessage(
                 {
+                  defaultMessage: 'You are about to sign out of {displayName}. {warning}',
                   id: 'logout.form.description',
                 },
                 {
                   displayName: <span className="text-[#242424]">{displayName}</span>,
                   warning: intl.formatMessage({
+                    defaultMessage: 'This will end your current session.',
                     id: 'logout.form.warning',
                   }),
                 },
@@ -107,6 +100,7 @@ function LogoutContent({
 
             <div className="mt-6 rounded-md border border-[#d8d8d8] bg-[#f7f7f7] px-4 py-3 text-sm leading-5 text-[#575757]">
               {intl.formatMessage({
+                defaultMessage: 'You can sign back in at any time.',
                 id: 'logout.form.notice',
               })}
             </div>
@@ -117,6 +111,7 @@ function LogoutContent({
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#2157c8] px-7 text-base font-semibold text-white transition hover:bg-[#1b49aa]"
               >
                 {intl.formatMessage({
+                  defaultMessage: 'Log out',
                   id: 'logout.action.confirm',
                 })}
               </Link>
@@ -125,6 +120,7 @@ function LogoutContent({
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#f0f1f2] px-7 text-base font-semibold text-[#1f5ed8] transition hover:bg-[#e6e8eb]"
               >
                 {intl.formatMessage({
+                  defaultMessage: 'Cancel',
                   id: 'logout.action.cancel',
                 })}
               </Link>
@@ -134,17 +130,4 @@ function LogoutContent({
       </div>
     </main>
   );
-}
-
-function getLogoutFallbackTranslations(locale: OryLocale) {
-  const localeMessages = OryLocales[locale] ?? {};
-  const sourceMessages = OryLocales.en ?? {};
-
-  return {
-    [locale]: Object.fromEntries(
-      LOGOUT_MESSAGE_IDS.flatMap((id) =>
-        localeMessages[id] ? [] : [[id, sourceMessages[id] ?? id]],
-      ),
-    ),
-  };
 }

@@ -8,19 +8,28 @@ import {
   type UiNode,
   type UiNodeInputAttributes,
 } from '@ory/client-fetch';
-import { Node, OryLocales, uiTextToFormattedMessage, useOryFlow } from '@ory/elements-react';
-import type {
-  OryClientConfiguration,
-  OryFlowComponentOverrides,
-  OryFormRootProps,
-  OryNodeButtonProps,
-  OryNodeConsentScopeCheckboxProps,
-  OryNodeInputProps,
+import {
+  Node,
+  OryLocales,
+  uiTextToFormattedMessage,
+  useOryFlow,
+  type OryClientConfiguration,
+  type OryFlowComponentOverrides,
+  type OryFormRootProps,
+  type OryNodeButtonProps,
+  type OryNodeConsentScopeCheckboxProps,
+  type OryNodeInputProps,
 } from '@ory/elements-react';
 import { Consent } from '@ory/elements-react/theme';
 import { ChevronDown, Loader2, Settings } from 'lucide-react';
-import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
-import type { PropsWithChildren } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  type PropsWithChildren,
+} from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
 import { useCsrfToken } from './useCsrfToken';
@@ -51,24 +60,18 @@ export const ConsentUi = ({
   session: Session | null;
 }) => {
   const csrfToken = useCsrfToken(consentRequest.challenge);
-  const locale = oryConfig.intl?.locale;
-  const currentAccount = getLocaleMessage(locale, 'consent.current_account', 'Current account');
-
-  const clientName = resolveClientName(
-    consentRequest,
-    getLocaleMessage(locale, 'consent.this_application', 'This application'),
-  );
-  const accountName = useMemo(
-    () => resolveAccountName(session?.identity?.traits, currentAccount),
-    [currentAccount, session],
-  );
+  const clientName = resolveClientName(consentRequest);
+  const accountName = useMemo(() => resolveAccountName(session?.identity?.traits), [session]);
 
   if (!session || !csrfToken) {
     return (
       <div className="fixed inset-0 grid min-h-screen place-items-center bg-white text-neutral-500">
         <Loader2
           className="h-6 w-6 animate-spin"
-          aria-label={getLocaleMessage(locale, 'consent.loading', 'Loading consent request')}
+          // aria-label={intl.formatMessage({
+          //   defaultMessage: 'Loading consent request',
+          //   id: 'consent.loading',
+          // })}
         />
       </div>
     );
@@ -95,8 +98,8 @@ export const ConsentUi = ({
 };
 
 type ConsentContextValue = {
-  accountName: string;
-  clientName: string;
+  accountName?: string;
+  clientName?: string;
   policyUri?: string;
 };
 
@@ -124,8 +127,8 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
               {intl.formatMessage(
                 {
-                  id: 'consent.title',
                   defaultMessage: 'Authorize {party}',
+                  id: 'consent.title',
                 },
                 { party: clientName },
               )}
@@ -133,11 +136,11 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             <p className="mt-7 text-lg font-semibold text-[#777]">
               {intl.formatMessage(
                 {
-                  id: 'consent.subtitle',
                   defaultMessage:
                     'A third party application wants to access information associated with your account {identifier}.',
+                  id: 'consent.subtitle',
                 },
-                { identifier: accountName },
+                { identifier: accountName ?? '' },
               )}
             </p>
           </div>
@@ -146,8 +149,8 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             {policyUri ? (
               <a href={policyUri} rel="noreferrer" target="_blank">
                 {intl.formatMessage({
-                  id: 'consent.privacy_policy',
                   defaultMessage: 'Privacy Policy',
+                  id: 'consent.privacy_policy',
                 })}
               </a>
             ) : null}
@@ -215,10 +218,17 @@ function SquareFormGroup() {
       <h2 id="consent-permissions-title" className="text-lg leading-6 font-bold text-[#242424]">
         {intl.formatMessage(
           {
-            id: 'consent.permissions.title',
             defaultMessage: 'This will allow {party} to...',
+            id: 'consent.permissions.title',
           },
-          { party: clientName },
+          {
+            party:
+              clientName ??
+              intl.formatMessage({
+                defaultMessage: 'This application',
+                id: 'consent.this_application',
+              }),
+          },
         )}
       </h2>
 
@@ -298,8 +308,8 @@ function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
   const isAccept = action === 'accept';
   const label = getNodeLabel(node);
   const loadingLabel = intl.formatMessage({
-    id: isAccept ? 'consent.action.accepting' : 'consent.action.rejecting',
     defaultMessage: isAccept ? 'Allowing' : 'Denying',
+    id: isAccept ? 'consent.action.accepting' : 'consent.action.rejecting',
   });
 
   return (
@@ -319,8 +329,8 @@ function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
           {label
             ? uiTextToFormattedMessage(label, intl)
             : intl.formatMessage({
-                id: isAccept ? 'consent.action.accept' : 'consent.action.reject',
                 defaultMessage: isAccept ? 'Allow' : 'Deny',
+                id: isAccept ? 'consent.action.accept' : 'consent.action.reject',
               })}
         </span>
       )}
@@ -337,13 +347,18 @@ function SquareInput({ inputProps }: OryNodeInputProps) {
 }
 
 function LanguageSelect({ locale }: { locale: string }) {
+  const intl = useIntl();
   const languageOptions = getLanguageOptions(locale);
+  const languageLabel = intl.formatMessage({
+    defaultMessage: 'Language',
+    id: 'language.label',
+  });
 
   return (
     <label className="relative w-fit">
-      <span className="sr-only">Language</span>
+      <span className="sr-only">{languageLabel}</span>
       <select
-        aria-label="Language"
+        aria-label={languageLabel}
         className="max-w-52 appearance-none bg-transparent py-1 pr-6 text-base font-semibold text-[#1f5ed8] transition hover:text-[#1749aa] focus:ring-0 focus:outline-none"
         onChange={(event) => changeLocale(event.currentTarget.value)}
         value={locale}
@@ -381,24 +396,24 @@ const squareConsentComponents: OryFlowComponentOverrides = {
   },
 };
 
-function resolveClientName(consentRequest: OAuth2ConsentRequest, fallback: string) {
+function resolveClientName(consentRequest: OAuth2ConsentRequest) {
   return (
     consentRequest.client?.client_name?.trim() ||
     consentRequest.client?.client_id?.trim() ||
-    fallback
+    undefined
   );
 }
 
-function resolveAccountName(traits: unknown, fallback: string) {
+function resolveAccountName(traits: unknown) {
   if (!isIdentityTraits(traits)) {
-    return fallback;
+    return undefined;
   }
 
   const name = resolveName(traits.name);
   const username = resolveString(traits.username);
   const email = resolveString(traits.email);
 
-  return name ?? username ?? email ?? fallback;
+  return name ?? username ?? email ?? undefined;
 }
 
 function resolveName(name: unknown) {
@@ -461,7 +476,7 @@ function getConsentAction(node: UiNode): ConsentAction {
 
 function sortActionNodes(nodes: InputUiNode[]) {
   return [...nodes].sort((left, right) => {
-    const order = { reject: 0, accept: 1 };
+    const order = { accept: 1, reject: 0 };
 
     return order[getConsentAction(left)] - order[getConsentAction(right)];
   });
@@ -527,16 +542,4 @@ function getCurrentLanguageName(locale: string, displayLocale = locale) {
   } catch {
     return locale;
   }
-}
-
-function getLocaleMessage(locale: string | undefined, id: string, defaultMessage: string) {
-  const localeCode = locale ?? 'en';
-  const language = localeCode.split('-')[0] || localeCode;
-
-  return (
-    OryLocales[localeCode]?.[id] ??
-    OryLocales[language]?.[id] ??
-    OryLocales.en?.[id] ??
-    defaultMessage
-  );
 }

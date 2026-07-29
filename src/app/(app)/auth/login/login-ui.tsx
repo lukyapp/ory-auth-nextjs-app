@@ -23,8 +23,7 @@ import {
 } from '@ory/elements-react';
 import { Login } from '@ory/elements-react/theme';
 import { ChevronDown, KeyRound, Loader2 } from 'lucide-react';
-import { createContext, useContext } from 'react';
-import type { PropsWithChildren } from 'react';
+import { createContext, useContext, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
 type LoginUiProps = {
@@ -48,6 +47,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
   const clientName =
     useLoginClientName() ??
     intl.formatMessage({
+      defaultMessage: 'Account access',
       id: 'login.clientFallback',
     });
 
@@ -69,6 +69,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
               {intl.formatMessage(
                 {
+                  defaultMessage: 'Sign in to {clientName}',
                   id: 'login.hero.title',
                 },
                 { clientName },
@@ -76,6 +77,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             </h1>
             <p className="mt-7 max-w-[24rem] text-lg leading-7 font-semibold text-[#777]">
               {intl.formatMessage({
+                defaultMessage: 'Use your account to continue securely.',
                 id: 'login.hero.description',
               })}
             </p>
@@ -97,13 +99,18 @@ function SquareCardRoot({ children }: PropsWithChildren) {
 }
 
 function LanguageSelect({ locale }: { locale: string }) {
+  const intl = useIntl();
   const languageOptions = getLanguageOptions(locale);
+  const languageLabel = intl.formatMessage({
+    defaultMessage: 'Language',
+    id: 'language.label',
+  });
 
   return (
     <label className="relative w-fit">
-      <span className="sr-only">Language</span>
+      <span className="sr-only">{languageLabel}</span>
       <select
-        aria-label="Language"
+        aria-label={languageLabel}
         className="max-w-52 appearance-none bg-transparent py-1 pr-6 text-base font-semibold text-[#1f5ed8] transition hover:text-[#1749aa] focus:ring-0 focus:outline-none"
         onChange={(event) => changeLocale(event.currentTarget.value)}
         value={locale}
@@ -129,6 +136,7 @@ function SquareCardHeader() {
     <header className="mb-8">
       <p className="text-sm leading-5 font-semibold text-[#777]">
         {intl.formatMessage({
+          defaultMessage: 'Welcome back',
           id: 'login.form.eyebrow',
         })}
       </p>
@@ -137,6 +145,7 @@ function SquareCardHeader() {
         className="mt-2 text-2xl leading-8 font-bold tracking-normal text-[#242424]"
       >
         {intl.formatMessage({
+          defaultMessage: 'Sign in',
           id: 'login.form.title',
         })}
       </h2>
@@ -218,6 +227,7 @@ function LabelAction({ attributes }: { attributes: UiNodeInputAttributes }) {
       data-testid="ory/screen/login/action/forgot-password"
     >
       {intl.formatMessage({
+        defaultMessage: 'Forgot password?',
         id: 'forms.label.forgot-password',
       })}
     </a>

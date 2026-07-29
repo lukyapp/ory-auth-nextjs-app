@@ -40,6 +40,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
   const clientName =
     useRegistrationClientName() ??
     intl.formatMessage({
+      defaultMessage: 'Account access',
       id: 'login.clientFallback',
     });
 
@@ -61,6 +62,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             <h1 className="max-w-[24rem] text-[1.75rem] leading-[1.22] font-bold tracking-normal text-balance sm:text-[2rem]">
               {intl.formatMessage(
                 {
+                  defaultMessage: 'Create your {clientName} account',
                   id: 'registration.hero.title',
                 },
                 { clientName },
@@ -68,6 +70,7 @@ function SquareCardRoot({ children }: PropsWithChildren) {
             </h1>
             <p className="mt-7 max-w-[24rem] text-lg leading-7 font-semibold text-[#777]">
               {intl.formatMessage({
+                defaultMessage: 'Use your account to continue securely.',
                 id: 'login.hero.description',
               })}
             </p>
@@ -89,12 +92,17 @@ function SquareCardRoot({ children }: PropsWithChildren) {
 }
 
 function LanguageSelect({ locale }: { locale: string }) {
+  const intl = useIntl();
   const languageOptions = getLanguageOptions(locale);
+  const languageLabel = intl.formatMessage({
+    defaultMessage: 'Language',
+    id: 'language.label',
+  });
 
   return (
     <label className="relative w-fit">
       <select
-        aria-label="Language"
+        aria-label={languageLabel}
         className="max-w-52 appearance-none bg-transparent py-1 pr-6 text-base font-semibold text-[#1f5ed8] transition hover:text-[#1749aa] focus:ring-0 focus:outline-none"
         onChange={(event) => changeLocale(event.currentTarget.value)}
         value={locale}
@@ -120,6 +128,7 @@ function SquareCardHeader() {
     <header className="mb-8">
       <p className="text-sm leading-5 font-semibold text-[#777]">
         {intl.formatMessage({
+          defaultMessage: 'Get started',
           id: 'login.form.eyebrow',
         })}
       </p>
@@ -128,6 +137,7 @@ function SquareCardHeader() {
         className="mt-2 text-2xl leading-8 font-bold tracking-normal text-[#242424]"
       >
         {intl.formatMessage({
+          defaultMessage: 'Create account',
           id: 'registration.title',
         })}
       </h2>
