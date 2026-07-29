@@ -54,11 +54,7 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
         flow: logoutRequest,
         searchParams: resolvedSearchParams,
       });
-      const displayName =
-        logoutRequest.subject ??
-        logoutRequest.client?.client_name ??
-        logoutRequest.client?.client_id ??
-        'your account';
+      const displayName = resolveLogoutDisplayName(logoutRequest);
       const confirmLogoutUrl = `/auth/logout/accept?logout_challenge=${encodeURIComponent(
         logoutChallenge,
       )}`;
@@ -117,6 +113,19 @@ function shouldSkipLogout(logoutRequest: OAuth2LogoutRequest) {
   return Boolean(logoutRequest.client?.skip_logout_consent);
 }
 
+function resolveLogoutDisplayName(logoutRequest: OAuth2LogoutRequest) {
+  const claims = decodeIdTokenHintClaims(logoutRequest.request_url);
+
+  return (
+    resolveOptionalString(claims?.email) ||
+    resolveOptionalString(claims?.name) ||
+    resolveOptionalString(claims?.preferred_username) ||
+    resolveOptionalString(claims?.sub) ||
+    logoutRequest.subject ||
+    'your account'
+  );
+}
+
 function resolveOptionalString(value: unknown): string | null {
   if (typeof value === 'string' && value.trim().length > 0) {
     return value.trim();
@@ -137,16 +146,43 @@ function resolveOptionalString(value: unknown): string | null {
 }
 
 function resolvePostLogoutRedirectUri(requestUrl?: string | null) {
+  return resolveLogoutRequestParam(requestUrl, 'post_logout_redirect_uri');
+}
+
+function resolveIdTokenHint(requestUrl?: string | null) {
+  return resolveLogoutRequestParam(requestUrl, 'id_token_hint');
+}
+
+function resolveLogoutRequestParam(requestUrl: string | null | undefined, param: string) {
   if (!requestUrl) {
     return null;
   }
 
   try {
-    const postLogoutRedirectUri = new URL(requestUrl, 'http://localhost').searchParams.get(
-      'post_logout_redirect_uri',
-    );
+    const value = new URL(requestUrl, 'http://localhost').searchParams.get(param);
 
-    return postLogoutRedirectUri?.trim() || null;
+    return value?.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function decodeIdTokenHintClaims(requestUrl?: string | null) {
+  const idTokenHint = resolveIdTokenHint(requestUrl);
+  const payload = idTokenHint?.split('.')[1];
+
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    const decodedPayload = JSON.parse(
+      Buffer.from(payload, 'base64url').toString('utf8'),
+    ) as unknown;
+
+    return typeof decodedPayload === 'object' && decodedPayload !== null
+      ? (decodedPayload as Record<string, unknown>)
+      : null;
   } catch {
     return null;
   }
