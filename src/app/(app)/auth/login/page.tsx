@@ -25,7 +25,6 @@ export default async function LoginPage(props: OryPageParams) {
     const showDiagnostics = shouldShowAuthDiagnostics(searchParams);
     logAuthFlow('login.page.loaded', {
       hasLoginChallenge: Boolean(loginChallenge),
-      loginChallenge,
       maxAge: maxAge ?? null,
       prompt: prompt ?? null,
     });
@@ -36,7 +35,7 @@ export default async function LoginPage(props: OryPageParams) {
 
     if (!flow) {
       logAuthFlow('login.flow.empty', {
-        loginChallenge,
+        hasLoginChallenge: Boolean(loginChallenge),
       });
       return null;
     }
@@ -61,11 +60,11 @@ export default async function LoginPage(props: OryPageParams) {
       logAuthFlow('login.challenge.resolved', {
         clientId: loginRequest.client?.client_id ?? null,
         clientName: loginRequest.client?.client_name ?? null,
-        flowLoginChallenge: flowLoginChallenge ?? null,
+        hasFlowLoginChallenge: Boolean(flowLoginChallenge),
+        hasResolvedLoginChallenge: Boolean(resolvedLoginChallenge),
         hasSession: Boolean(session),
         loginRequestSkip: loginRequest.skip ?? false,
         requestedSubject: loginRequest.subject ?? null,
-        resolvedLoginChallenge,
         resolvedSubject: subject ?? null,
         sessionMatchesRequest,
         skipLogin,
@@ -75,7 +74,7 @@ export default async function LoginPage(props: OryPageParams) {
     if (loginRequest && skipLogin && sessionSubject && sessionMatchesRequest) {
       logAuthFlow('login.challenge.skipped', {
         clientId: loginRequest.client?.client_id ?? null,
-        loginChallenge,
+        hasLoginChallenge: Boolean(loginChallenge),
         subject: sessionSubject,
       });
       const { redirectTo } = await acceptLoginRequest({
@@ -86,7 +85,6 @@ export default async function LoginPage(props: OryPageParams) {
       if (redirectTo) {
         logAuthFlow('login.challenge.redirect', {
           clientId: loginRequest.client?.client_id ?? null,
-          loginChallenge,
           redirectTo,
         });
         redirect(redirectTo);
@@ -95,8 +93,8 @@ export default async function LoginPage(props: OryPageParams) {
 
     logAuthFlow('login.flow.render', {
       flowId: flow.id,
-      loginChallenge,
-      resolvedLoginChallenge,
+      hasLoginChallenge: Boolean(loginChallenge),
+      hasResolvedLoginChallenge: Boolean(resolvedLoginChallenge),
       uiAction: flow.ui.action,
     });
     if (!showDiagnostics) {

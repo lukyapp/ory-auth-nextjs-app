@@ -6,6 +6,9 @@
 
 import { FlowType } from '@ory/client-fetch';
 import { OryNodeInputProps, useOryFlow } from '@ory/elements-react';
+// OVERRIDE START
+import type { ClipboardEvent } from 'react';
+// OVERRIDE END
 import { cn } from '../../utils/cn';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from './shadcn/otp-input';
 
@@ -17,12 +20,41 @@ export const DefaultPinCodeInput = ({ node, inputProps }: OryNodeInputProps) => 
 
   const valueCasted = value as string;
 
+  // OVERRIDE START
+  const normalizePastedCode = (pasted: string) => pasted.replace(/\D/g, '').slice(0, elements);
+
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+    const pastedCode = normalizePastedCode(event.clipboardData.getData('text/plain'));
+
+    if (pastedCode.length !== elements) {
+      return;
+    }
+
+    event.preventDefault();
+    restInputProps.onChange?.({
+      target: {
+        name: restInputProps.name,
+        value: pastedCode,
+      },
+      currentTarget: {
+        name: restInputProps.name,
+        value: pastedCode,
+      },
+    });
+  };
+  // OVERRIDE END
+
   return (
     <InputOTP
       data-testid={`ory/form/node/input/${node.attributes.name}`}
       {...restInputProps}
-      value={valueCasted}
+      // OVERRIDE START
       maxLength={elements}
+      onPaste={handlePaste}
+      pasteTransformer={normalizePastedCode}
+      pushPasswordManagerStrategy="none"
+      // OVERRIDE END
+      value={valueCasted}
     >
       <InputOTPGroup
         className={cn(
