@@ -1,8 +1,9 @@
 import { createOryConfig } from '@/lib/ory/ory.config';
 import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
-import { Verification } from '@ory/elements-react/theme';
 import { getVerificationFlow, OryPageParams } from '@ory/nextjs/app';
 import { logAuthFlow } from '../auth-flow-log';
+import { getLoginRequest } from '../login/getLoginRequest';
+import { VerificationUi } from './verification-ui';
 
 type DiagnosticFlow = {
   active?: string;
@@ -17,6 +18,9 @@ type DiagnosticFlow = {
 
 export default async function VerificationPage(props: OryPageParams) {
   const searchParams = await props.searchParams;
+  const loginChallenge = Array.isArray(searchParams.login_challenge)
+    ? searchParams.login_challenge[0]
+    : searchParams.login_challenge;
   const locale = await resolveOryLocale({ searchParams });
   const oryConfig = createOryConfig(locale);
   const flow = await getVerificationFlow(oryConfig, props.searchParams);
@@ -28,7 +32,19 @@ export default async function VerificationPage(props: OryPageParams) {
 
   logAuthFlow('verification.flow.render', summarizeVerificationFlow(flow));
 
-  return <Verification flow={flow} config={oryConfig} components={{}} />;
+  const flowLoginChallenge = getFlowLoginChallenge(flow);
+  const resolvedLoginChallenge = loginChallenge ?? flowLoginChallenge;
+  const loginRequest = resolvedLoginChallenge
+    ? await getLoginRequest(resolvedLoginChallenge)
+    : null;
+
+  return (
+    <VerificationUi
+      flow={flow}
+      config={oryConfig}
+      clientName={loginRequest?.client?.client_name ?? loginRequest?.client?.client_id}
+    />
+  );
 }
 
 function summarizeVerificationFlow(flow: DiagnosticFlow) {
@@ -54,6 +70,10 @@ function hasLoginChallenge(requestUrl: string | undefined) {
   } catch {
     return false;
   }
+}
+
+function getFlowLoginChallenge(flow: DiagnosticFlow) {
+  return flow.oauth2_login_challenge?.trim() || undefined;
 }
 
 function requestPath(requestUrl: string | undefined) {

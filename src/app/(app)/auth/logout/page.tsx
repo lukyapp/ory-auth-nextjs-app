@@ -1,3 +1,4 @@
+import { createOryConfig } from '@/lib/ory/ory.config';
 import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import type { OAuth2LogoutRequest } from '@ory/client-fetch';
 import { getLogoutFlow, getServerSession } from '@ory/nextjs/app';
@@ -54,6 +55,7 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
         flow: logoutRequest,
         searchParams: resolvedSearchParams,
       });
+      const oryConfig = createOryConfig(locale);
       const displayName = resolveLogoutDisplayName(logoutRequest);
       const confirmLogoutUrl = `/auth/logout/accept?logout_challenge=${encodeURIComponent(
         logoutChallenge,
@@ -64,7 +66,7 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
         <LogoutUi
           cancelUrl={cancelLogoutUrl}
           displayName={displayName}
-          locale={locale}
+          config={oryConfig}
           logoutUrl={confirmLogoutUrl}
         />
       );
@@ -86,14 +88,17 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
       resolveOptionalString(traits.username) ||
       resolveOptionalString(traits.phone) ||
       'your account';
-    const locale = await resolveOryLocale();
+    const locale = await resolveOryLocale({
+      searchParams: resolvedSearchParams,
+    });
+    const oryConfig = createOryConfig(locale);
     const flow = await getLogoutFlow({ returnTo: '/' });
 
     return (
       <LogoutUi
         cancelUrl="/"
         displayName={displayName}
-        locale={locale}
+        config={oryConfig}
         logoutUrl={flow.logout_url}
       />
     );

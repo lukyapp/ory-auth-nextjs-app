@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  getNodeLabel,
   isUiNodeInputAttributes,
   type OAuth2ConsentRequest,
   type Session,
@@ -11,7 +10,6 @@ import {
 import {
   Node,
   OryLocales,
-  uiTextToFormattedMessage,
   useOryFlow,
   type OryClientConfiguration,
   type OryFlowComponentOverrides,
@@ -306,7 +304,10 @@ function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
   const intl = useIntl();
   const action = getConsentAction(node);
   const isAccept = action === 'accept';
-  const label = getNodeLabel(node);
+  const label = intl.formatMessage({
+    defaultMessage: isAccept ? 'Allow' : 'Deny',
+    id: isAccept ? 'consent.action.accept' : 'consent.action.reject',
+  });
   const loadingLabel = intl.formatMessage({
     defaultMessage: isAccept ? 'Allowing' : 'Denying',
     id: isAccept ? 'consent.action.accepting' : 'consent.action.rejecting',
@@ -325,14 +326,7 @@ function SquareButton({ buttonProps, isSubmitting, node }: OryNodeButtonProps) {
       {isSubmitting ? (
         <Loader2 className="h-4 w-4 animate-spin" aria-label={loadingLabel} />
       ) : (
-        <span>
-          {label
-            ? uiTextToFormattedMessage(label, intl)
-            : intl.formatMessage({
-                defaultMessage: isAccept ? 'Allow' : 'Deny',
-                id: isAccept ? 'consent.action.accept' : 'consent.action.reject',
-              })}
-        </span>
+        <span>{label}</span>
       )}
     </button>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { IntlProvider } from '@/lib/ory/elements-react/src/context/intl-context';
-import type { OryLocale } from '@/lib/ory/resolve-ory-locale';
+import { OryClientConfiguration } from '@ory/elements-react';
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useIntl } from 'react-intl';
@@ -9,13 +9,16 @@ import { useIntl } from 'react-intl';
 type LogoutUiProps = {
   cancelUrl: string;
   displayName: string;
-  locale: OryLocale;
   logoutUrl: string;
+  config: OryClientConfiguration;
 };
 
-export function LogoutUi({ cancelUrl, displayName, locale, logoutUrl }: LogoutUiProps) {
+export function LogoutUi({ cancelUrl, displayName, config, logoutUrl }: LogoutUiProps) {
   return (
-    <IntlProvider locale={locale}>
+    <IntlProvider
+      locale={config.intl?.locale ?? 'en'}
+      customTranslations={config.intl?.customTranslations}
+    >
       <LogoutContent cancelUrl={cancelUrl} displayName={displayName} logoutUrl={logoutUrl} />
     </IntlProvider>
   );

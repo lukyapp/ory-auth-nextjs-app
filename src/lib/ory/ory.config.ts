@@ -1,5 +1,6 @@
 /* eslint-disable */
 import type { OryClientConfiguration } from '@ory/elements-react';
+import { customOryLocales } from './custom-locales';
 import type { OryLocale } from './resolve-ory-locale';
 
 const baseProjectConfig = {
@@ -29,6 +30,7 @@ export function createOryConfig(locale: OryLocale): OryClientConfiguration {
 
   return {
     intl: {
+      customTranslations: customOryLocales,
       locale,
     },
     project,
