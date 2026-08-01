@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logAuthFlow } from '../../auth-flow-log';
 import { toErrorPageHref } from '../../hydra-flow-error';
-import { acceptLogoutRequest } from '../acceptLogoutRequest';
+import { completeLogoutRequest } from '../completeLogoutRequest';
 
 export async function GET(request: NextRequest) {
   const logoutChallenge = request.nextUrl.searchParams.get('logout_challenge');
@@ -11,8 +11,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { redirectTo } = await acceptLogoutRequest(logoutChallenge);
+    const { hydraRedirectTo, redirectTo } = await completeLogoutRequest(logoutChallenge);
     logAuthFlow('logout.challenge.redirect', {
+      hydraRedirectTo,
       logoutChallenge,
       redirectTo,
     });

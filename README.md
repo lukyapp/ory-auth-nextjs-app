@@ -27,6 +27,98 @@ A Next.js authentication application that acts as both:
 - **Testing**: React Testing Library
 - **Package Manager**: pnpm
 
+## Custom account chooser and logout flows
+
+This application adds a Google-style account chooser on top of Ory Hydra and Ory Kratos. This
+behavior is application code, not a native multi-account feature provided by Ory.
+
+### Why this is custom
+
+Kratos exposes one active browser session to the application at a time. It does not provide a
+browser API that lists previously authenticated identities or a native account chooser. Hydra
+owns the OAuth2/OIDC transaction, but delegates the actual login interaction to this application.
+
+Consequently, an account displayed by the chooser is one of two things:
+
+- **Connected**: the identity from the current Kratos browser session.
+- **Signed out**: an entry remembered locally after a previous successful consent. It is not an
+  active session and does not grant access by itself.
+
+The remembered accounts are only presentation hints. Kratos still verifies credentials and Hydra
+still completes the OAuth2/OIDC transaction.
+
+### Sign-in and account selection
+
+OAuth clients that need the account chooser start authorization with `prompt=login`. The auth
+application also recognizes `prompt=select_account`, but `prompt=login` is used by our clients
+because the chooser is managed here rather than by Hydra or Kratos.
+
+```mermaid
+flowchart TD
+  A["OAuth client starts sign-in with prompt=login"] --> B["Hydra creates a login challenge"]
+  B --> C["Auth app displays the account chooser"]
+  C -->|"Current connected account"| D["accept_current=1"]
+  D --> E["Accept Hydra login request"]
+  C -->|"Remembered signed-out account"| F["Store selection for this challenge"]
+  C -->|"Use another account"| F
+  F --> G{"Kratos session active?"}
+  G -->|"Yes"| H["Logout with logout_confirmed=1"]
+  G -->|"No"| I["Create a fresh Kratos login flow"]
+  H --> I
+  I --> J["Authenticate credentials"]
+  J --> E
+```
+
+Selecting a signed-out account goes through `/auth/login/account`. That route validates the
+selected account against the local history, stores a short-lived selection cookie bound to a
+SHA-256 fingerprint of the Hydra login challenge, and starts a fresh Kratos login flow. The cookie
+is needed because Kratos redirects back with a new `flow` URL and does not preserve our custom
+account chooser parameters. When possible, the selected identifier is prefilled in the Kratos
+form.
+
+Selecting the connected account does not create a new Kratos flow. `accept_current=1` explicitly
+accepts the current Kratos identity for the active Hydra challenge.
+
+### Logout and account switching
+
+Account switching must first remove the active Kratos browser session. In that context, clicking
+another account already expresses the user's intent to disconnect, so the application adds
+`logout_confirmed=1` and does not display a second confirmation screen.
+
+A normal logout still displays the confirmation screen. For a Hydra logout, the application first
+accepts the Hydra logout challenge and then completes a Kratos browser logout. The internal
+`/auth/logout/kratos` route creates and consumes a fresh one-time Kratos logout flow server-side,
+forwards its `Set-Cookie` headers, and redirects to the final destination. The raw one-time
+`logout_url` is deliberately not exposed as a reusable browser link, which avoids expired-flow
+errors when it is requested more than once.
+
+External development redirects are passed through `/auth/logout/complete`. They are restricted to
+`http` or `https` URLs on `localhost` and `127.0.0.1`; relative application paths are also allowed.
+Production deployments that need absolute cross-origin post-logout redirects must extend this
+validation with an explicit trusted-origin allowlist.
+
+### Internal parameters
+
+| Parameter | Owner | Purpose |
+| --- | --- | --- |
+| `prompt=login` | OIDC | Requires an interactive login; this app uses it to show its account chooser. |
+| `prompt=select_account` | OIDC | Also recognized as a request to display the custom chooser. |
+| `account_chooser=skip` | This app | Prevents the chooser from being displayed again after a choice was made. |
+| `accept_current=1` | This app | Accepts the identity from the active Kratos session for the Hydra challenge. |
+| `account_id` | This app | Identifies a remembered account; it is validated against the history cookie. |
+| `logout_confirmed=1` | This app | States that the account-switch action already confirmed the logout. |
+| `return_to` | Ory / this app | Carries the validated destination after login or logout completion. |
+
+### Application cookies
+
+| Cookie | Lifetime | Purpose |
+| --- | --- | --- |
+| `ory_auth_account_history` | 1 year | Stores up to eight previously used account labels and identifiers for the chooser. |
+| `ory_auth_account_selection` | 10 minutes | Keeps the selected account across Kratos flow redirects and binds it to one Hydra challenge. |
+
+Both cookies are `HttpOnly`, `SameSite=Lax`, and `Secure` in production. They are UX state only and
+must never be treated as authentication credentials or authorization evidence.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -40,7 +132,7 @@ A Next.js authentication application that acts as both:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ory-auth-nextjs-app.git
+   git clone https://github.com/lukyapp/ory-auth-nextjs-app.git
    cd ory-auth-nextjs-app
    ```
 

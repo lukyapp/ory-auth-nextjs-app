@@ -22,17 +22,37 @@ import {
   type OryNodeSsoButtonProps,
 } from '@ory/elements-react';
 import { Login } from '@ory/elements-react/theme';
-import { ChevronDown, KeyRound, Loader2 } from 'lucide-react';
+import { ChevronDown, KeyRound, Loader2, PlusCircle } from 'lucide-react';
 import { createContext, useContext, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 
 type LoginUiProps = {
+  accountChoice?: {
+    accounts: {
+      href: string;
+      id: string;
+      identifier: string | null;
+      isConnected: boolean;
+      label: string;
+    }[];
+    useAnotherHref: string;
+  };
   clientName?: string | null;
   config: OryClientConfiguration;
   flow: LoginFlow;
 };
 
-export function LoginUi({ clientName, config, flow }: LoginUiProps) {
+export function LoginUi({ accountChoice, clientName, config, flow }: LoginUiProps) {
+  if (accountChoice) {
+    return (
+      <LoginClientNameContext.Provider value={clientName?.trim() || null}>
+        <Login flow={flow} config={config} components={squareLoginComponents}>
+          <AccountChoiceScreen accountChoice={accountChoice} />
+        </Login>
+      </LoginClientNameContext.Provider>
+    );
+  }
+
   return (
     <LoginClientNameContext.Provider value={clientName?.trim() || null}>
       <Login flow={flow} config={config} components={squareLoginComponents} />
@@ -43,6 +63,10 @@ export function LoginUi({ clientName, config, flow }: LoginUiProps) {
 const LoginClientNameContext = createContext<string | null>(null);
 
 function SquareCardRoot({ children }: PropsWithChildren) {
+  return <SquareAuthShell>{children}</SquareAuthShell>;
+}
+
+function SquareAuthShell({ children }: PropsWithChildren) {
   const intl = useIntl();
   const clientName =
     useLoginClientName() ??
@@ -95,6 +119,111 @@ function SquareCardRoot({ children }: PropsWithChildren) {
         </main>
       </div>
     </div>
+  );
+}
+
+function AccountChoiceScreen({
+  accountChoice,
+}: {
+  accountChoice: NonNullable<LoginUiProps['accountChoice']>;
+}) {
+  const intl = useIntl();
+  const clientName =
+    useLoginClientName() ??
+    intl.formatMessage({
+      defaultMessage: 'this application',
+      id: 'login.clientFallback.lowercase',
+    });
+
+  return (
+    <SquareAuthShell>
+      <div className="w-full" aria-labelledby="account-choice-title">
+        <header className="mb-8">
+          <p className="text-sm leading-5 font-semibold text-[#777]">
+            {intl.formatMessage({
+              defaultMessage: 'Sign in',
+              id: 'login.accountChoice.header',
+            })}
+          </p>
+          <h2
+            id="account-choice-title"
+            className="mt-2 text-2xl leading-8 font-bold tracking-normal text-[#242424]"
+          >
+            {intl.formatMessage({
+              defaultMessage: 'Select an account',
+              id: 'login.accountChoice.title',
+            })}
+          </h2>
+          <p className="mt-3 text-base leading-6 font-semibold text-[#777]">
+            {intl.formatMessage(
+              {
+                defaultMessage: 'Continue to {clientName}',
+                id: 'login.accountChoice.subtitle',
+              },
+              { clientName },
+            )}
+          </p>
+        </header>
+
+        <div className="overflow-hidden rounded-md border border-[#d8d8d8] bg-white">
+          {accountChoice.accounts.map((account) => (
+            <AccountChoiceRow key={account.id} account={account} />
+          ))}
+          <a
+            href={accountChoice.useAnotherHref}
+            className="flex min-h-16 items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-[#242424] transition hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center text-[#777]">
+              <PlusCircle className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <span className="text-base font-semibold">
+              {intl.formatMessage({
+                defaultMessage: 'Use another account',
+                id: 'login.accountChoice.useAnother',
+              })}
+            </span>
+          </a>
+        </div>
+      </div>
+    </SquareAuthShell>
+  );
+}
+
+function AccountChoiceRow({
+  account,
+}: {
+  account: NonNullable<LoginUiProps['accountChoice']>['accounts'][number];
+}) {
+  const intl = useIntl();
+
+  return (
+    <a
+      href={account.href}
+      className="flex min-h-16 items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-[#242424] transition first:border-t-0 hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
+    >
+      <span
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-base font-semibold text-white"
+        style={{ backgroundColor: getAccountColor(account.id) }}
+      >
+        {getAccountInitial(account.label)}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-base font-semibold">{account.label}</span>
+        {account.identifier ? (
+          <span className="block truncate text-sm font-medium text-[#777]">
+            {account.identifier}
+          </span>
+        ) : null}
+      </span>
+      {!account.isConnected ? (
+        <span className="shrink-0 text-sm font-semibold text-[#777]">
+          {intl.formatMessage({
+            defaultMessage: 'Signed out',
+            id: 'login.accountChoice.signedOut',
+          })}
+        </span>
+      ) : null}
+    </a>
   );
 }
 
@@ -368,6 +497,30 @@ function getCurrentLanguageName(locale: string, displayLocale = locale) {
   } catch {
     return locale;
   }
+}
+
+function getAccountInitial(label: string) {
+  return label.trim().charAt(0).toUpperCase() || '?';
+}
+
+function getAccountColor(seed: string) {
+  const colors = [
+    '#0097a7',
+    '#546e7a',
+    '#00796b',
+    '#0288d1',
+    '#8d6e63',
+    '#ef6c00',
+    '#558b2f',
+    '#ab47bc',
+  ];
+  let hash = 0;
+
+  for (const character of seed) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+
+  return colors[hash % colors.length];
 }
 
 function isUiText(value: unknown): value is UiText {

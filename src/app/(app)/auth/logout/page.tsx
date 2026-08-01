@@ -1,18 +1,20 @@
 import { createOryConfig } from '@/lib/ory/ory.config';
 import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import type { OAuth2LogoutRequest } from '@ory/client-fetch';
-import { getLogoutFlow, getServerSession } from '@ory/nextjs/app';
+import { getServerSession } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
 import { logAuthFlow } from '../auth-flow-log';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
-import { acceptLogoutRequest } from './acceptLogoutRequest';
+import { completeLogoutRequest } from './completeLogoutRequest';
 import { getLogoutRequest } from './getLogoutRequest';
 import { LogoutUi } from './logout-ui';
 
 type LogoutPageProps = {
   searchParams: Promise<{
     logout_challenge?: string | string[];
+    logout_confirmed?: string | string[];
+    return_to?: string | string[];
   }>;
 };
 
@@ -22,6 +24,14 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
     const logoutChallenge = Array.isArray(resolvedSearchParams.logout_challenge)
       ? resolvedSearchParams.logout_challenge[0]
       : resolvedSearchParams.logout_challenge;
+    const logoutConfirmed = Array.isArray(resolvedSearchParams.logout_confirmed)
+      ? resolvedSearchParams.logout_confirmed[0]
+      : resolvedSearchParams.logout_confirmed;
+    const returnTo = sanitizeLocalReturnTo(
+      Array.isArray(resolvedSearchParams.return_to)
+        ? resolvedSearchParams.return_to[0]
+        : resolvedSearchParams.return_to,
+    );
 
     if (logoutChallenge) {
       const logoutRequest = await getLogoutRequest(logoutChallenge);
@@ -39,11 +49,12 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
           clientId: logoutRequest.client?.client_id ?? null,
           logoutChallenge,
         });
-        const { redirectTo } = await acceptLogoutRequest(logoutChallenge);
+        const { hydraRedirectTo, redirectTo } = await completeLogoutRequest(logoutChallenge);
 
         if (redirectTo) {
           logAuthFlow('logout.challenge.redirect', {
             clientId: logoutRequest.client?.client_id ?? null,
+            hydraRedirectTo,
             logoutChallenge,
             redirectTo,
           });
@@ -92,14 +103,18 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
       searchParams: resolvedSearchParams,
     });
     const oryConfig = createOryConfig(locale);
-    const flow = await getLogoutFlow({ returnTo: '/' });
+    const logoutUrl = toKratosLogoutHref(returnTo ?? '/');
+
+    if (logoutConfirmed === '1') {
+      redirect(logoutUrl);
+    }
 
     return (
       <LogoutUi
-        cancelUrl="/"
+        cancelUrl={returnTo ?? '/'}
         displayName={displayName}
         config={oryConfig}
-        logoutUrl={flow.logout_url}
+        logoutUrl={logoutUrl}
       />
     );
   } catch (error: unknown) {
@@ -116,6 +131,18 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
 
 function shouldSkipLogout(logoutRequest: OAuth2LogoutRequest) {
   return Boolean(logoutRequest.client?.skip_logout_consent);
+}
+
+function toKratosLogoutHref(returnTo: string) {
+  return `/auth/logout/kratos?return_to=${encodeURIComponent(returnTo)}`;
+}
+
+function sanitizeLocalReturnTo(returnTo?: string | null) {
+  if (!returnTo?.startsWith('/') || returnTo.startsWith('//')) {
+    return null;
+  }
+
+  return returnTo;
 }
 
 function resolveLogoutDisplayName(logoutRequest: OAuth2LogoutRequest) {

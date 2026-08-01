@@ -3,6 +3,7 @@
 import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
+import { rememberAccount } from '../account-history';
 import { createHydraFlowError, HydraFlowError } from '../hydra-flow-error';
 
 const TWELVE_HOURS = 43200;
@@ -70,6 +71,11 @@ async function extractSession(
   const name = resolveName(traits);
   const picture = resolveOptionalString(traits.picture);
   const preferredUsername = resolveOptionalString(traits.username);
+  await rememberAccount({
+    id: identity.id,
+    identifier: email ?? preferredUsername,
+    label: name ?? email ?? preferredUsername ?? identity.id,
+  });
 
   if (grantScope.includes('email')) {
     if (email) {
