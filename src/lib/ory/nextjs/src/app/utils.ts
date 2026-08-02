@@ -2,6 +2,7 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 import { ParsedUrlQuery } from 'querystring';
+import { resolveConfiguredAppPublicOrigin } from '@/app/(app)/auth/public-url';
 import { FlowType, OnRedirectHandler } from '@ory/client-fetch';
 import { headers } from 'next/headers';
 import { redirect, RedirectType } from 'next/navigation';
@@ -27,8 +28,14 @@ export async function toGetFlowParameter(params: Promise<QueryParams> | QueryPar
 }
 
 export async function getPublicUrl() {
+  const configuredOrigin = resolveConfiguredAppPublicOrigin();
+
+  if (configuredOrigin) {
+    return configuredOrigin;
+  }
+
   const h = await headers();
-  const host = h.get('host');
+  const host = h.get('x-forwarded-host') ?? h.get('host');
   if (!host) {
     return undefined;
   }

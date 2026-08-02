@@ -1,10 +1,8 @@
-import type { NextRequest } from 'next/server';
+import { parseOrigin, resolveAppRedirectUrl } from '../public-url';
 
 const defaultHydraLogoutOrigin = 'https://oauth.dhe.ovh';
 
-export function resolveAppRedirectUrl(pathOrUrl: string, request: NextRequest) {
-  return new URL(pathOrUrl, resolveAppPublicOrigin(request));
-}
+export { resolveAppRedirectUrl };
 
 export function sanitizeLogoutReturnTo(returnTo: string | null) {
   if (!returnTo) {
@@ -29,39 +27,10 @@ export function sanitizeLogoutReturnTo(returnTo: string | null) {
   }
 }
 
-function resolveAppPublicOrigin(request: NextRequest) {
-  const configuredOrigin = parseOrigin(process.env.APP_PUBLIC_URL);
-
-  if (configuredOrigin) {
-    return configuredOrigin;
-  }
-
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  const forwardedProto = request.headers.get('x-forwarded-proto');
-
-  if (forwardedHost) {
-    return `${forwardedProto ?? 'https'}://${forwardedHost}`;
-  }
-
-  return request.url;
-}
-
 function resolveHydraLogoutOrigin() {
   return (
     parseOrigin(process.env.ORY_HYDRA_PUBLIC_URL) ??
     parseOrigin(process.env.NEXT_PUBLIC_ORY_HYDRA_PUBLIC_URL) ??
     defaultHydraLogoutOrigin
   );
-}
-
-function parseOrigin(value: string | undefined) {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
 }
