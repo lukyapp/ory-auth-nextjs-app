@@ -8,7 +8,6 @@ import { logAuthFlow } from '../auth-flow-log';
 import { AuthDebugPanel, shouldShowAuthDiagnostics } from '../debug-panel';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
-import { acceptConsentRequest } from './acceptConsentRequest';
 import { ConsentUi } from './consent-ui';
 import { getConsentRequest } from './getConsentRequest';
 
@@ -42,13 +41,7 @@ export default async function ConsentPage(props: {
         consentChallenge,
         requestedScopes: consentRequest.requested_scope ?? [],
       });
-      const { redirectTo } = await acceptConsentRequest({ ...consentRequest });
-      logAuthFlow('consent.challenge.redirect', {
-        clientId: consentRequest.client?.client_id ?? null,
-        consentChallenge,
-        redirectTo,
-      });
-      redirect(redirectTo);
+      redirect(`/auth/consent/accept?consent_challenge=${encodeURIComponent(consentChallenge)}`);
     }
     logAuthFlow('consent.flow.render', {
       clientId: consentRequest.client?.client_id ?? null,

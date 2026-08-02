@@ -86,11 +86,19 @@ export async function POST(
 
     // 5. Process the consent action
     if (body.action === 'accept') {
-      const { redirectTo } = await acceptConsentRequest({
+      const { accountHistoryCookie, redirectTo } = await acceptConsentRequest({
         ...consentRequest,
         remember: body.remember,
       });
-      return NextResponse.json({ redirect_to: redirectTo });
+      const response = NextResponse.json({ redirect_to: redirectTo });
+      if (accountHistoryCookie) {
+        response.cookies.set(
+          accountHistoryCookie.name,
+          accountHistoryCookie.value,
+          accountHistoryCookie.options,
+        );
+      }
+      return response;
     }
 
     if (body.action === 'reject') {

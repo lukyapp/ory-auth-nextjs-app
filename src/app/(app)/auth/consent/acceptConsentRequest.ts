@@ -3,7 +3,7 @@
 import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
-import { rememberAccount } from '../account-history';
+import { serializeAccountHistory } from '../account-history';
 import { createHydraFlowError, HydraFlowError } from '../hydra-flow-error';
 
 const TWELVE_HOURS = 43200;
@@ -17,7 +17,7 @@ type AcceptConsentRequestBody = {
 export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
   const { challenge, remember, requested_access_token_audience, requested_scope, subject } = body;
   const hydra = await getOAuth2ApiFetchClient();
-  const session = await extractSession(requested_scope ?? [], subject);
+  const { accountHistoryCookie, session } = await extractSession(requested_scope ?? [], subject);
   try {
     const response = await hydra.acceptOAuth2ConsentRequest({
       acceptOAuth2ConsentRequest: {
@@ -30,7 +30,7 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
       consentChallenge: challenge,
     });
 
-    return { redirectTo: response.redirect_to ?? '/' };
+    return { accountHistoryCookie, redirectTo: response.redirect_to ?? '/' };
   } catch (error: unknown) {
     throw createHydraFlowError('accept consent request failed', error, {
       code: 'hydra_consent_accept_failed',
@@ -42,7 +42,10 @@ export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
 async function extractSession(
   grantScope: string[],
   consentSubject?: string | null,
-): Promise<AcceptOAuth2ConsentRequestSession> {
+): Promise<{
+  accountHistoryCookie: Awaited<ReturnType<typeof serializeAccountHistory>>;
+  session: AcceptOAuth2ConsentRequestSession;
+}> {
   const serverSession = await getServerSession();
   const session: AcceptOAuth2ConsentRequestSession = {
     access_token: {},
@@ -71,7 +74,7 @@ async function extractSession(
   const name = resolveName(traits);
   const picture = resolveOptionalString(traits.picture);
   const preferredUsername = resolveOptionalString(traits.username);
-  await rememberAccount({
+  const accountHistoryCookie = await serializeAccountHistory({
     id: identity.id,
     identifier: email ?? preferredUsername,
     label: name ?? email ?? preferredUsername ?? identity.id,
@@ -110,7 +113,7 @@ async function extractSession(
       session.id_token.updated_at = Math.floor(identity.updated_at.getTime() / 1000);
     }
   }
-  return session;
+  return { accountHistoryCookie, session };
 }
 
 function isIdentityTraitsRecord(traits: unknown): traits is Record<string, unknown> {

@@ -35,8 +35,7 @@ export async function readAccountHistory() {
   }
 }
 
-export async function rememberAccount(account: Omit<RememberedAccount, 'lastSeenAt'>) {
-  const cookieStore = await cookies();
+export async function serializeAccountHistory(account: Omit<RememberedAccount, 'lastSeenAt'>) {
   const previousAccounts = await readAccountHistory();
   const nextAccount = normalizeAccount({
     ...account,
@@ -44,7 +43,7 @@ export async function rememberAccount(account: Omit<RememberedAccount, 'lastSeen
   });
 
   if (!nextAccount) {
-    return;
+    return null;
   }
 
   const nextAccounts = [
@@ -52,21 +51,17 @@ export async function rememberAccount(account: Omit<RememberedAccount, 'lastSeen
     ...previousAccounts.filter((previousAccount) => previousAccount.id !== nextAccount.id),
   ].slice(0, MAX_REMEMBERED_ACCOUNTS);
 
-  try {
-    cookieStore.set(
-      ACCOUNT_HISTORY_COOKIE,
-      Buffer.from(JSON.stringify(nextAccounts), 'utf8').toString('base64url'),
-      {
-        httpOnly: true,
-        maxAge: ACCOUNT_HISTORY_MAX_AGE_SECONDS,
-        path: '/',
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    );
-  } catch {
-    return;
-  }
+  return {
+    name: ACCOUNT_HISTORY_COOKIE,
+    options: {
+      httpOnly: true,
+      maxAge: ACCOUNT_HISTORY_MAX_AGE_SECONDS,
+      path: '/',
+      sameSite: 'lax' as const,
+      secure: process.env.NODE_ENV === 'production',
+    },
+    value: Buffer.from(JSON.stringify(nextAccounts), 'utf8').toString('base64url'),
+  };
 }
 
 function normalizeAccount(value: unknown): RememberedAccount | null {
