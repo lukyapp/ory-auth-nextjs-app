@@ -71,7 +71,9 @@ export default async function LogoutPage({ searchParams }: LogoutPageProps) {
       const confirmLogoutUrl = `/auth/logout/accept?logout_challenge=${encodeURIComponent(
         logoutChallenge,
       )}`;
-      const cancelLogoutUrl = resolvePostLogoutRedirectUri(logoutRequest.request_url) ?? '/';
+      const cancelLogoutUrl = `/auth/logout/reject?logout_challenge=${encodeURIComponent(
+        logoutChallenge,
+      )}`;
 
       return (
         <LogoutUi
@@ -175,10 +177,6 @@ function resolveOptionalString(value: unknown): string | null {
   }
 
   return null;
-}
-
-function resolvePostLogoutRedirectUri(requestUrl?: string | null) {
-  return resolveLogoutRequestParam(requestUrl, 'post_logout_redirect_uri');
 }
 
 function resolveIdTokenHint(requestUrl?: string | null) {
