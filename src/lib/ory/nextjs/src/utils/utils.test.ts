@@ -4,7 +4,7 @@
 
 // utils.test.ts
 
-import { OryMiddlewareOptions } from 'src/middleware/middleware';
+import { OryMiddlewareOptions } from '../middleware/middleware';
 import {
   filterRequestHeaders,
   joinUrlPaths,

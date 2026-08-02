@@ -118,12 +118,22 @@ function resolveLogoutDisplayName(requestUrl?: string | null, subject?: string |
 }
 
 function resolveOptionalString(value: unknown): string | null {
-  if (typeof value === 'string' && value.trim()) return value.trim();
-  if (isRecord(value)) {
-    const firstName = resolveOptionalString(value.first);
-    const lastName = resolveOptionalString(value.last);
-    return [firstName, lastName].filter(Boolean).join(' ') || null;
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim();
   }
+
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    const first = resolveOptionalString(record.first);
+    const last = resolveOptionalString(record.last);
+
+    if (first && last) {
+      return `${first} ${last}`;
+    }
+
+    return first ?? last;
+  }
+
   return null;
 }
 

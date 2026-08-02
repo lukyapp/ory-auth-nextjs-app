@@ -102,7 +102,7 @@ export async function proxyRequest(request: NextRequest, options: OryMiddlewareO
       request.headers,
     );
     upstreamResponse.headers.delete('set-cookie');
-    cookies.forEach((cookie) => {
+    cookies.forEach((cookie: string) => {
       upstreamResponse.headers.append('Set-Cookie', cookie);
     });
   }

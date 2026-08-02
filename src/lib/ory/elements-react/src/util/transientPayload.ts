@@ -14,8 +14,7 @@ import { FormValues } from '../types';
  * @group Utilities
  */
 export type OryTransientPayload =
-  | Record<string, unknown>
-  | ((formValues: FormValues) => Record<string, unknown>);
+  Record<string, unknown> | ((formValues: FormValues) => Record<string, unknown>);
 
 /**
  * Resolves an `OryTransientPayload` value and merges it with any existing

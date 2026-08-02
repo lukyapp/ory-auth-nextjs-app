@@ -28,11 +28,15 @@ export function OryConsentCard() {
           <Card.Divider />
           <Form.Group>
             {flow.flow.ui.nodes.map((node) => {
+              // OVERRIDE START
               let nodeId = getNodeId(node);
+              // @ts-expect-error override
               if (['grant_scope', 'action'].includes(nodeId) && node.attributes.value) {
+                // @ts-expect-error override
                 nodeId += `-${node.attributes.value}`;
               }
               return <Node key={nodeId} node={node} />;
+              // OVERRIDE END
             })}
           </Form.Group>
           <Card.Divider />

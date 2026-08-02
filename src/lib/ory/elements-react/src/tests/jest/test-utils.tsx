@@ -5,6 +5,7 @@
 import { FlowType, LoginFlowFromJSON } from '@ory/client-fetch';
 import { render, RenderOptions } from '@testing-library/react';
 import { PropsWithChildren, ReactElement } from 'react';
+// @ts-expect-error ory error
 import dummyFlow from '../../../.stub-responses/login/1fa/none/initial-form.json';
 import { OryFlowComponentOverrides } from '../../components';
 import { OryFormProvider } from '../../components/form/form-provider';

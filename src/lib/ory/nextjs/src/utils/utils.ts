@@ -4,7 +4,7 @@
 import { ApiResponse } from '@ory/client-fetch';
 import { serialize, SerializeOptions } from 'cookie';
 import { parse, splitCookiesString } from 'set-cookie-parser';
-import { OryMiddlewareOptions } from 'src/middleware/middleware';
+import { OryMiddlewareOptions } from '../middleware/middleware';
 import { FlowParams, QueryParams } from '../types';
 import { guessCookieDomain } from './cookie';
 import { defaultForwardedHeaders } from './headers';

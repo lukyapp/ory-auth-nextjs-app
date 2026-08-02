@@ -144,8 +144,24 @@ function ProfileAvatar({ displayName, picture }: { displayName: string; picture:
   );
 }
 
-function resolveOptionalString(value: unknown) {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+function resolveOptionalString(value: unknown): string | null {
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim();
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    const first = resolveOptionalString(record.first);
+    const last = resolveOptionalString(record.last);
+
+    if (first && last) {
+      return `${first} ${last}`;
+    }
+
+    return first ?? last;
+  }
+
+  return null;
 }
 
 async function LogoutLink() {

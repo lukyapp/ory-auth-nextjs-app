@@ -51,8 +51,7 @@ export function useResendCode() {
 
   // This workaround ensures that CAPTCHA response token is also included when resending the code.
   const captchaVerificationValue = watch('transient_payload')?.captcha_turnstile_response as
-    | string
-    | undefined;
+    string | undefined;
   useEffect(() => {
     if (captchaVerificationValue) {
       setTurnstileResponse(captchaVerificationValue);

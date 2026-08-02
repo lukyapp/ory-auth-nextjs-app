@@ -95,9 +95,4 @@ export function isUiNodeDiv(node: UiNode): node is UiNodeDiv {
 }
 
 export type UiNodeFixed =
-  | UiNodeInput
-  | UiNodeImage
-  | UiNodeAnchor
-  | UiNodeText
-  | UiNodeScript
-  | UiNodeDiv;
+  UiNodeInput | UiNodeImage | UiNodeAnchor | UiNodeText | UiNodeScript | UiNodeDiv;

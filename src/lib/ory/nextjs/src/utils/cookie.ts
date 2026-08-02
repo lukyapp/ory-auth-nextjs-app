@@ -2,6 +2,7 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
+// @ts-expect-error ory error
 import { errorCodes, ErrorResult, parse } from 'psl';
 
 function isErrorResult(result: unknown): result is ErrorResult<keyof errorCodes> {

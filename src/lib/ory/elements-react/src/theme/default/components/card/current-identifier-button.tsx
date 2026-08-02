@@ -43,8 +43,7 @@ export function DefaultCurrentIdentifierButton() {
   // in the form context, likely due to the way React Hook Form manages its internal state and transient payloads.
   // By using the `watch` function, we can observe changes to the `transient_payload` and retrieve the captcha response value.
   const captchaVerificationValue = watch('transient_payload')?.captcha_turnstile_response as
-    | string
-    | undefined;
+    string | undefined;
   useEffect(() => {
     if (captchaVerificationValue) {
       setTurnstileResponse(captchaVerificationValue);

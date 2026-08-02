@@ -20,9 +20,7 @@ import { UiNodeInput } from '../utilFixSDKTypesHelper';
 
 export function triggerToWindowCall(
   trigger:
-    | UiNodeInputAttributesOnclickTriggerEnum
-    | UiNodeInputAttributesOnloadTriggerEnum
-    | undefined,
+    UiNodeInputAttributesOnclickTriggerEnum | UiNodeInputAttributesOnloadTriggerEnum | undefined,
 ) {
   if (!trigger) {
     return;
@@ -228,8 +226,7 @@ const finder = (opt: FindOptions) => (n: UiNode) => {
  */
 export const findNode = <T extends NodeType>(nodes: UiNode[], opt: FindOptions<T>) =>
   nodes.find(finder(opt)) as
-    | (UiNode & { attributes: UiNodeAttributes & { node_type: T } })
-    | undefined;
+    (UiNode & { attributes: UiNodeAttributes & { node_type: T } }) | undefined;
 
 /**
  * Returns functional nodes not related to credentials (e.g. password node) but

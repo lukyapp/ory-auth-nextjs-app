@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { FlowError } from '@ory/client-fetch';
-import { QueryParams } from 'src/types';
+import { QueryParams } from '../types.ts';
 import { serverSideFrontendClient } from './client';
 
 /**

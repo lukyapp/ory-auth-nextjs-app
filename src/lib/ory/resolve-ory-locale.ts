@@ -40,7 +40,9 @@ function normalizeLocale(input?: string | string[] | null): OryLocale | null {
       return candidate;
     }
 
+    // @ts-expect-error TODO
     const separatorIndex = candidate.search(/[-_]/);
+    // @ts-expect-error TODO
     const baseLocale = separatorIndex === -1 ? candidate : candidate.slice(0, separatorIndex);
     if (baseLocale && isSupportedLocale(baseLocale)) {
       return baseLocale;

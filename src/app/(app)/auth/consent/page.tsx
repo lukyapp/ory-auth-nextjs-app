@@ -87,7 +87,6 @@ export default async function ConsentPage(props: {
             'Client skips consent': consentRequest.client?.skip_consent ?? false,
             'Consent challenge': consentChallenge,
             'Final skip decision': shouldSkipConsent(consentRequest),
-            'Granted scopes': consentRequest.granted_scope ?? [],
             'Hydra client id': consentRequest.client?.client_id ?? null,
             'Hydra client name': consentRequest.client?.client_name ?? null,
             'Requested scopes': consentRequest.requested_scope ?? [],
@@ -117,5 +116,5 @@ export default async function ConsentPage(props: {
 }
 
 function shouldSkipConsent(consentRequest: OAuth2ConsentRequest) {
-  return consentRequest.skip || consentRequest.client?.skip_consent;
+  return Boolean(consentRequest.skip || consentRequest.client?.skip_consent);
 }
