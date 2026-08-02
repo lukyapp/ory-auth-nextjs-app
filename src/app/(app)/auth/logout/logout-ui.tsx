@@ -3,7 +3,6 @@
 import { IntlProvider } from '@/lib/ory/elements-react/src/context/intl-context';
 import { OryClientConfiguration } from '@ory/elements-react';
 import { LogOut } from 'lucide-react';
-import Link from 'next/link';
 import { useIntl } from 'react-intl';
 
 type LogoutUiProps = {
@@ -113,7 +112,7 @@ function LogoutContent({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Link
+              <a
                 href={logoutUrl}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#2157c8] px-7 text-base font-semibold text-white transition hover:bg-[#1b49aa]"
               >
@@ -121,8 +120,8 @@ function LogoutContent({
                   defaultMessage: 'Log out now',
                   id: 'logout.action.confirm',
                 })}
-              </Link>
-              <Link
+              </a>
+              <a
                 href={cancelUrl}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#f0f1f2] px-7 text-base font-semibold text-[#1f5ed8] transition hover:bg-[#e6e8eb]"
               >
@@ -130,7 +129,7 @@ function LogoutContent({
                   defaultMessage: 'Cancel',
                   id: 'logout.action.cancel',
                 })}
-              </Link>
+              </a>
             </div>
           </div>
         </section>
