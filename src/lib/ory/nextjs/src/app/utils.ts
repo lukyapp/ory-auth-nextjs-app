@@ -28,19 +28,7 @@ export async function toGetFlowParameter(params: Promise<QueryParams> | QueryPar
 }
 
 export async function getPublicUrl() {
-  const configuredOrigin = resolveConfiguredAppPublicOrigin();
-
-  if (configuredOrigin) {
-    return configuredOrigin;
-  }
-
-  const h = await headers();
-  const host = h.get('x-forwarded-host') ?? h.get('host');
-  if (!host) {
-    return undefined;
-  }
-  const protocol = h.get('x-forwarded-proto') || 'http';
-  return `${protocol}://${host}`;
+  return resolveConfiguredAppPublicOrigin() ?? undefined;
 }
 
 /**

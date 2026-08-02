@@ -3,8 +3,9 @@ import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
 import type { LoginFlow } from '@ory/client-fetch';
 import { getLoginFlow, getServerSession, OryPageParams } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
-import { readAccountHistory, type RememberedAccount } from '../account-history';
+import { accountHistoryId, readAccountHistory, type RememberedAccount } from '../account-history';
 import { logAuthFlow } from '../auth-flow-log';
+import { createAuthIntentToken } from '../auth-intent';
 import { AuthDebugPanel, shouldShowAuthDiagnostics } from '../debug-panel';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
@@ -12,6 +13,8 @@ import { acceptLoginRequest } from './acceptLoginRequest';
 import { readAccountSelection } from './account-selection';
 import { getLoginRequest } from './getLoginRequest';
 import { LoginUi } from './login-ui';
+
+export const dynamic = 'force-dynamic';
 
 export default async function LoginPage(props: OryPageParams) {
   try {
@@ -25,9 +28,6 @@ export default async function LoginPage(props: OryPageParams) {
     const accountChooser = Array.isArray(searchParams.account_chooser)
       ? searchParams.account_chooser[0]
       : searchParams.account_chooser;
-    const acceptCurrent = Array.isArray(searchParams.accept_current)
-      ? searchParams.accept_current[0]
-      : searchParams.accept_current;
     const maxAge = Array.isArray(searchParams.max_age)
       ? searchParams.max_age[0]
       : searchParams.max_age;
@@ -37,40 +37,6 @@ export default async function LoginPage(props: OryPageParams) {
       maxAge: maxAge ?? null,
       prompt: prompt ?? null,
     });
-
-    if (loginChallenge && shouldAcceptCurrentAccount({ acceptCurrent })) {
-      const [loginRequest, session] = await Promise.all([
-        getLoginRequest(loginChallenge),
-        getServerSession(),
-      ]);
-      const sessionSubject = session?.identity?.id;
-      const sessionMatchesRequest =
-        Boolean(sessionSubject) &&
-        (!loginRequest.subject || loginRequest.subject === sessionSubject);
-
-      if (sessionSubject && sessionMatchesRequest) {
-        logAuthFlow('login.challenge.accept_current', {
-          clientId: loginRequest.client?.client_id ?? null,
-          loginChallenge,
-          subject: sessionSubject,
-        });
-        const { redirectTo } = await acceptLoginRequest({
-          ...loginRequest,
-          subject: sessionSubject,
-        });
-
-        if (redirectTo) {
-          redirect(redirectTo);
-        }
-      }
-
-      logAuthFlow('login.challenge.accept_current_mismatch', {
-        hasSession: Boolean(session),
-        loginChallenge,
-        requestedSubject: loginRequest.subject ?? null,
-        sessionSubject: sessionSubject ?? null,
-      });
-    }
 
     const initialLocale = await resolveOryLocale({ searchParams });
     const initialOryConfig = createOryConfig(initialLocale);
@@ -118,19 +84,18 @@ export default async function LoginPage(props: OryPageParams) {
               accountHistory,
               loginChallenge: resolvedLoginChallenge,
               session,
-              hasActiveSession: Boolean(sessionSubject),
               sessionMatchesRequest,
             }),
-            useAnotherHref: buildFreshLoginHref({
-              hasActiveSession: Boolean(sessionSubject),
+            useAnotherAction: buildAccountAction({
+              accountId: null,
               loginChallenge: resolvedLoginChallenge,
+              subject: sessionSubject,
             }),
           }
         : undefined;
 
     if (loginRequest) {
       logAuthFlow('login.challenge.resolved', {
-        acceptCurrent: acceptCurrent ?? null,
         accountChoice: Boolean(accountChoice),
         accountChooser: accountChooser ?? null,
         clientId: loginRequest.client?.client_id ?? null,
@@ -147,22 +112,13 @@ export default async function LoginPage(props: OryPageParams) {
       });
     }
 
-    if (
-      loginRequest &&
-      sessionSubject &&
-      sessionMatchesRequest &&
-      (skipLogin || shouldAcceptCurrentAccount({ acceptCurrent }))
-    ) {
+    if (loginRequest && sessionSubject && sessionMatchesRequest && skipLogin) {
       logAuthFlow('login.challenge.skipped', {
-        acceptCurrent: shouldAcceptCurrentAccount({ acceptCurrent }),
         clientId: loginRequest.client?.client_id ?? null,
         hasLoginChallenge: Boolean(loginChallenge),
         subject: sessionSubject,
       });
-      const { redirectTo } = await acceptLoginRequest({
-        ...loginRequest,
-        subject: sessionSubject,
-      });
+      const { redirectTo } = await acceptLoginRequest(resolvedLoginChallenge!);
 
       if (redirectTo) {
         logAuthFlow('login.challenge.redirect', {
@@ -229,7 +185,7 @@ export default async function LoginPage(props: OryPageParams) {
     }
 
     logAuthFlow('login.flow.error', {
-      error: error instanceof Error ? error.message : 'unknown',
+      errorCode: 'login_flow_error',
     });
     redirect(toErrorPageHref(error));
   }
@@ -239,11 +195,19 @@ type LoginRequest = NonNullable<Awaited<ReturnType<typeof getLoginRequest>>>;
 type ServerSession = Awaited<ReturnType<typeof getServerSession>>;
 
 type AccountChoice = {
-  href: string;
+  action: AccountAction;
   id: string;
   identifier: string | null;
   isConnected: boolean;
   label: string;
+};
+
+type AccountAction = {
+  accountId: string | null;
+  intentToken: string;
+  loginChallenge: string;
+  selection: 'current' | 'remembered' | 'another';
+  url: string;
 };
 
 function shouldSkipLogin({
@@ -282,10 +246,6 @@ function shouldSelectAccount({
   return promptValues.includes('login') || promptValues.includes('select_account');
 }
 
-function shouldAcceptCurrentAccount({ acceptCurrent }: { acceptCurrent?: string }) {
-  return acceptCurrent === '1';
-}
-
 function resolveRequestUrlParam(requestUrl: string | null | undefined, param: string) {
   if (!requestUrl) {
     return undefined;
@@ -300,26 +260,25 @@ function resolveRequestUrlParam(requestUrl: string | null | undefined, param: st
 
 function buildAccountChoices({
   accountHistory,
-  hasActiveSession,
   loginChallenge,
   session,
   sessionMatchesRequest,
 }: {
   accountHistory: RememberedAccount[];
-  hasActiveSession: boolean;
   loginChallenge: string;
   session: ServerSession;
   sessionMatchesRequest: boolean;
 }): AccountChoice[] {
   const currentAccount = resolveCurrentAccount(session, loginChallenge, sessionMatchesRequest);
   const currentAccountId = currentAccount?.id;
+  const subject = session?.identity?.id;
   const rememberedChoices = accountHistory
     .filter((account) => account.id !== currentAccountId)
     .map((account) => ({
-      href: buildFreshLoginHref({
+      action: buildAccountAction({
         accountId: account.id,
-        hasActiveSession,
         loginChallenge,
+        subject,
       }),
       id: account.id,
       identifier: account.identifier,
@@ -342,34 +301,45 @@ function resolveCurrentAccount(
   }
 
   return {
-    href: `/auth/login?login_challenge=${encodeURIComponent(loginChallenge)}&accept_current=1`,
-    id: subject,
+    action: {
+      accountId: null,
+      intentToken: createAuthIntentToken({
+        action: 'login-current',
+        challenge: loginChallenge,
+        subject,
+      }),
+      loginChallenge,
+      selection: 'current',
+      url: '/auth/login/account',
+    },
+    id: accountHistoryId(subject),
     identifier: resolveSessionIdentifier(session),
     isConnected: true,
     label: resolveSessionDisplayName(session),
   };
 }
 
-function buildFreshLoginHref({
+function buildAccountAction({
   accountId,
-  hasActiveSession,
   loginChallenge,
+  subject,
 }: {
-  accountId?: string;
-  hasActiveSession: boolean;
+  accountId: string | null;
   loginChallenge: string;
-}) {
-  const params = new URLSearchParams({ login_challenge: loginChallenge });
-  if (accountId) {
-    params.set('account_id', accountId);
-  }
-  const loginHref = `/auth/login/account?${params.toString()}`;
-
-  if (!hasActiveSession) {
-    return loginHref;
-  }
-
-  return `/auth/logout?logout_confirmed=1&return_to=${encodeURIComponent(loginHref)}`;
+  subject?: string;
+}): AccountAction {
+  return {
+    accountId,
+    intentToken: createAuthIntentToken({
+      accountId,
+      action: 'login-account',
+      challenge: loginChallenge,
+      subject,
+    }),
+    loginChallenge,
+    selection: accountId ? 'remembered' : 'another',
+    url: '/auth/login/account',
+  };
 }
 
 function applyIdentifierHint(flow: LoginFlow, identifier?: string | null): LoginFlow {

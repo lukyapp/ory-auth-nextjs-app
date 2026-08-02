@@ -1,7 +1,16 @@
 import type { NextRequest } from 'next/server';
+import { validateContinuationUrl } from './redirect-validation';
 
-export function resolveAppRedirectUrl(pathOrUrl: string, request: NextRequest) {
-  return new URL(pathOrUrl, resolveAppPublicOrigin(request));
+export function resolveInternalAppUrl(path: string, request: NextRequest) {
+  if (!path.startsWith('/') || path.startsWith('//')) {
+    throw new Error('Internal application redirects must use an absolute path.');
+  }
+
+  return new URL(path, resolveAppPublicOrigin(request));
+}
+
+export function resolveHydraContinuationUrl(value: string) {
+  return validateContinuationUrl(value);
 }
 
 export function resolveConfiguredAppPublicOrigin() {
@@ -14,7 +23,8 @@ export function parseOrigin(value: string | undefined) {
   }
 
   try {
-    return new URL(value).origin;
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.origin : null;
   } catch {
     return null;
   }
@@ -27,12 +37,5 @@ function resolveAppPublicOrigin(request: NextRequest) {
     return configuredOrigin;
   }
 
-  const forwardedHost = request.headers.get('x-forwarded-host');
-  const forwardedProto = request.headers.get('x-forwarded-proto');
-
-  if (forwardedHost) {
-    return `${forwardedProto ?? 'https'}://${forwardedHost}`;
-  }
-
-  return request.url;
+  return request.nextUrl.origin;
 }

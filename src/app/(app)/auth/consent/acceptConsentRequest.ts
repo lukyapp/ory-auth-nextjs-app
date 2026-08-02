@@ -1,33 +1,32 @@
-'use server';
-
-import { AcceptOAuth2ConsentRequestSession, OAuth2ConsentRequest } from '@ory/client-fetch';
+import 'server-only';
+import type { AcceptOAuth2ConsentRequestSession } from '@ory/client-fetch';
 import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 import { serializeAccountHistory } from '../account-history';
 import { createHydraFlowError, HydraFlowError } from '../hydra-flow-error';
+import { getConsentRequest } from './getConsentRequest';
 
-const TWELVE_HOURS = 43200;
-const THIRTY_DAYS = 2592000;
-const LOGIN_REMEMBER_FOR_SECONDS = THIRTY_DAYS;
+const THIRTY_DAYS = 2_592_000;
 
-type AcceptConsentRequestBody = {
-  remember?: boolean;
-} & OAuth2ConsentRequest;
-
-export async function acceptConsentRequest(body: AcceptConsentRequestBody) {
-  const { challenge, remember, requested_access_token_audience, requested_scope, subject } = body;
+export async function acceptConsentRequest(consentChallenge: string) {
+  const consentRequest = await getConsentRequest(consentChallenge);
+  const grantScope = consentRequest.requested_scope ?? [];
+  const { accountHistoryCookie, session } = await extractSession(
+    grantScope,
+    consentRequest.subject,
+  );
   const hydra = await getOAuth2ApiFetchClient();
-  const { accountHistoryCookie, session } = await extractSession(requested_scope ?? [], subject);
+
   try {
     const response = await hydra.acceptOAuth2ConsentRequest({
       acceptOAuth2ConsentRequest: {
-        grant_access_token_audience: requested_access_token_audience,
-        grant_scope: requested_scope,
-        remember: remember ?? true,
-        remember_for: LOGIN_REMEMBER_FOR_SECONDS,
+        grant_access_token_audience: consentRequest.requested_access_token_audience ?? [],
+        grant_scope: grantScope,
+        remember: true,
+        remember_for: THIRTY_DAYS,
         session,
       },
-      consentChallenge: challenge,
+      consentChallenge,
     });
 
     return { accountHistoryCookie, redirectTo: response.redirect_to ?? '/' };
@@ -47,12 +46,8 @@ async function extractSession(
   session: AcceptOAuth2ConsentRequestSession;
 }> {
   const serverSession = await getServerSession();
-  const session: AcceptOAuth2ConsentRequestSession = {
-    access_token: {},
-    id_token: {},
-  };
-
   const identity = serverSession?.identity;
+
   if (!identity) {
     throw new HydraFlowError('Consent requires an active authenticated session.', {
       code: 'hydra_consent_session_missing',
@@ -61,7 +56,7 @@ async function extractSession(
     });
   }
 
-  if (consentSubject && identity.id !== consentSubject) {
+  if (!consentSubject || identity.id !== consentSubject) {
     throw new HydraFlowError('Consent subject does not match the authenticated session.', {
       code: 'hydra_consent_subject_mismatch',
       description: 'The consent request does not match the current authenticated session.',
@@ -69,90 +64,131 @@ async function extractSession(
     });
   }
 
-  const traits = isIdentityTraitsRecord(identity.traits) ? identity.traits : {};
-  const email = resolveEmail(identity, traits);
+  const traits = isRecord(identity.traits) ? identity.traits : {};
+  const email =
+    resolveOptionalString(traits.email) ??
+    resolveAddressValue(identity.verifiable_addresses, 'email');
+  const phone =
+    resolveOptionalString(traits.phone ?? traits.phone_number) ??
+    resolveAddressValue(identity.verifiable_addresses, 'sms');
   const name = resolveName(traits);
-  const picture = resolveOptionalString(traits.picture);
-  const preferredUsername = resolveOptionalString(traits.username);
-  const accountHistoryCookie = await serializeAccountHistory({
-    id: identity.id,
-    identifier: email ?? preferredUsername,
-    label: name ?? email ?? preferredUsername ?? identity.id,
-  });
+  const preferredUsername = resolveOptionalString(traits.username ?? traits.preferred_username);
+  const idToken: Record<string, unknown> = {};
 
-  if (grantScope.includes('email')) {
-    if (email) {
-      session.id_token.email = email;
-    }
+  if (grantScope.includes('email') && email) {
+    idToken.email = email;
+    idToken.email_verified = isExactAddressVerified(identity.verifiable_addresses, 'email', email);
+  }
 
-    const verifiedEmailAddress = (identity.verifiable_addresses || []).find(
-      (address) => address.via === 'email',
+  if (grantScope.includes('phone') && phone) {
+    idToken.phone_number = phone;
+    idToken.phone_number_verified = isExactAddressVerified(
+      identity.verifiable_addresses,
+      'sms',
+      phone,
     );
-    session.id_token.email_verified = verifiedEmailAddress?.verified ?? false;
   }
 
   if (grantScope.includes('profile')) {
-    if (preferredUsername) {
-      session.id_token.preferred_username = preferredUsername;
+    assignStringClaim(idToken, 'name', name);
+    assignStringClaim(idToken, 'given_name', nestedName(traits, 'first') ?? traits.given_name);
+    assignStringClaim(idToken, 'family_name', nestedName(traits, 'last') ?? traits.family_name);
+    for (const claim of [
+      'middle_name',
+      'nickname',
+      'profile',
+      'picture',
+      'website',
+      'gender',
+      'birthdate',
+      'zoneinfo',
+      'locale',
+    ]) {
+      assignStringClaim(idToken, claim, traits[claim]);
     }
-
-    const website = resolveOptionalString(traits.website);
-    if (website) {
-      session.id_token.website = website;
-    }
-
-    if (name) {
-      session.id_token.name = name;
-    }
-
-    if (picture) {
-      session.id_token.picture = picture;
-    }
+    assignStringClaim(idToken, 'preferred_username', preferredUsername);
 
     if (identity.updated_at) {
-      session.id_token.updated_at = Math.floor(identity.updated_at.getTime() / 1000);
+      const updatedAt = identity.updated_at.getTime();
+      if (Number.isFinite(updatedAt)) idToken.updated_at = Math.floor(updatedAt / 1000);
     }
   }
-  return { accountHistoryCookie, session };
+
+  if (grantScope.includes('address')) {
+    const address = resolveAddress(traits.address);
+    if (address) idToken.address = address;
+  }
+
+  const accountHistoryCookie = await serializeAccountHistory({
+    id: identity.id,
+    identifier: email ?? preferredUsername ?? phone,
+    label: name ?? email ?? preferredUsername ?? phone ?? identity.id,
+  });
+
+  return {
+    accountHistoryCookie,
+    session: { access_token: {}, id_token: idToken },
+  };
 }
 
-function isIdentityTraitsRecord(traits: unknown): traits is Record<string, unknown> {
-  return typeof traits === 'object' && traits !== null;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 function resolveOptionalString(value: unknown) {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
-}
-
-function resolveEmail(
-  identity: NonNullable<NonNullable<Awaited<ReturnType<typeof getServerSession>>>['identity']>,
-  traits: Record<string, unknown>,
-) {
-  const verifiedEmailAddress = (identity.verifiable_addresses || []).find(
-    (address) =>
-      address.via === 'email' && typeof address.value === 'string' && address.value.length > 0,
-  );
-
-  return verifiedEmailAddress?.value ?? resolveOptionalString(traits.email);
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 function resolveName(traits: Record<string, unknown>) {
-  const rawName = traits.name;
+  const direct = resolveOptionalString(traits.name);
+  if (direct) return direct;
+  const first = nestedName(traits, 'first');
+  const last = nestedName(traits, 'last');
+  return [first, last].filter(Boolean).join(' ') || null;
+}
 
-  if (typeof rawName === 'string' && rawName.trim().length > 0) {
-    return rawName.trim();
+function nestedName(traits: Record<string, unknown>, key: string) {
+  return isRecord(traits.name) ? resolveOptionalString(traits.name[key]) : null;
+}
+
+function assignStringClaim(target: Record<string, unknown>, claim: string, value: unknown) {
+  const normalized = resolveOptionalString(value);
+  if (normalized) target[claim] = normalized;
+}
+
+function isExactAddressVerified(
+  addresses: Array<{ value?: string; verified?: boolean; via?: string }> | undefined,
+  via: string,
+  emittedValue: string,
+) {
+  return Boolean(
+    addresses?.some(
+      (address) =>
+        address.via === via && address.value === emittedValue && address.verified === true,
+    ),
+  );
+}
+
+function resolveAddressValue(
+  addresses: Array<{ value?: string; via?: string }> | undefined,
+  via: string,
+) {
+  return resolveOptionalString(addresses?.find((address) => address.via === via)?.value);
+}
+
+function resolveAddress(value: unknown) {
+  if (!isRecord(value)) return null;
+  const address: Record<string, string> = {};
+  for (const field of [
+    'formatted',
+    'street_address',
+    'locality',
+    'region',
+    'postal_code',
+    'country',
+  ]) {
+    const normalized = resolveOptionalString(value[field]);
+    if (normalized) address[field] = normalized;
   }
-
-  if (typeof rawName === 'object' && rawName !== null) {
-    const first = resolveOptionalString((rawName as Record<string, unknown>).first);
-    const last = resolveOptionalString((rawName as Record<string, unknown>).last);
-
-    if (first && last) {
-      return `${first} ${last}`;
-    }
-
-    return first ?? last;
-  }
-
-  return null;
+  return Object.keys(address).length ? address : null;
 }

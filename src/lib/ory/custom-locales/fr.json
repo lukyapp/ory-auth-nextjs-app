@@ -7,6 +7,8 @@
   "consent.loading": "Chargement de la demande de consentement",
   "consent.permissions.title": "Cela autorisera {party} à...",
   "consent.privacy_policy": "Politique de confidentialité",
+  "consent.remember.notice": "Votre décision sera mémorisée pendant 30 jours.",
+  "consent.scope.allOrNothing": "L’autorisation accorde toutes les permissions listées ci-dessus.",
   "consent.scope.address.description": "Accède à votre adresse postale.",
   "consent.scope.address.title": "Adresse physique",
   "consent.scope.email.description": "Récupère votre adresse e-mail et son statut de vérification.",

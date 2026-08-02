@@ -5,11 +5,14 @@ import { getServerSession } from '@ory/nextjs/app';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { logAuthFlow } from '../auth-flow-log';
+import { createAuthIntentToken } from '../auth-intent';
 import { AuthDebugPanel, shouldShowAuthDiagnostics } from '../debug-panel';
 import { toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
 import { ConsentUi } from './consent-ui';
 import { getConsentRequest } from './getConsentRequest';
+
+export const dynamic = 'force-dynamic';
 
 export default async function ConsentPage(props: {
   searchParams: Promise<{
@@ -35,6 +38,10 @@ export default async function ConsentPage(props: {
     const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
     const oryConfig = createOryConfig(locale);
     const session = await getServerSession();
+    const subject = session?.identity?.id;
+    if (!subject || !consentRequest.subject || consentRequest.subject !== subject) {
+      throw new Error('Consent request does not match the authenticated session.');
+    }
     if (shouldSkipConsent(consentRequest)) {
       logAuthFlow('consent.challenge.skipped', {
         clientId: consentRequest.client?.client_id ?? null,
@@ -49,8 +56,26 @@ export default async function ConsentPage(props: {
       locale,
       requestedScopes: consentRequest.requested_scope ?? [],
     });
+    const acceptIntentToken = createAuthIntentToken({
+      action: 'consent-accept',
+      challenge: consentChallenge,
+      subject,
+    });
+    const rejectIntentToken = createAuthIntentToken({
+      action: 'consent-reject',
+      challenge: consentChallenge,
+      subject,
+    });
     if (!showDiagnostics) {
-      return <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} session={session} />;
+      return (
+        <ConsentUi
+          consentRequest={consentRequest}
+          acceptIntentToken={acceptIntentToken}
+          oryConfig={oryConfig}
+          rejectIntentToken={rejectIntentToken}
+          session={session}
+        />
+      );
     }
 
     return (
@@ -70,7 +95,13 @@ export default async function ConsentPage(props: {
             Subject: consentRequest.subject ?? null,
           }}
         />
-        <ConsentUi consentRequest={consentRequest} oryConfig={oryConfig} session={session} />
+        <ConsentUi
+          consentRequest={consentRequest}
+          acceptIntentToken={acceptIntentToken}
+          oryConfig={oryConfig}
+          rejectIntentToken={rejectIntentToken}
+          session={session}
+        />
       </div>
     );
   } catch (error: unknown) {
@@ -79,7 +110,7 @@ export default async function ConsentPage(props: {
     }
 
     logAuthFlow('consent.flow.error', {
-      error: error instanceof Error ? error.message : 'unknown',
+      errorCode: 'consent_flow_error',
     });
     redirect(toErrorPageHref(error));
   }

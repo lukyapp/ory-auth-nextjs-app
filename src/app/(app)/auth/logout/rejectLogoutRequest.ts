@@ -1,5 +1,4 @@
-'use server';
-
+import 'server-only';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
 import { createHydraFlowError } from '../hydra-flow-error';
 

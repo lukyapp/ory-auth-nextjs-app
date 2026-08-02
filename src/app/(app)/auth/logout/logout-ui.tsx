@@ -3,35 +3,57 @@
 import { IntlProvider } from '@/lib/ory/elements-react/src/context/intl-context';
 import { OryClientConfiguration } from '@ory/elements-react';
 import { LogOut } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 
 type LogoutUiProps = {
-  cancelUrl: string;
+  autoSubmit?: boolean;
+  cancelAction: LogoutAction;
   displayName: string;
-  logoutUrl: string;
+  logoutAction: LogoutAction;
   config: OryClientConfiguration;
 };
 
-export function LogoutUi({ cancelUrl, displayName, config, logoutUrl }: LogoutUiProps) {
+type LogoutAction = {
+  challenge?: string;
+  intentToken?: string;
+  returnTo?: string;
+  url: string;
+};
+
+export function LogoutUi({
+  autoSubmit,
+  cancelAction,
+  displayName,
+  config,
+  logoutAction,
+}: LogoutUiProps) {
   return (
     <IntlProvider
       locale={config.intl?.locale ?? 'en'}
       customTranslations={config.intl?.customTranslations}
     >
-      <LogoutContent cancelUrl={cancelUrl} displayName={displayName} logoutUrl={logoutUrl} />
+      <LogoutContent
+        autoSubmit={autoSubmit}
+        cancelAction={cancelAction}
+        displayName={displayName}
+        logoutAction={logoutAction}
+      />
     </IntlProvider>
   );
 }
 
 function LogoutContent({
-  cancelUrl,
+  autoSubmit,
+  cancelAction,
   displayName,
-  logoutUrl,
-}: Pick<LogoutUiProps, 'cancelUrl' | 'displayName' | 'logoutUrl'>) {
+  logoutAction,
+}: Pick<LogoutUiProps, 'autoSubmit' | 'cancelAction' | 'displayName' | 'logoutAction'>) {
   const intl = useIntl();
 
   return (
     <main className="fixed inset-0 min-h-screen overflow-y-auto overscroll-contain bg-white text-[#1f1f1f]">
+      {autoSubmit ? <AutoSubmitAction action={logoutAction} /> : null}
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[33rem_1fr]">
         <aside className="flex min-h-[32rem] flex-col bg-[#f3f3f3] px-8 py-8 sm:px-12 lg:min-h-screen lg:px-20 lg:py-20">
           <div className="flex items-center gap-2 text-[1.05rem] font-semibold">
@@ -112,28 +134,82 @@ function LogoutContent({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <a
-                href={logoutUrl}
+              <ActionForm
+                action={logoutAction}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#2157c8] px-7 text-base font-semibold text-white transition hover:bg-[#1b49aa]"
               >
                 {intl.formatMessage({
                   defaultMessage: 'Log out now',
                   id: 'logout.action.confirm',
                 })}
-              </a>
-              <a
-                href={cancelUrl}
+              </ActionForm>
+              <ActionForm
+                action={cancelAction}
                 className="inline-flex h-12 items-center justify-center rounded-md bg-[#f0f1f2] px-7 text-base font-semibold text-[#1f5ed8] transition hover:bg-[#e6e8eb]"
               >
                 {intl.formatMessage({
                   defaultMessage: 'Cancel',
                   id: 'logout.action.cancel',
                 })}
-              </a>
+              </ActionForm>
             </div>
           </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function AutoSubmitAction({ action }: { action: LogoutAction }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const submittedRef = useRef(false);
+  useEffect(() => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    formRef.current?.requestSubmit();
+  }, []);
+
+  return (
+    <form ref={formRef} action={action.url} method="post" className="hidden">
+      <ActionFields action={action} />
+    </form>
+  );
+}
+
+function ActionForm({
+  action,
+  children,
+  className,
+}: {
+  action: LogoutAction;
+  children: React.ReactNode;
+  className: string;
+}) {
+  if (!action.intentToken)
+    return (
+      <a href={action.url} className={className}>
+        {children}
+      </a>
+    );
+
+  return (
+    <form action={action.url} method="post">
+      <ActionFields action={action} />
+      <button type="submit" className={`w-full ${className}`}>
+        {children}
+      </button>
+    </form>
+  );
+}
+
+function ActionFields({ action }: { action: LogoutAction }) {
+  return (
+    <>
+      <input type="hidden" name="intent_token" value={action.intentToken} />
+      {action.challenge ? (
+        <input type="hidden" name="logout_challenge" value={action.challenge} />
+      ) : null}
+      {action.returnTo ? <input type="hidden" name="return_to" value={action.returnTo} /> : null}
+    </>
   );
 }

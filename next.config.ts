@@ -1,5 +1,25 @@
 import type { NextConfig } from 'next';
-import './src/check-env';
+import { env } from './src/check-env';
+
+const allowedOrigins = [
+  new URL(env.NEXT_PUBLIC_ORY_SDK_URL).origin,
+  env.ORY_HYDRA_PUBLIC_URL ? new URL(env.ORY_HYDRA_PUBLIC_URL).origin : null,
+].filter((value): value is string => Boolean(value));
+const externalSources = [...new Set(allowedOrigins)].join(' ');
+const developmentConnectSource = process.env.NODE_ENV === 'production' ? '' : ' ws:';
+const developmentScriptSource = process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'";
+const contentSecurityPolicy = [
+  "default-src 'none'",
+  "base-uri 'self'",
+  `connect-src 'self' ${externalSources}${developmentConnectSource}`.trim(),
+  "font-src 'self' data:",
+  `form-action 'self' ${externalSources}`.trim(),
+  "frame-ancestors 'none'",
+  "img-src 'self' data: https:",
+  "object-src 'none'",
+  `script-src 'self' 'unsafe-inline'${developmentScriptSource}`,
+  "style-src 'self' 'unsafe-inline'",
+].join('; ');
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -8,8 +28,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value:
-              "frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://id.dhe.ovh https://oauth.dhe.ovh; object-src 'none'",
+            value: contentSecurityPolicy,
           },
           {
             key: 'Permissions-Policy',
@@ -34,6 +53,24 @@ const nextConfig: NextConfig = {
         ],
         source: '/:path*',
       },
+      {
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, max-age=0, must-revalidate',
+          },
+        ],
+        source: '/auth/:path*',
+      },
+      {
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, max-age=0, must-revalidate',
+          },
+        ],
+        source: '/api/consent/:path*',
+      },
     ];
   },
   poweredByHeader: false,
@@ -44,9 +81,6 @@ const nextConfig: NextConfig = {
         loaders: ['@svgr/webpack'],
       },
     },
-  },
-  typescript: {
-    ignoreBuildErrors: true,
   },
 };
 

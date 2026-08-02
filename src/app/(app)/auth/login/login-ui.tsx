@@ -29,17 +29,25 @@ import { useIntl } from 'react-intl';
 type LoginUiProps = {
   accountChoice?: {
     accounts: {
-      href: string;
+      action: AccountAction;
       id: string;
       identifier: string | null;
       isConnected: boolean;
       label: string;
     }[];
-    useAnotherHref: string;
+    useAnotherAction: AccountAction;
   };
   clientName?: string | null;
   config: OryClientConfiguration;
   flow: LoginFlow;
+};
+
+type AccountAction = {
+  accountId: string | null;
+  intentToken: string;
+  loginChallenge: string;
+  selection: 'current' | 'remembered' | 'another';
+  url: string;
 };
 
 export function LoginUi({ accountChoice, clientName, config, flow }: LoginUiProps) {
@@ -169,9 +177,9 @@ function AccountChoiceScreen({
           {accountChoice.accounts.map((account) => (
             <AccountChoiceRow key={account.id} account={account} />
           ))}
-          <a
-            href={accountChoice.useAnotherHref}
-            className="flex min-h-16 items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-[#242424] transition hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
+          <AccountActionForm
+            action={accountChoice.useAnotherAction}
+            className="flex min-h-16 w-full items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-left text-[#242424] transition hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
           >
             <span className="grid h-10 w-10 shrink-0 place-items-center text-[#777]">
               <PlusCircle className="h-6 w-6" aria-hidden="true" />
@@ -182,7 +190,7 @@ function AccountChoiceScreen({
                 id: 'login.accountChoice.useAnother',
               })}
             </span>
-          </a>
+          </AccountActionForm>
         </div>
       </div>
     </SquareAuthShell>
@@ -197,9 +205,9 @@ function AccountChoiceRow({
   const intl = useIntl();
 
   return (
-    <a
-      href={account.href}
-      className="flex min-h-16 items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-[#242424] transition first:border-t-0 hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
+    <AccountActionForm
+      action={account.action}
+      className="flex min-h-16 w-full items-center gap-4 border-t border-[#e5e5e5] px-4 py-3 text-left text-[#242424] transition first:border-t-0 hover:bg-[#f7f7f7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#1f5ed8]"
     >
       <span
         className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-base font-semibold text-white"
@@ -223,7 +231,29 @@ function AccountChoiceRow({
           })}
         </span>
       ) : null}
-    </a>
+    </AccountActionForm>
+  );
+}
+
+function AccountActionForm({
+  action,
+  children,
+  className,
+}: {
+  action: AccountAction;
+  children: React.ReactNode;
+  className: string;
+}) {
+  return (
+    <form action={action.url} method="post">
+      <input type="hidden" name="login_challenge" value={action.loginChallenge} />
+      <input type="hidden" name="intent_token" value={action.intentToken} />
+      <input type="hidden" name="selection" value={action.selection} />
+      {action.accountId ? <input type="hidden" name="account_id" value={action.accountId} /> : null}
+      <button type="submit" className={className}>
+        {children}
+      </button>
+    </form>
   );
 }
 

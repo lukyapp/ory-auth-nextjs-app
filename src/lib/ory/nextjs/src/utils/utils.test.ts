@@ -42,9 +42,19 @@ describe('toFlowParams', () => {
 });
 
 describe('processSetCookieHeaders', () => {
+  const originalAppPublicUrl = process.env.APP_PUBLIC_URL;
+
+  beforeEach(() => {
+    delete process.env.APP_PUBLIC_URL;
+  });
+
+  afterAll(() => {
+    if (originalAppPublicUrl) process.env.APP_PUBLIC_URL = originalAppPublicUrl;
+  });
+
   [
     {
-      name: 'should respect forwarded headers',
+      name: 'should ignore forwarded headers',
       protocol: 'http',
       forwardedProtocol: 'https',
       host: 'console.ory.sh',

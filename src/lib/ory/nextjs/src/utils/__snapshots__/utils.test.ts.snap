@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`processSetCookieHeaders should respect forwarded headers 1`] = `
+exports[`processSetCookieHeaders should ignore forwarded headers 1`] = `
 [
-  "sessionid=abc123; Domain=ory.sh; Path=/; HttpOnly; Secure",
+  "sessionid=abc123; Domain=ory.sh; Path=/; HttpOnly",
 ]
 `;
 

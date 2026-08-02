@@ -7,6 +7,8 @@
   "consent.loading": "Loading consent request",
   "consent.permissions.title": "This will allow {party} to...",
   "consent.privacy_policy": "Privacy Policy",
+  "consent.remember.notice": "Your decision will be remembered for 30 days.",
+  "consent.scope.allOrNothing": "Approving grants all permissions listed above.",
   "consent.scope.address.description": "Access your postal address.",
   "consent.scope.address.title": "Physical Address",
   "consent.scope.email.description": "Retrieve your email address and its verification status.",

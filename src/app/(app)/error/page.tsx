@@ -40,13 +40,11 @@ function getErrorPresentation(params: {
   errorDescription: string;
   errorId: string;
   kratosReason?: string;
-  kratosMessage?: string;
 }): ErrorPresentation {
   const normalizedCode = params.errorCode.toLowerCase();
   const normalizedReason = (params.kratosReason ?? '').toLowerCase();
   const description =
     params.errorDescription ||
-    params.kratosMessage ||
     'This authentication flow expired, was interrupted, or could not be completed.';
 
   if (
@@ -77,6 +75,17 @@ function getErrorPresentation(params: {
       primaryLabel: 'Back to portal',
       secondaryHref: '/auth/login',
       secondaryLabel: 'Sign in again',
+    };
+  }
+
+  if (normalizedCode.includes('logout')) {
+    return {
+      title: 'Sign out could not be completed',
+      description: params.errorDescription || 'Your session was not ended. Please retry.',
+      primaryHref: '/auth/logout',
+      primaryLabel: 'Retry sign out',
+      secondaryHref: '/',
+      secondaryLabel: 'Back to portal',
     };
   }
 
@@ -137,7 +146,6 @@ export default async function KratosErrorPage({
     errorCode,
     errorDescription,
     errorId,
-    kratosMessage: error?.error?.message,
     kratosReason: error?.error?.reason,
   });
 
@@ -156,9 +164,6 @@ export default async function KratosErrorPage({
         {error?.error ? (
           <div className="space-y-3 rounded-2xl bg-slate-50 p-4">
             <p className="text-sm leading-6 text-slate-700">{presentation.description}</p>
-            {error.error.reason ? (
-              <p className="text-sm text-slate-500">Technical reason: {error.error.reason}</p>
-            ) : null}
             {error.id ? <p className="text-xs text-slate-400">Reference ID: {error.id}</p> : null}
           </div>
         ) : (

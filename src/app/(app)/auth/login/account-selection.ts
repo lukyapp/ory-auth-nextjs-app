@@ -1,4 +1,6 @@
-import { createHash } from 'node:crypto';
+import 'server-only';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { env } from '@/check-env';
 import { cookies } from 'next/headers';
 
 const ACCOUNT_SELECTION_COOKIE = 'ory_auth_account_selection';
@@ -24,9 +26,9 @@ export async function readAccountSelection(
   }
 
   try {
-    const selection = JSON.parse(
-      Buffer.from(encodedSelection, 'base64url').toString('utf8'),
-    ) as unknown;
+    const [payload, signature, extra] = encodedSelection.split('.');
+    if (!payload || !signature || extra || !isValidSignature(payload, signature)) return null;
+    const selection = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as unknown;
 
     const normalizedSelection = normalizeAccountSelection(selection);
 
@@ -59,7 +61,7 @@ export function serializeAccountSelection({
       sameSite: 'lax' as const,
       secure: process.env.NODE_ENV === 'production',
     },
-    value: Buffer.from(JSON.stringify(selection), 'utf8').toString('base64url'),
+    value: signSelection(selection),
   };
 }
 
@@ -84,5 +86,23 @@ function hashLoginChallenge(loginChallenge: string) {
 }
 
 function normalizeString(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null;
+  return typeof value === 'string' && value.trim() ? value.trim().slice(0, 254) : null;
+}
+
+function signSelection(selection: AccountSelection) {
+  const payload = Buffer.from(JSON.stringify(selection), 'utf8').toString('base64url');
+  return `${payload}.${signature(payload)}`;
+}
+
+function isValidSignature(payload: string, provided: string) {
+  const expected = Buffer.from(signature(payload), 'base64url');
+  const actual = Buffer.from(provided, 'base64url');
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+function signature(payload: string) {
+  return createHmac('sha256', env.AUTH_FLOW_SECRET)
+    .update('account-selection-v1\0')
+    .update(payload)
+    .digest('base64url');
 }

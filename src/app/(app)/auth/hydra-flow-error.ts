@@ -36,7 +36,7 @@ export function createHydraFlowError(
   logError(`hydra.${context}`, {
     code: hydraError.code,
     description: hydraError.description,
-    error,
+    errorType: error instanceof Error ? error.name : typeof error,
   });
 
   return hydraError;
@@ -52,10 +52,7 @@ export function toErrorPageHref(error: unknown) {
   }
 
   searchParams.set('error', 'auth_flow_error');
-  searchParams.set(
-    'error_description',
-    error instanceof Error ? error.message : 'Authentication flow failed.',
-  );
+  searchParams.set('error_description', 'Authentication flow failed. Please try again.');
   return `/error?${searchParams.toString()}`;
 }
 
@@ -73,7 +70,7 @@ export function toErrorResponse(error: unknown, fallbackMessage: string) {
   return {
     body: {
       code: 'auth_flow_error',
-      error: error instanceof Error ? error.message : fallbackMessage,
+      error: fallbackMessage,
     },
     status: 500,
   };

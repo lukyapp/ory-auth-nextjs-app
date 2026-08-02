@@ -30,10 +30,9 @@ export function processSetCookieHeaders(
   options: OryMiddlewareOptions,
   requestHeaders: Headers,
 ) {
-  const isTls = protocol === 'https:' || requestHeaders.get('x-forwarded-proto') === 'https';
-
-  const forwarded = requestHeaders.get('x-forwarded-host');
-  const host = forwarded ? forwarded : requestHeaders.get('host');
+  const configuredUrl = parseConfiguredPublicUrl();
+  const isTls = configuredUrl ? configuredUrl.protocol === 'https:' : protocol === 'https:';
+  const host = configuredUrl?.host ?? requestHeaders.get('host');
   const domain =
     host && !options.forceCookieDomain ? guessCookieDomain(host ?? '') : options.forceCookieDomain;
 
@@ -45,6 +44,14 @@ export function processSetCookieHeaders(
       encode: (v: string) => v,
     }))
     .map(({ value, name, ...options }) => serialize(name, value, options as SerializeOptions));
+}
+
+function parseConfiguredPublicUrl() {
+  try {
+    return process.env.APP_PUBLIC_URL ? new URL(process.env.APP_PUBLIC_URL) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function filterRequestHeaders(

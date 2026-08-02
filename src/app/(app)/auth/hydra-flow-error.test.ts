@@ -15,7 +15,7 @@ describe('toErrorPageHref', () => {
 
   it('returns a generic auth error page href for unknown errors', () => {
     expect(toErrorPageHref(new Error('Boom'))).toBe(
-      '/error?error=auth_flow_error&error_description=Boom',
+      '/error?error=auth_flow_error&error_description=Authentication+flow+failed.+Please+try+again.',
     );
   });
 });
@@ -41,7 +41,7 @@ describe('toErrorResponse', () => {
     expect(toErrorResponse(new Error('Unexpected failure'), 'fallback')).toEqual({
       body: {
         code: 'auth_flow_error',
-        error: 'Unexpected failure',
+        error: 'fallback',
       },
       status: 500,
     });

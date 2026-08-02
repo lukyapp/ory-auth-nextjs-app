@@ -1,33 +1,42 @@
-'use server';
-
-import { OAuth2LoginRequest } from '@ory/client-fetch';
+import 'server-only';
+import { getServerSession } from '@ory/nextjs/app';
 import { getOAuth2ApiFetchClient } from '@ory/sdk/server';
-import { createHydraFlowError } from '../hydra-flow-error';
+import { createHydraFlowError, HydraFlowError } from '../hydra-flow-error';
+import { getLoginRequest } from './getLoginRequest';
 
-const TWELVE_HOURS = 43200;
-const THIRTY_DAYS = 2592000;
-const LOGIN_REMEMBER_FOR_SECONDS = THIRTY_DAYS;
+const THIRTY_DAYS = 2_592_000;
 
-type AcceptLoginRequestBody = {
-  remember?: boolean;
-} & OAuth2LoginRequest;
+export async function acceptLoginRequest(loginChallenge: string) {
+  const [loginRequest, serverSession] = await Promise.all([
+    getLoginRequest(loginChallenge),
+    getServerSession(),
+  ]);
+  const subject = serverSession?.identity?.id;
 
-export async function acceptLoginRequest(body: AcceptLoginRequestBody) {
-  const { challenge, subject, remember } = body;
+  if (!subject) {
+    throw new HydraFlowError('Login acceptance requires an active session.', {
+      code: 'hydra_login_session_missing',
+      description: 'Your authentication session expired. Sign in again to continue.',
+      status: 401,
+    });
+  }
+
+  if (loginRequest.subject && loginRequest.subject !== subject) {
+    throw new HydraFlowError('Login subject does not match the authenticated session.', {
+      code: 'hydra_login_subject_mismatch',
+      description: 'The login request does not match the current authenticated session.',
+      status: 403,
+    });
+  }
+
   const hydra = await getOAuth2ApiFetchClient();
   try {
     const response = await hydra.acceptOAuth2LoginRequest({
-      loginChallenge: challenge,
+      loginChallenge,
       acceptOAuth2LoginRequest: {
         subject,
-        remember: remember ?? true,
-        remember_for: LOGIN_REMEMBER_FOR_SECONDS,
-        // amr,
-        // acr,
-        // context,
-        // extend_session_lifespan,
-        // identity_provider_session_id,
-        // force_subject_identifier
+        remember: true,
+        remember_for: THIRTY_DAYS,
       },
     });
 

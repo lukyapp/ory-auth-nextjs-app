@@ -58,10 +58,10 @@ export async function getError(
 
   try {
     return await serverSideFrontendClient().getFlowError({ id });
-  } catch (error: unknown) {
+  } catch {
     return {
       error: 'unknown_error',
-      error_description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      error_description: 'An unknown error occurred.',
     };
   }
 }

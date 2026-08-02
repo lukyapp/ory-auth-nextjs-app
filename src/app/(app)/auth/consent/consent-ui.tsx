@@ -20,17 +20,9 @@ import {
 } from '@ory/elements-react';
 import { Consent } from '@ory/elements-react/theme';
 import { ChevronDown, Loader2, Settings } from 'lucide-react';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  type PropsWithChildren,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo, type PropsWithChildren } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useIntl } from 'react-intl';
-import { useCsrfToken } from './useCsrfToken';
 
 type ConsentAction = 'accept' | 'reject';
 
@@ -49,19 +41,22 @@ type InputUiNode = UiNode & {
 };
 
 export const ConsentUi = ({
+  acceptIntentToken,
   consentRequest,
   oryConfig,
+  rejectIntentToken,
   session,
 }: {
+  acceptIntentToken: string;
   consentRequest: OAuth2ConsentRequest;
   oryConfig: OryClientConfiguration;
+  rejectIntentToken: string;
   session: Session | null;
 }) => {
-  const csrfToken = useCsrfToken(consentRequest.challenge);
   const clientName = resolveClientName(consentRequest);
   const accountName = useMemo(() => resolveAccountName(session?.identity?.traits), [session]);
 
-  if (!session || !csrfToken) {
+  if (!session) {
     return (
       <div className="fixed inset-0 grid min-h-screen place-items-center bg-white text-neutral-500">
         <Loader2
@@ -79,8 +74,10 @@ export const ConsentUi = ({
     <ConsentContext.Provider
       value={{
         accountName,
+        acceptIntentToken,
         clientName,
-        policyUri: consentRequest.client?.policy_uri,
+        policyUri: resolveHttpUrl(consentRequest.client?.policy_uri),
+        rejectIntentToken,
       }}
     >
       <Consent
@@ -88,7 +85,7 @@ export const ConsentUi = ({
         session={session}
         consentChallenge={consentRequest}
         formActionUrl="/api/consent/submit"
-        csrfToken={csrfToken}
+        csrfToken={acceptIntentToken}
         components={squareConsentComponents}
       />
     </ConsentContext.Provider>
@@ -97,8 +94,10 @@ export const ConsentUi = ({
 
 type ConsentContextValue = {
   accountName?: string;
+  acceptIntentToken: string;
   clientName?: string;
   policyUri?: string;
+  rejectIntentToken: string;
 };
 
 const ConsentContext = createContext<ConsentContextValue | null>(null);
@@ -195,15 +194,8 @@ function SquareFormGroup() {
   const grantScopeNodes = useMemo(() => nodes.filter(isGrantScopeNode), [nodes]);
   const hiddenNodes = useMemo(() => nodes.filter(isHiddenNode), [nodes]);
   const scopeItems = useMemo(() => nodesToScopeItems(nodes), [nodes]);
-  const scopeValues = useMemo(() => scopeItems.map((scope) => scope.key), [scopeItems]);
-  const { setValue } = useFormContext();
   const { clientName } = useConsentContext();
   const intl = useIntl();
-
-  useEffect(() => {
-    setValue('grant_scope', scopeValues);
-    setValue('remember', true);
-  }, [scopeValues, setValue]);
 
   return (
     <>
@@ -236,6 +228,21 @@ function SquareFormGroup() {
           : scopeItems.map((scope) => <ScopeItemRow key={scope.key} scope={scope.key} />)}
       </div>
 
+      <div className="mt-5 space-y-1 text-sm leading-5 text-[#737373]">
+        <p>
+          {intl.formatMessage({
+            defaultMessage: 'Approving grants all permissions listed above.',
+            id: 'consent.scope.allOrNothing',
+          })}
+        </p>
+        <p>
+          {intl.formatMessage({
+            defaultMessage: 'Your decision will be remembered for 30 days.',
+            id: 'consent.remember.notice',
+          })}
+        </p>
+      </div>
+
       <div className="mt-12 flex items-center justify-between gap-4">
         {sortActionNodes(actionNodes).map((node) => (
           <ConsentActionButton key={getNodeKey(node)} node={node} />
@@ -248,10 +255,13 @@ function SquareFormGroup() {
 function ConsentActionButton({ node }: { node: InputUiNode }) {
   const { formState, setValue } = useFormContext();
   const { formState: oryFormState } = useOryFlow();
+  const { acceptIntentToken, rejectIntentToken } = useConsentContext();
+  const action = getConsentAction(node);
 
   const handleClick = useCallback(() => {
     setValue(node.attributes.name, node.attributes.value);
-  }, [node, setValue]);
+    setValue('csrf_token', action === 'accept' ? acceptIntentToken : rejectIntentToken);
+  }, [acceptIntentToken, action, node, rejectIntentToken, setValue]);
 
   const buttonProps = {
     disabled:
@@ -396,6 +406,16 @@ function resolveClientName(consentRequest: OAuth2ConsentRequest) {
     consentRequest.client?.client_id?.trim() ||
     undefined
   );
+}
+
+function resolveHttpUrl(value: string | null | undefined) {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function resolveAccountName(traits: unknown) {

@@ -2,6 +2,7 @@
 // Copyright © 2024 Ory Corp
 // SPDX-License-Identifier: Apache-2.0
 
+import { resolveConfiguredAppPublicOrigin } from '@/app/(app)/auth/public-url';
 import { headers } from 'next/headers';
 import { getCookieHeader, getPublicUrl } from './utils';
 
@@ -16,6 +17,10 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('../utils/utils', () => ({
   toFlowParams: jest.fn(),
+}));
+
+jest.mock('@/app/(app)/auth/public-url', () => ({
+  resolveConfiguredAppPublicOrigin: jest.fn(),
 }));
 
 describe('getCookieHeader', () => {
@@ -43,39 +48,14 @@ describe('getCookieHeader', () => {
 });
 
 describe('getPublicUrl', () => {
-  it('should construct the URL with the x-forwarded-proto header when available', async () => {
-    const headersMock = {
-      get: jest.fn((key: string) => {
-        if (key === 'host') return 'example.com';
-        if (key === 'x-forwarded-proto') return 'https';
-        return undefined;
-      }),
-    };
-    (headers as jest.Mock).mockResolvedValue(headersMock);
-
+  it('returns the configured public origin', async () => {
+    (resolveConfiguredAppPublicOrigin as jest.Mock).mockReturnValue('https://auth.example.com');
     const result = await getPublicUrl();
-    expect(result).toBe('https://example.com');
+    expect(result).toBe('https://auth.example.com');
   });
 
-  it('should default to http if x-forwarded-proto is not present', async () => {
-    const headersMock = {
-      get: jest.fn((key: string) => {
-        if (key === 'host') return 'example.com';
-        return undefined;
-      }),
-    };
-    (headers as jest.Mock).mockResolvedValue(headersMock);
-
-    const result = await getPublicUrl();
-    expect(result).toBe('http://example.com');
-  });
-
-  it('should return undefined when the host header is missing', async () => {
-    const headersMock = {
-      get: jest.fn().mockReturnValue(undefined),
-    };
-    (headers as jest.Mock).mockResolvedValue(headersMock);
-
+  it('does not construct an origin from request headers', async () => {
+    (resolveConfiguredAppPublicOrigin as jest.Mock).mockReturnValue(null);
     const result = await getPublicUrl();
     expect(result).toBeUndefined();
   });
