@@ -2,9 +2,10 @@ import { getLogoutFlow } from '@ory/nextjs/app';
 import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { logAuthFlow } from '../../auth-flow-log';
+import { resolveAppRedirectUrl, sanitizeLogoutReturnTo } from '../logout-redirect';
 
 export async function GET(request: NextRequest) {
-  const requestedReturnTo = sanitizeReturnTo(request.nextUrl.searchParams.get('return_to'));
+  const requestedReturnTo = sanitizeLogoutReturnTo(request.nextUrl.searchParams.get('return_to'));
   const finalReturnTo = requestedReturnTo ?? '/';
   const kratosReturnTo = toKratosReturnTo(finalReturnTo);
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     });
     const location = logoutResponse.headers.get('location');
     const redirectTo = location && !isErrorRedirect(location) ? location : finalReturnTo;
-    const response = NextResponse.redirect(new URL(redirectTo, request.url));
+    const response = NextResponse.redirect(resolveAppRedirectUrl(redirectTo, request));
 
     for (const cookie of getSetCookies(logoutResponse.headers)) {
       response.headers.append('set-cookie', cookie);
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
       returnTo: finalReturnTo,
     });
 
-    return NextResponse.redirect(new URL(finalReturnTo, request.url));
+    return NextResponse.redirect(resolveAppRedirectUrl(finalReturnTo, request));
   }
 }
 
@@ -55,25 +56,6 @@ function toKratosReturnTo(returnTo: string) {
   }
 
   return `/auth/logout/complete?return_to=${encodeURIComponent(returnTo)}`;
-}
-
-function sanitizeReturnTo(returnTo: string | null) {
-  if (!returnTo) {
-    return null;
-  }
-
-  if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
-    return returnTo;
-  }
-
-  try {
-    const url = new URL(returnTo);
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-
-    return isLocalhost && ['http:', 'https:'].includes(url.protocol) ? url.toString() : null;
-  } catch {
-    return null;
-  }
 }
 
 function getSetCookies(headers: Headers) {
