@@ -118,14 +118,21 @@ export default async function LoginPage(props: OryPageParams) {
         hasLoginChallenge: Boolean(loginChallenge),
         subject: sessionSubject,
       });
-      const { redirectTo } = await acceptLoginRequest(resolvedLoginChallenge!);
+      const loginAcceptance = await acceptLoginRequest(resolvedLoginChallenge!);
 
-      if (redirectTo) {
+      if (loginAcceptance.status === 'verification_required') {
+        logAuthFlow('login.verification.required', {
+          clientId: loginRequest.client?.client_id ?? null,
+        });
+        redirect(loginAcceptance.verificationUrl);
+      }
+
+      if (loginAcceptance.redirectTo) {
         logAuthFlow('login.challenge.redirect', {
           clientId: loginRequest.client?.client_id ?? null,
-          redirectTo,
+          redirectTo: loginAcceptance.redirectTo,
         });
-        redirect(redirectTo);
+        redirect(loginAcceptance.redirectTo);
       }
     }
 

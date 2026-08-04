@@ -58,9 +58,18 @@ export async function POST(request: NextRequest) {
       if (!subject || (loginRequest.subject && loginRequest.subject !== subject)) {
         throw invalidIntent();
       }
-      const { redirectTo } = await acceptLoginRequest(body.login_challenge);
-      if (!redirectTo) throw new Error('Hydra did not return a login continuation URL.');
-      return NextResponse.redirect(resolveHydraContinuationUrl(redirectTo), {
+      const loginAcceptance = await acceptLoginRequest(body.login_challenge);
+      if (loginAcceptance.status === 'verification_required') {
+        logAuthFlow('login.verification.required');
+        return NextResponse.redirect(loginAcceptance.verificationUrl, {
+          headers: noStoreHeaders(),
+          status: 303,
+        });
+      }
+      if (!loginAcceptance.redirectTo) {
+        throw new Error('Hydra did not return a login continuation URL.');
+      }
+      return NextResponse.redirect(resolveHydraContinuationUrl(loginAcceptance.redirectTo), {
         headers: noStoreHeaders(),
         status: 303,
       });

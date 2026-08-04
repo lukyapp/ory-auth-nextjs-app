@@ -9,6 +9,7 @@ export type AuthIntentAction =
   | 'consent-reject'
   | 'login-account'
   | 'login-current'
+  | 'login-verify'
   | 'logout-cancel'
   | 'logout-confirm';
 

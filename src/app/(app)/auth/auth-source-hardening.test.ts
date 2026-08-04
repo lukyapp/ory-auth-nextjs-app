@@ -28,6 +28,7 @@ test('Hydra helpers are server-only modules and are not Server Actions', () => {
 test('legacy account and logout GET routes cannot consume challenges', () => {
   for (const file of [
     'login/account/route.ts',
+    'login/verification/complete/route.ts',
     'logout/accept/route.ts',
     'logout/reject/route.ts',
   ]) {
@@ -44,4 +45,14 @@ test('consent submission does not use a closed scope enum or browser grants', ()
   assert.doesNotMatch(contents, /ScopeSchema|z\.enum\(\['openid'/);
   assert.doesNotMatch(contents, /grant_scope:\s*body\./);
   assert.match(contents, /acceptConsentRequest\(\s*body\.consent_challenge/);
+});
+
+test('Hydra login acceptance is gated by the verified email check', () => {
+  const contents = source('login/acceptLoginRequest.ts');
+  const verificationCheck = contents.indexOf('getVerifiedEmailStatus(identity)');
+  const hydraClient = contents.indexOf('getOAuth2ApiFetchClient()');
+
+  assert.notEqual(verificationCheck, -1);
+  assert.notEqual(hydraClient, -1);
+  assert.ok(verificationCheck < hydraClient);
 });

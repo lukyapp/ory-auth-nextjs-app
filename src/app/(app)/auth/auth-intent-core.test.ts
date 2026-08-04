@@ -38,8 +38,8 @@ test('rejects missing, tampered, and expired tokens', () => {
 
 test('binds account, destination, and action', () => {
   const logoutIntent = {
-    action: 'logout-cancel' as const,
     accountId: 'account-a',
+    action: 'logout-cancel' as const,
     challenge: 'challenge-a',
     returnTo: 'https://client.example/post-logout',
     subject: 'subject-a',
@@ -51,6 +51,26 @@ test('binds account, destination, and action', () => {
       secret,
       token,
       { ...logoutIntent, action: 'logout-confirm' },
+      now,
+    ),
+    false,
+  );
+});
+
+test('binds an email verification continuation to its subject and challenge', () => {
+  const verificationIntent = {
+    action: 'login-verify' as const,
+    challenge: 'challenge-a',
+    subject: 'subject-a',
+  };
+  const token = createAuthIntentTokenWithSecret(secret, verificationIntent, now);
+
+  assert.equal(verifyAuthIntentTokenWithSecret(secret, token, verificationIntent, now), true);
+  assert.equal(
+    verifyAuthIntentTokenWithSecret(
+      secret,
+      token,
+      { ...verificationIntent, subject: 'subject-b' },
       now,
     ),
     false,
