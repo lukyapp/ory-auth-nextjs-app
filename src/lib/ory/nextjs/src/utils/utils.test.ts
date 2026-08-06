@@ -42,14 +42,14 @@ describe('toFlowParams', () => {
 });
 
 describe('processSetCookieHeaders', () => {
-  const originalAppPublicUrl = process.env.APP_PUBLIC_URL;
+  const originalSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
   beforeEach(() => {
-    delete process.env.APP_PUBLIC_URL;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
   });
 
   afterAll(() => {
-    if (originalAppPublicUrl) process.env.APP_PUBLIC_URL = originalAppPublicUrl;
+    if (originalSiteUrl) process.env.NEXT_PUBLIC_SITE_URL = originalSiteUrl;
   });
 
   [

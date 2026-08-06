@@ -14,7 +14,7 @@ export function resolveHydraContinuationUrl(value: string) {
 }
 
 export function resolveConfiguredAppPublicOrigin() {
-  return parseOrigin(process.env.APP_PUBLIC_URL);
+  return parseOrigin(process.env.NEXT_PUBLIC_SITE_URL);
 }
 
 export function parseOrigin(value: string | undefined) {

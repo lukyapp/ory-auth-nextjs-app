@@ -48,7 +48,7 @@ export function processSetCookieHeaders(
 
 function parseConfiguredPublicUrl() {
   try {
-    return process.env.APP_PUBLIC_URL ? new URL(process.env.APP_PUBLIC_URL) : null;
+    return process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : null;
   } catch {
     return null;
   }

@@ -16,7 +16,7 @@ export type LoginVerificationInput = z.infer<typeof LoginVerificationSchema>;
 export function createLoginVerificationUrl(loginChallenge: string, subject: string) {
   const appOrigin = resolveConfiguredAppPublicOrigin();
   if (!appOrigin) {
-    throw new HydraFlowError('Email verification requires APP_PUBLIC_URL.', {
+    throw new HydraFlowError('Email verification requires NEXT_PUBLIC_SITE_URL.', {
       code: 'hydra_login_verification_config_missing',
       description: 'Unable to start account verification right now.',
       status: 500,
