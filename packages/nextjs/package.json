@@ -1,0 +1,43 @@
+{
+  "name": "@ory/nextjs",
+  "version": "0.0.0-unused",
+  "license": "Apache License 2.0",
+  "private": false,
+  "dependencies": {
+    "@ory/client-fetch": "1.22.65",
+    "cookie": "^1.0.1",
+    "psl": "^1.15.0",
+    "set-cookie-parser": "^2.7.1"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/react": "19.2.17",
+    "@types/set-cookie-parser": "^2.4.10",
+    "react": "19.2.7",
+    "typescript": "5.9.3"
+  },
+  "keywords": [
+    "ory",
+    "auth",
+    "react",
+    "passwordless",
+    "login",
+    "user management",
+    "permissions",
+    "authentication",
+    "nextjs",
+    "vercel",
+    "app router",
+    "pages router"
+  ],
+  "peerDependencies": {
+    "next": ">=13.1.0",
+    "react": ">=16.0.0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./middleware": "./src/middleware/index.ts",
+    "./app": "./src/app/index.ts",
+    "./pages": "./src/pages/index.ts"
+  }
+}

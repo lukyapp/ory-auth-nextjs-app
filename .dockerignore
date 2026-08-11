@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.git
+.idea
+.next
+app/.next
+coverage
+Dockerfile
+node_modules
+app/node_modules
+packages/*/node_modules
+npm-debug.log*
+pnpm-debug.log*
+README.md
+tsconfig.tsbuildinfo

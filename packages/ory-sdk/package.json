@@ -1,0 +1,18 @@
+{
+  "name": "@ory/sdk",
+  "version": "1.22.65-local",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prettier": "prettier --check ."
+  },
+  "exports": {
+    "./server": "./server/index.ts"
+  },
+  "dependencies": {
+    "@ory/client": "^1.22.65",
+    "@ory/client-fetch": "^1.22.65"
+  }
+}

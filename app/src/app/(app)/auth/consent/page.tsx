@@ -1,0 +1,120 @@
+import { createOryConfig } from '@/lib/ory/ory.config';
+import { resolveOryLocale } from '@/lib/ory/resolve-ory-locale';
+import type { OAuth2ConsentRequest } from '@ory/client-fetch';
+import { getServerSession } from '@ory/nextjs/app';
+import { redirect } from 'next/navigation';
+import React from 'react';
+import { logAuthFlow } from '../auth-flow-log';
+import { createAuthIntentToken } from '../auth-intent';
+import { AuthDebugPanel, shouldShowAuthDiagnostics } from '../debug-panel';
+import { toErrorPageHref } from '../hydra-flow-error';
+import { isNextRedirectError } from '../is-next-redirect-error';
+import { ConsentUi } from './consent-ui';
+import { getConsentRequest } from './getConsentRequest';
+
+export const dynamic = 'force-dynamic';
+
+export default async function ConsentPage(props: {
+  searchParams: Promise<{
+    consent_challenge?: string | string[];
+    debug?: string | string[];
+  }>;
+}) {
+  try {
+    const searchParams = await props.searchParams;
+    const consentChallenge = Array.isArray(searchParams.consent_challenge)
+      ? searchParams.consent_challenge[0]
+      : searchParams.consent_challenge;
+    const showDiagnostics = shouldShowAuthDiagnostics(searchParams);
+    if (!consentChallenge) {
+      return;
+    }
+    const consentRequest = await getConsentRequest(consentChallenge);
+    logAuthFlow('consent.page.loaded', {
+      clientId: consentRequest.client?.client_id ?? null,
+      consentChallenge,
+      subject: consentRequest.subject ?? null,
+    });
+    const locale = await resolveOryLocale({ flow: consentRequest, searchParams });
+    const oryConfig = createOryConfig(locale);
+    const session = await getServerSession();
+    const subject = session?.identity?.id;
+    if (!subject || !consentRequest.subject || consentRequest.subject !== subject) {
+      throw new Error('Consent request does not match the authenticated session.');
+    }
+    if (shouldSkipConsent(consentRequest)) {
+      logAuthFlow('consent.challenge.skipped', {
+        clientId: consentRequest.client?.client_id ?? null,
+        consentChallenge,
+        requestedScopes: consentRequest.requested_scope ?? [],
+      });
+      redirect(`/auth/consent/accept?consent_challenge=${encodeURIComponent(consentChallenge)}`);
+    }
+    logAuthFlow('consent.flow.render', {
+      clientId: consentRequest.client?.client_id ?? null,
+      consentChallenge,
+      locale,
+      requestedScopes: consentRequest.requested_scope ?? [],
+    });
+    const acceptIntentToken = createAuthIntentToken({
+      action: 'consent-accept',
+      challenge: consentChallenge,
+      subject,
+    });
+    const rejectIntentToken = createAuthIntentToken({
+      action: 'consent-reject',
+      challenge: consentChallenge,
+      subject,
+    });
+    if (!showDiagnostics) {
+      return (
+        <ConsentUi
+          consentRequest={consentRequest}
+          acceptIntentToken={acceptIntentToken}
+          oryConfig={oryConfig}
+          rejectIntentToken={rejectIntentToken}
+          session={session}
+        />
+      );
+    }
+
+    return (
+      <div className="flex w-full max-w-5xl flex-col gap-6">
+        <AuthDebugPanel
+          title="Consent Flow"
+          description="This panel shows the current Hydra consent request, requested scopes, and whether consent can be skipped."
+          values={{
+            'Client skips consent': consentRequest.client?.skip_consent ?? false,
+            'Consent challenge': consentChallenge,
+            'Final skip decision': shouldSkipConsent(consentRequest),
+            'Hydra client id': consentRequest.client?.client_id ?? null,
+            'Hydra client name': consentRequest.client?.client_name ?? null,
+            'Requested scopes': consentRequest.requested_scope ?? [],
+            'Skip requested by Hydra': consentRequest.skip ?? false,
+            Subject: consentRequest.subject ?? null,
+          }}
+        />
+        <ConsentUi
+          consentRequest={consentRequest}
+          acceptIntentToken={acceptIntentToken}
+          oryConfig={oryConfig}
+          rejectIntentToken={rejectIntentToken}
+          session={session}
+        />
+      </div>
+    );
+  } catch (error: unknown) {
+    if (isNextRedirectError(error)) {
+      throw error;
+    }
+
+    logAuthFlow('consent.flow.error', {
+      errorCode: 'consent_flow_error',
+    });
+    redirect(toErrorPageHref(error));
+  }
+}
+
+function shouldSkipConsent(consentRequest: OAuth2ConsentRequest) {
+  return Boolean(consentRequest.skip || consentRequest.client?.skip_consent);
+}
