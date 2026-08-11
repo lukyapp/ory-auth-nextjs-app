@@ -12,6 +12,12 @@
     "start": "pnpm --filter app start",
     "typecheck": "pnpm --filter app typecheck"
   },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.23",
+      "sharp": "0.35.0"
+    }
+  },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "prettier": "^3.8.1",

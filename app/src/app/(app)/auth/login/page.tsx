@@ -7,11 +7,12 @@ import { accountHistoryId, readAccountHistory, type RememberedAccount } from '..
 import { logAuthFlow } from '../auth-flow-log';
 import { createAuthIntentToken } from '../auth-intent';
 import { AuthDebugPanel, shouldShowAuthDiagnostics } from '../debug-panel';
-import { toErrorPageHref } from '../hydra-flow-error';
+import { HydraFlowError, toErrorPageHref } from '../hydra-flow-error';
 import { isNextRedirectError } from '../is-next-redirect-error';
 import { acceptLoginRequest } from './acceptLoginRequest';
 import { readAccountSelection } from './account-selection';
 import { getLoginRequest } from './getLoginRequest';
+import { resolveLoginChallenge, resolveLoginRequestParameter } from './login-request-policy';
 import { LoginUi } from './login-ui';
 
 export const dynamic = 'force-dynamic';
@@ -50,12 +51,31 @@ export default async function LoginPage(props: OryPageParams) {
     }
 
     const flowLoginChallenge = flow.oauth2_login_challenge?.trim() || undefined;
-    const resolvedLoginChallenge = loginChallenge ?? flowLoginChallenge;
+    const challengeResolution = resolveLoginChallenge({
+      flowLoginChallenge,
+      queryLoginChallenge: loginChallenge,
+    });
+    if (challengeResolution.status === 'mismatch') {
+      throw new HydraFlowError('Login challenge mismatch.', {
+        code: 'hydra_login_challenge_mismatch',
+        description: 'The login flow does not match the requested OAuth challenge.',
+        status: 400,
+      });
+    }
+    const resolvedLoginChallenge = challengeResolution.loginChallenge;
     const loginRequest = resolvedLoginChallenge
       ? await getLoginRequest(resolvedLoginChallenge)
       : null;
-    const resolvedPrompt = prompt ?? resolveRequestUrlParam(loginRequest?.request_url, 'prompt');
-    const resolvedMaxAge = maxAge ?? resolveRequestUrlParam(loginRequest?.request_url, 'max_age');
+    const resolvedPrompt = resolveLoginRequestParameter({
+      param: 'prompt',
+      queryValue: prompt,
+      requestUrl: loginRequest?.request_url,
+    });
+    const resolvedMaxAge = resolveLoginRequestParameter({
+      param: 'max_age',
+      queryValue: maxAge,
+      requestUrl: loginRequest?.request_url,
+    });
     const locale = await resolveOryLocale({ flow: loginRequest ?? flow, searchParams });
     const oryConfig = locale === initialLocale ? initialOryConfig : createOryConfig(locale);
 
@@ -251,18 +271,6 @@ function shouldSelectAccount({
 
   const promptValues = prompt?.split(' ').filter(Boolean) ?? [];
   return promptValues.includes('login') || promptValues.includes('select_account');
-}
-
-function resolveRequestUrlParam(requestUrl: string | null | undefined, param: string) {
-  if (!requestUrl) {
-    return undefined;
-  }
-
-  try {
-    return new URL(requestUrl, 'http://localhost').searchParams.get(param) ?? undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 function buildAccountChoices({
